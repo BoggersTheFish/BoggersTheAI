@@ -5,11 +5,27 @@ Thanks for helping improve the living TS-OS.
 ## Development setup
 
 1. Fork and clone the repository.
-2. Create a virtual environment.
+2. Create a virtual environment:
+
+```bash
+python -m venv .venv
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+# macOS / Linux
+source .venv/bin/activate
+```
+
 3. Install editable + dev dependencies:
 
 ```bash
 pip install -e ".[dev]"
+```
+
+4. Verify the install:
+
+```bash
+python -m compileall BoggersTheAI
+pytest -q
 ```
 
 ## Quality checks
@@ -20,49 +36,48 @@ Run these before opening a PR:
 black .
 isort .
 ruff check --fix .
+mypy BoggersTheAI --ignore-missing-imports
 pytest -q
 ```
+
+## Project structure
+
+| Directory | Purpose |
+|-----------|---------|
+| `core/` | Graph engine, wave, query processing, config, logging, events, plugins, health, metrics |
+| `adapters/` | Data ingestion (Wikipedia, RSS, HN, Vault, Markdown, X API) |
+| `entities/` | Consolidation, insight, synthesis, inference routing |
+| `tools/` | Search, calc, code execution, file reading |
+| `multimodal/` | Voice in/out, image captioning |
+| `interface/` | Runtime composition, CLI, API |
+| `mind/` | TUI (Rich) |
+| `dashboard/` | FastAPI observability endpoints |
+| `tests/` | Pytest suite |
 
 ## Pull request guidelines
 
 - Keep changes focused and modular.
 - Add or update tests for behavior changes.
 - Update docs/config when introducing new features.
-- Keep runtime safety defaults intact.
+- Keep runtime safety defaults intact (`safety_dry_run: true` in config).
+- Prefer protocol-driven design over concrete dependencies.
+- Avoid introducing heavy dependencies unless clearly justified.
 
 ## Commit style
 
-- Prefer short imperative subjects.
-- Include rationale in body when needed.
+- Prefer short imperative subjects (e.g. "Add graph metrics endpoint").
+- Include rationale in body when the change is non-obvious.
 
-## Reporting issues
+## Configuration
 
-Use the issue templates for bug reports and feature requests.
-# Contributing to BoggersTheAI
-
-## Development Setup
-
-1. Create a venv:
-   - `python -m venv .venv`
-   - `.\.venv\Scripts\Activate.ps1` (Windows PowerShell)
-2. Run quick validation:
-   - `python -m compileall BoggersTheAI`
-
-## Code Guidelines
-
-- Keep modules decoupled and protocol-driven.
-- Keep synthesis grounded to retrieved context.
-- Prefer small, testable functions with deterministic behavior.
-- Avoid introducing heavy dependencies unless clearly justified.
-
-## Pull Request Expectations
-
-- Explain why the change is needed.
-- List modified modules and expected behavior changes.
-- Include validation steps you ran.
-- Add tests for non-trivial behavior changes when possible.
+All tuning knobs live in `config.yaml`. Do not hardcode magic numbers — use the config surface or add a new config key with a sensible default.
 
 ## Security
 
 - Never commit secrets (`.env`, keys, tokens).
-- Keep runtime config safe for public repositories.
+- Keep `config.yaml` safe for public repositories.
+- Use environment variables for sensitive values (`X_BEARER_TOKEN`, `BOGGERS_DASHBOARD_TOKEN`).
+
+## Reporting issues
+
+Use the [issue templates](https://github.com/BoggersTheFish/BoggersTheAI/issues/new/choose) for bug reports and feature requests.
