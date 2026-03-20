@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from BoggersTheAI import BoggersRuntime
 
-app = FastAPI(title="BoggersTheAI Dashboard", version="0.1.0")
+app = FastAPI(title="BoggersTheAI Dashboard", version="0.2.1")
 runtime = BoggersRuntime()
 _tension_history: list[dict[str, Any]] = []
 _history_lock = threading.Lock()

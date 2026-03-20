@@ -2,6 +2,13 @@
 
 Thanks for helping improve the living TS-OS.
 
+## Documentation
+
+- **User-facing usage** (install, CLI, API, dashboard, config, env vars): **[README.md](README.md)** — keep it accurate when you change behavior.
+- **Release notes**: append to **[CHANGELOG.md](CHANGELOG.md)** for user-visible changes.
+- **Secrets**: document new env vars in **[.env.example](.env.example)** and README tables, never commit real values.
+- **Examples**: add or update scripts under `examples/` and mention them in README if they are primary entry points.
+
 ## Development setup
 
 1. Fork and clone the repository.
@@ -15,7 +22,7 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-3. Install editable + dev dependencies:
+3. Install editable + dev dependencies (from the `BoggersTheAI` folder that contains `pyproject.toml`):
 
 ```bash
 pip install -e ".[dev]"
@@ -24,7 +31,7 @@ pip install -e ".[dev]"
 4. Verify the install:
 
 ```bash
-python -m compileall BoggersTheAI
+python -m compileall .
 pytest -q
 ```
 
@@ -40,6 +47,8 @@ mypy BoggersTheAI --ignore-missing-imports
 pytest -q
 ```
 
+CI runs **ruff**, **black --check**, **isort --check**, and **pytest** on push/PR.
+
 ## Project structure
 
 | Directory | Purpose |
@@ -49,7 +58,7 @@ pytest -q
 | `entities/` | Consolidation, insight, synthesis, inference routing |
 | `tools/` | Search, calc, code execution, file reading |
 | `multimodal/` | Voice in/out, image captioning |
-| `interface/` | Runtime composition, CLI, API |
+| `interface/` | Runtime composition, CLI, API helper |
 | `mind/` | TUI (Rich) |
 | `dashboard/` | FastAPI observability endpoints |
 | `tests/` | Pytest suite |
@@ -58,8 +67,8 @@ pytest -q
 
 - Keep changes focused and modular.
 - Add or update tests for behavior changes.
-- Update docs/config when introducing new features.
-- Keep runtime safety defaults intact (`safety_dry_run: true` in config).
+- Update **README.md** / **CHANGELOG.md** / **.env.example** when user-visible behavior or configuration changes.
+- Keep runtime safety defaults sensible (`safety_dry_run` in config for risky paths).
 - Prefer protocol-driven design over concrete dependencies.
 - Avoid introducing heavy dependencies unless clearly justified.
 
@@ -76,7 +85,7 @@ All tuning knobs live in `config.yaml`. Do not hardcode magic numbers — use th
 
 - Never commit secrets (`.env`, keys, tokens).
 - Keep `config.yaml` safe for public repositories.
-- Use environment variables for sensitive values (`X_BEARER_TOKEN`, `BOGGERS_DASHBOARD_TOKEN`).
+- Use environment variables for sensitive values (`X_BEARER_TOKEN`, `BOGGERS_DASHBOARD_TOKEN`, etc.).
 
 ## Reporting issues
 

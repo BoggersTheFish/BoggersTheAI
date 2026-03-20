@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1] - 2026-03-20
+
+### Changed
+- **Documentation:** Expanded [README.md](README.md) with table of contents, prerequisites (Ollama, optional GPU), full CLI command reference, Python API table, dashboard endpoints and auth notes, data directories, and troubleshooting pointers for dashboard token vs browser `fetch`.
+- [CONTRIBUTING.md](CONTRIBUTING.md) now includes a Documentation section and cross-links to README, CHANGELOG, and `.env.example`.
+- [.env.example](.env.example) documents dashboard host/port/token variables.
+- [examples/README.md](examples/README.md) indexes quickstart, demos, and notebook.
+- Package version bumped to **0.2.1** (`pyproject.toml`, dashboard OpenAPI version).
+
 ## [0.2.0] - 2026-03-20
 
 ### Added
