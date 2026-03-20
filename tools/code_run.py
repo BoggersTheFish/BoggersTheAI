@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -84,13 +85,12 @@ class CodeRunTool:
                 script_path.write_text(code, encoding="utf-8")
             try:
                 completed = subprocess.run(
-                    ["python", str(script_path)],
+                    [sys.executable, str(script_path)],
                     capture_output=True,
                     text=True,
                     timeout=self.timeout_seconds,
                     check=False,
                     cwd=temp_dir,
-                    env={"PATH": ""},
                 )
             except subprocess.TimeoutExpired:
                 return f"Code execution timed out after {self.timeout_seconds}s."
