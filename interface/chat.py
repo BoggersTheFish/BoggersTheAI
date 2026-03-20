@@ -21,5 +21,8 @@ def run_chat(runtime: BoggersRuntime | None = None) -> None:
                 f"tension: {status.get('tension'):.2f} | last_cycle: {status.get('last_cycle')}"
             )
             continue
-        response = rt.ask(query)
-        print(response.answer)
+        try:
+            response = rt.ask(query)
+            print(response.answer)
+        except Exception as exc:
+            print(f"Error: {exc}")

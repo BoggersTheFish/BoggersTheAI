@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+import logging
+import os
 from pathlib import Path
+
+logger = logging.getLogger("boggers.tools.file_read")
+
+ALLOWED_EXTENSIONS = {".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv", ".log"}
 
 
 class FileReadTool:
@@ -8,7 +14,13 @@ class FileReadTool:
         raw_path = str(kwargs.get("path", "")).strip()
         if not raw_path:
             return "File path is empty."
-        path = Path(raw_path)
+
+        resolved = os.path.realpath(raw_path)
+        _, ext = os.path.splitext(resolved)
+        if ext.lower() not in ALLOWED_EXTENSIONS:
+            return f"Error: file extension '{ext}' not allowed"
+
+        path = Path(resolved)
         if not path.exists():
             return f"File not found: {path}"
         if path.is_dir():

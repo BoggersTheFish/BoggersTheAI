@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import threading
 import time
 from dataclasses import asdict
@@ -9,6 +10,8 @@ from typing import Dict, Iterable, List, Set, Tuple
 
 from ..types import Edge, Node
 from .rules_engine import RulesEngineCycleResult, detect_tension, run_rules_cycle, spawn_emergence
+
+logger = logging.getLogger("boggers.graph")
 
 
 class UniversalLivingGraph:
@@ -24,6 +27,7 @@ class UniversalLivingGraph:
         self._wave_thread: threading.Thread | None = None
         self._wave_cycle_count = 0
         self._last_tension = 0.0
+        self._lock = threading.RLock()
         if auto_load:
             self.load()
 
@@ -47,6 +51,10 @@ class UniversalLivingGraph:
             "enabled": True,
             "log_each_cycle": True,
             "auto_save": True,
+            "spread_factor": 0.1,
+            "relax_decay": 0.85,
+            "tension_threshold": 0.2,
+            "prune_threshold": 0.25,
         }
         if config is None:
             return defaults
@@ -69,42 +77,44 @@ class UniversalLivingGraph:
         last_wave: int = 0,
         attributes: dict | None = None,
     ) -> Node:
-        normalized_topics = sorted(set(topics or []))
-        old = self.nodes.get(node_id)
-        node = Node(
-            id=node_id,
-            content=content,
-            topics=normalized_topics,
-            activation=float(activation),
-            stability=float(stability),
-            base_strength=float(base_strength),
-            last_wave=int(last_wave),
-            collapsed=False if old is None else old.collapsed,
-            attributes=dict(attributes or {}),
-        )
-        self.nodes[node_id] = node
-        self._adjacency.setdefault(node_id, {})
+        with self._lock:
+            normalized_topics = sorted(set(topics or []))
+            old = self.nodes.get(node_id)
+            node = Node(
+                id=node_id,
+                content=content,
+                topics=normalized_topics,
+                activation=float(activation),
+                stability=float(stability),
+                base_strength=float(base_strength),
+                last_wave=int(last_wave),
+                collapsed=False if old is None else old.collapsed,
+                attributes=dict(attributes or {}),
+            )
+            self.nodes[node_id] = node
+            self._adjacency.setdefault(node_id, {})
 
-        if old:
-            for topic in old.topics:
-                topic_set = self._topic_index.get(topic)
-                if topic_set:
-                    topic_set.discard(node_id)
-                    if not topic_set:
-                        self._topic_index.pop(topic, None)
-        for topic in normalized_topics:
-            self._topic_index.setdefault(topic, set()).add(node_id)
-        return node
+            if old:
+                for topic in old.topics:
+                    topic_set = self._topic_index.get(topic)
+                    if topic_set:
+                        topic_set.discard(node_id)
+                        if not topic_set:
+                            self._topic_index.pop(topic, None)
+            for topic in normalized_topics:
+                self._topic_index.setdefault(topic, set()).add(node_id)
+            return node
 
     def add_edge(
         self, src: str, dst: str, weight: float = 1.0, relation: str = "relates"
     ) -> Edge:
-        if src not in self.nodes or dst not in self.nodes:
-            raise KeyError("Both src and dst must exist before adding an edge.")
-        edge = Edge(src=src, dst=dst, weight=float(weight), relation=relation)
-        self.edges.append(edge)
-        self._adjacency.setdefault(src, {})[dst] = float(weight)
-        return edge
+        with self._lock:
+            if src not in self.nodes or dst not in self.nodes:
+                raise KeyError("Both src and dst must exist before adding an edge.")
+            edge = Edge(src=src, dst=dst, weight=float(weight), relation=relation)
+            self.edges.append(edge)
+            self._adjacency.setdefault(src, {})[dst] = float(weight)
+            return edge
 
     def get_node(self, node_id: str) -> Node | None:
         return self.nodes.get(node_id)
@@ -175,11 +185,12 @@ class UniversalLivingGraph:
         return list(reversed(history))
 
     def update_activation(self, node_id: str, delta: float) -> float:
-        node = self.nodes.get(node_id)
-        if node is None:
-            raise KeyError(f"Node '{node_id}' does not exist.")
-        node.activation = max(0.0, min(1.0, node.activation + delta))
-        return node.activation
+        with self._lock:
+            node = self.nodes.get(node_id)
+            if node is None:
+                raise KeyError(f"Node '{node_id}' does not exist.")
+            node.activation = max(0.0, min(1.0, node.activation + delta))
+            return node.activation
 
     def strongest_node(self) -> Node | None:
         active = [node for node in self.nodes.values() if not node.collapsed]
@@ -191,24 +202,28 @@ class UniversalLivingGraph:
         return self.strongest_node()
 
     def propagate(self) -> None:
-        updates: Dict[str, float] = {}
-        for node in self.nodes.values():
-            if node.collapsed:
-                continue
-            for neighbor_id, weight in self._adjacency.get(node.id, {}).items():
-                updates[neighbor_id] = updates.get(neighbor_id, 0.0) + (
-                    node.activation * weight * 0.1
+        with self._lock:
+            updates: Dict[str, float] = {}
+            for node in self.nodes.values():
+                if node.collapsed:
+                    continue
+                for neighbor_id, weight in self._adjacency.get(node.id, {}).items():
+                    updates[neighbor_id] = updates.get(neighbor_id, 0.0) + (
+                    node.activation * weight * float(self._wave_settings.get("spread_factor", 0.1))
                 )
-        for node_id, delta in updates.items():
-            self.update_activation(node_id, delta)
+            for node_id, delta in updates.items():
+                self.update_activation(node_id, delta)
 
     def relax(self) -> None:
-        for node in self.nodes.values():
-            if node.collapsed:
-                continue
-            node.activation = node.base_strength + (node.activation - node.base_strength) * 0.85
+        with self._lock:
+            for node in self.nodes.values():
+                if node.collapsed:
+                    continue
+                node.activation = node.base_strength + (node.activation - node.base_strength) * float(self._wave_settings.get("relax_decay", 0.85))
 
-    def prune(self, threshold: float = 0.25) -> int:
+    def prune(self, threshold: float | None = None) -> int:
+        if threshold is None:
+            threshold = float(self._wave_settings.get("prune_threshold", 0.25))
         kept_edges: List[Edge] = []
         pruned = 0
         for edge in self.edges:
@@ -221,69 +236,76 @@ class UniversalLivingGraph:
         return pruned
 
     def detect_tensions(self) -> Dict[str, float]:
-        tensions: Dict[str, float] = {}
-        for node in self.nodes.values():
-            if node.collapsed:
-                continue
-            tension = abs(node.activation - node.base_strength)
-            if tension > 0.2:
-                tensions[node.id] = tension
-        return tensions
+        with self._lock:
+            tensions: Dict[str, float] = {}
+            for node in self.nodes.values():
+                if node.collapsed:
+                    continue
+                tension = abs(node.activation - node.base_strength)
+                if tension > float(self._wave_settings.get("tension_threshold", 0.2)):
+                    tensions[node.id] = tension
+            return tensions
 
     def run_wave_cycle(self) -> RulesEngineCycleResult:
-        graph_nodes = {
-            node_id: self._to_graph_node(node)
-            for node_id, node in self.nodes.items()
-            if not node.collapsed
-        }
-        adjacency = {src: dict(dst) for src, dst in self._adjacency.items()}
-        edges = [(edge.src, edge.dst, edge.weight) for edge in self.edges]
-        result = run_rules_cycle(graph_nodes, adjacency, edges)
-        self._apply_graph_node_updates(graph_nodes)
-        self._adjacency = adjacency
-        self._sync_edges_from_tuples(edges)
-        return result
+        with self._lock:
+            graph_nodes = {
+                node_id: self._to_graph_node(node)
+                for node_id, node in self.nodes.items()
+                if not node.collapsed
+            }
+            adjacency = {src: dict(dst) for src, dst in self._adjacency.items()}
+            edges = [(edge.src, edge.dst, edge.weight) for edge in self.edges]
+            result = run_rules_cycle(graph_nodes, adjacency, edges)
+            self._apply_graph_node_updates(graph_nodes)
+            self._adjacency = adjacency
+            self._sync_edges_from_tuples(edges)
+            return result
 
     def save(self, path: str | Path | None = None) -> Path:
-        target = Path(path) if path is not None else self.graph_path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "nodes": [asdict(node) for node in self.nodes.values()],
-            "edges": [asdict(edge) for edge in self.edges],
-        }
-        target.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        return target
+        with self._lock:
+            target = Path(path) if path is not None else self.graph_path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "nodes": [asdict(node) for node in self.nodes.values()],
+                "edges": [asdict(edge) for edge in self.edges],
+            }
+            target.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            return target
 
     def load(self, path: str | Path | None = None) -> "UniversalLivingGraph":
-        target = Path(path) if path is not None else self.graph_path
-        if not target.exists():
-            return self
-        raw = json.loads(target.read_text(encoding="utf-8"))
-        self.nodes.clear()
-        self.edges.clear()
-        self._adjacency.clear()
-        self._topic_index.clear()
-        for item in raw.get("nodes", []):
-            node = self.add_node(
-                node_id=item["id"],
-                content=item.get("content", ""),
-                topics=item.get("topics", []),
-                activation=float(item.get("activation", 0.0)),
-                stability=float(item.get("stability", 1.0)),
-                base_strength=float(item.get("base_strength", 0.5)),
-                last_wave=int(item.get("last_wave", 0)),
-                attributes=item.get("attributes", {}),
-            )
-            node.collapsed = bool(item.get("collapsed", False))
-        for item in raw.get("edges", []):
-            if item.get("src") in self.nodes and item.get("dst") in self.nodes:
-                self.add_edge(
-                    src=item["src"],
-                    dst=item["dst"],
-                    weight=float(item.get("weight", 1.0)),
-                    relation=item.get("relation", "relates"),
+        with self._lock:
+            target = Path(path) if path is not None else self.graph_path
+            if not target.exists():
+                return self
+            raw = json.loads(target.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict) or "nodes" not in raw:
+                logger.warning("Invalid graph.json structure; starting fresh")
+                return self
+            self.nodes.clear()
+            self.edges.clear()
+            self._adjacency.clear()
+            self._topic_index.clear()
+            for item in raw.get("nodes", []):
+                node = self.add_node(
+                    node_id=item["id"],
+                    content=item.get("content", ""),
+                    topics=item.get("topics", []),
+                    activation=float(item.get("activation", 0.0)),
+                    stability=float(item.get("stability", 1.0)),
+                    base_strength=float(item.get("base_strength", 0.5)),
+                    last_wave=int(item.get("last_wave", 0)),
+                    attributes=item.get("attributes", {}),
                 )
-        return self
+                node.collapsed = bool(item.get("collapsed", False))
+            for item in raw.get("edges", []):
+                if item.get("src") in self.nodes and item.get("dst") in self.nodes:
+                    self.add_edge(
+                        src=item["src"],
+                        dst=item["dst"],
+                        weight=float(item.get("weight", 1.0)),
+                        relation=item.get("relation", "relates"),
+                    )
+            return self
 
     def start_background_wave(self) -> threading.Thread:
         if self._wave_thread and self._wave_thread.is_alive():
@@ -352,6 +374,25 @@ class UniversalLivingGraph:
             "edges": len(self.edges),
             "tension": float(getattr(self, "_last_tension", 0.0)),
             "last_cycle": "running" if self._wave_thread else "stopped",
+        }
+
+    def get_metrics(self) -> dict:
+        active = [n for n in self.nodes.values() if not n.collapsed]
+        topic_counts: dict[str, int] = {}
+        for node in active:
+            for topic in node.topics:
+                topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        avg_activation = sum(n.activation for n in active) / max(len(active), 1)
+        avg_stability = sum(n.stability for n in active) / max(len(active), 1)
+        return {
+            "total_nodes": len(self.nodes),
+            "active_nodes": len(active),
+            "collapsed_nodes": len(self.nodes) - len(active),
+            "edges": len(self.edges),
+            "avg_activation": round(avg_activation, 4),
+            "avg_stability": round(avg_stability, 4),
+            "topics": topic_counts,
+            "edge_density": round(len(self.edges) / max(len(active), 1), 4),
         }
 
     def _rebuild_adjacency(self) -> None:

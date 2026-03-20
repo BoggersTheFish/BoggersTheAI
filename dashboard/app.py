@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import os
+import threading
+from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse
 
 from BoggersTheAI import BoggersRuntime
@@ -10,23 +13,32 @@ from BoggersTheAI import BoggersRuntime
 app = FastAPI(title="BoggersTheAI Dashboard", version="0.1.0")
 runtime = BoggersRuntime()
 _tension_history: list[dict[str, Any]] = []
+_history_lock = threading.Lock()
+
+_AUTH_TOKEN = os.environ.get("BOGGERS_DASHBOARD_TOKEN", "")
+
+
+def _check_auth(authorization: str = Header(default="")) -> None:
+    if _AUTH_TOKEN and authorization != f"Bearer {_AUTH_TOKEN}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def _collect_status() -> dict[str, Any]:
     status = runtime.get_status()
-    _tension_history.append(
-        {
-            "cycle": int(status.get("cycle_count", 0)),
-            "tension": float(status.get("tension", 0.0)),
-        }
-    )
-    if len(_tension_history) > 300:
-        del _tension_history[:-300]
+    with _history_lock:
+        _tension_history.append(
+            {
+                "cycle": int(status.get("cycle_count", 0)),
+                "tension": float(status.get("tension", 0.0)),
+            }
+        )
+        if len(_tension_history) > 300:
+            del _tension_history[:-300]
     return status
 
 
 @app.get("/status")
-def status() -> dict[str, Any]:
+def status(_: None = Depends(_check_auth)) -> dict[str, Any]:
     return {
         "status": _collect_status(),
         "graph": {
@@ -93,7 +105,43 @@ def wave() -> str:
 """
 
 
+@app.get("/graph")
+def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
+    nodes = [
+        {
+            "id": n.id,
+            "topics": n.topics,
+            "activation": n.activation,
+            "stability": n.stability,
+            "collapsed": n.collapsed,
+        }
+        for n in runtime.graph.nodes.values()
+    ]
+    edges = [
+        {"src": e.src, "dst": e.dst, "weight": e.weight}
+        for e in runtime.graph.edges
+    ]
+    return {"nodes": nodes, "edges": edges}
+
+
+@app.get("/traces")
+def traces(_: None = Depends(_check_auth), limit: int = 20) -> dict[str, Any]:
+    traces_dir = Path("traces")
+    if not traces_dir.exists():
+        return {"traces": [], "count": 0}
+    files = sorted(traces_dir.glob("*.jsonl"), reverse=True)[:limit]
+    items = []
+    for f in files:
+        try:
+            items.append({"file": f.name, "content": f.read_text(encoding="utf-8").strip()})
+        except Exception:
+            continue
+    return {"traces": items, "count": len(items)}
+
+
 def main() -> None:
     import uvicorn
 
-    uvicorn.run("dashboard.app:app", host="0.0.0.0", port=8000, reload=False)
+    host = os.environ.get("BOGGERS_DASHBOARD_HOST", "0.0.0.0")
+    port = int(os.environ.get("BOGGERS_DASHBOARD_PORT", "8000"))
+    uvicorn.run("BoggersTheAI.dashboard.app:app", host=host, port=port, reload=False)

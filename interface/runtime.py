@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import atexit
 import json
+import logging
 import shutil
 import threading
 import time
@@ -9,6 +10,8 @@ import uuid
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
+
+logger = logging.getLogger("boggers.runtime")
 
 from ..adapters import (
     AdapterRegistry,
@@ -124,11 +127,14 @@ class RuntimeConfig:
 class BoggersRuntime:
     def __init__(self, config: RuntimeConfig | None = None) -> None:
         self.config = config or RuntimeConfig()
+        from ..core.config_loader import load_and_apply
+        self.raw_config = load_and_apply(self.config)
         self.graph = UniversalLivingGraph(config=self.config)
         self.graph.load()
         if self.config.get("wave", {}).get("enabled", True):
             self.graph.start_background_wave()
         self._last_query_time = time.time()
+        self._state_lock = threading.Lock()
         self._os_loop_thread: threading.Thread | None = None
         self._os_stop_event = threading.Event()
         self._autonomous_mode_index = 0
@@ -141,11 +147,24 @@ class BoggersRuntime:
         self._ensure_self_improvement_node()
 
         adapter_registry = AdapterRegistry()
-        adapter_registry.register("wikipedia", WikipediaAdapter())
-        adapter_registry.register("rss", RSSAdapter())
-        adapter_registry.register("hacker_news", HackerNewsAdapter())
-        adapter_registry.register("vault", VaultAdapter())
-        adapter_registry.register("x_api", XApiAdapter())
+        adapter_flags = self.raw_config.get("adapters", {}).get("enabled", {})
+        if isinstance(adapter_flags, dict):
+            if adapter_flags.get("wikipedia", True):
+                adapter_registry.register("wikipedia", WikipediaAdapter())
+            if adapter_flags.get("rss", True):
+                adapter_registry.register("rss", RSSAdapter())
+            if adapter_flags.get("hacker_news", True):
+                adapter_registry.register("hacker_news", HackerNewsAdapter())
+            if adapter_flags.get("vault", True):
+                adapter_registry.register("vault", VaultAdapter())
+            if adapter_flags.get("x_api", False):
+                adapter_registry.register("x_api", XApiAdapter())
+        else:
+            adapter_registry.register("wikipedia", WikipediaAdapter())
+            adapter_registry.register("rss", RSSAdapter())
+            adapter_registry.register("hacker_news", HackerNewsAdapter())
+            adapter_registry.register("vault", VaultAdapter())
+            adapter_registry.register("x_api", XApiAdapter())
         ingest_adapter = RegistryIngestAdapter(adapter_registry)
 
         inference_router = InferenceRouter(
@@ -226,7 +245,8 @@ class BoggersRuntime:
         atexit.register(self.shutdown)
 
     def ask(self, query: str):
-        self._last_query_time = time.time()
+        with self._state_lock:
+            self._last_query_time = time.time()
         effective_query = self._apply_history_context(query)
         response = self.query_router.process_text(effective_query)
         response.query = query
@@ -234,7 +254,8 @@ class BoggersRuntime:
         return response
 
     def ask_audio(self, audio: bytes):
-        self._last_query_time = time.time()
+        with self._state_lock:
+            self._last_query_time = time.time()
         transcript = self.voice_in.transcribe(audio) or "audio_input"
         effective_query = self._apply_history_context(transcript)
         transcript_response = self.query_router.process_text(effective_query)
@@ -246,7 +267,8 @@ class BoggersRuntime:
         return transcript_response
 
     def ask_image(self, image: bytes, query_hint: str = ""):
-        self._last_query_time = time.time()
+        with self._state_lock:
+            self._last_query_time = time.time()
         caption = self.image_in.caption(image)
         base_query = f"{query_hint}\nimage_context: {caption}".strip()
         effective_query = self._apply_history_context(base_query)
@@ -414,7 +436,8 @@ class BoggersRuntime:
             if self._os_stop_event.wait(interval_seconds):
                 break
             self._auto_fine_tune_check(force=False)
-            idle_seconds = time.time() - self._last_query_time
+            with self._state_lock:
+                idle_seconds = time.time() - self._last_query_time
             if idle_seconds < idle_threshold_seconds:
                 continue
 
@@ -468,9 +491,10 @@ class BoggersRuntime:
                 self.graph.add_edge(strongest.id, node_id, weight=0.3)
             created += 1
         wave_status = self.graph.get_wave_status()
-        print(
-            f"🧠 OS Loop: exploration | tension: "
-            f"{float(wave_status.get('tension', 0.0)):.2f} | spawned: {created}"
+        logger.info(
+            "OS Loop: exploration | tension: %.2f | spawned: %d",
+            float(wave_status.get("tension", 0.0)),
+            created,
         )
 
     def _autonomous_consolidation(self) -> None:
@@ -521,9 +545,11 @@ class BoggersRuntime:
         self.graph.prune(threshold=prune_threshold)
         self.graph.save()
         wave_status = self.graph.get_wave_status()
-        print(
-            f"🧠 OS Loop: consolidation | tension: "
-            f"{float(wave_status.get('tension', 0.0)):.2f} | pruned: {collapsed_count} | merged: {merged_count}"
+        logger.info(
+            "OS Loop: consolidation | tension: %.2f | pruned: %d | merged: %d",
+            float(wave_status.get("tension", 0.0)),
+            collapsed_count,
+            merged_count,
         )
 
     def run_nightly_consolidation(self) -> None:
@@ -577,10 +603,12 @@ class BoggersRuntime:
         self.graph._sync_edges_from_tuples(edge_tuples)  # noqa: SLF001
         self.graph.save()
         wave_status = self.graph.get_wave_status()
-        print(
-            f"🧠 OS Loop: nightly_consolidation | tension: "
-            f"{float(wave_status.get('tension', 0.0)):.2f} | pruned: {collapsed_count} | "
-            f"merged: {merged_count} | emergence: {len(emergent_ids)}"
+        logger.info(
+            "OS Loop: nightly_consolidation | tension: %.2f | pruned: %d | merged: %d | emergence: %d",
+            float(wave_status.get("tension", 0.0)),
+            collapsed_count,
+            merged_count,
+            len(emergent_ids),
         )
 
     def _autonomous_insight_generation(self) -> None:
@@ -592,17 +620,17 @@ class BoggersRuntime:
         tensions = self.graph.detect_tensions()
         if not tensions:
             wave_status = self.graph.get_wave_status()
-            print(
-                f"🧠 OS Loop: insight | tension: "
-                f"{float(wave_status.get('tension', 0.0)):.2f} | skipped: no_tension"
+            logger.info(
+                "OS Loop: insight | tension: %.2f | skipped: no_tension",
+                float(wave_status.get("tension", 0.0)),
             )
             return
         strongest_tension = max(tensions.values())
         if strongest_tension < min_tension:
             wave_status = self.graph.get_wave_status()
-            print(
-                f"🧠 OS Loop: insight | tension: "
-                f"{float(wave_status.get('tension', 0.0)):.2f} | skipped: below_threshold"
+            logger.info(
+                "OS Loop: insight | tension: %.2f | skipped: below_threshold",
+                float(wave_status.get("tension", 0.0)),
             )
             return
 
@@ -626,9 +654,10 @@ class BoggersRuntime:
         }
         insight_trace.write_text(json.dumps(payload) + "\n", encoding="utf-8")
         wave_status = self.graph.get_wave_status()
-        print(
-            f"🧠 OS Loop: insight | tension: "
-            f"{float(wave_status.get('tension', 0.0)):.2f} | topic: {topic}"
+        logger.info(
+            "OS Loop: insight | tension: %.2f | topic: %s",
+            float(wave_status.get("tension", 0.0)),
+            topic,
         )
 
     def run_tui(self) -> None:
@@ -661,7 +690,8 @@ class BoggersRuntime:
         idle_threshold = float(
             self.config.get("os_loop", {}).get("idle_threshold_seconds", 120)
         )
-        return (time.time() - self._last_query_time) >= idle_threshold
+        with self._state_lock:
+            return (time.time() - self._last_query_time) >= idle_threshold
 
     def get_conversation_history(self, last_n: int = 8) -> list[dict]:
         return self.graph.get_conversation_history(last_n=last_n)
@@ -825,7 +855,8 @@ class BoggersRuntime:
         session_node_id = f"session:{self.session_id}"
         if self.graph.get_node(session_node_id) is not None:
             self.graph.add_edge(session_node_id, node.id, weight=0.2)
-        if self._last_conversation_node_id and self.graph.get_node(self._last_conversation_node_id):
-            self.graph.add_edge(self._last_conversation_node_id, node.id, weight=0.3)
-        self._last_conversation_node_id = node.id
+        with self._state_lock:
+            if self._last_conversation_node_id and self.graph.get_node(self._last_conversation_node_id):
+                self.graph.add_edge(self._last_conversation_node_id, node.id, weight=0.3)
+            self._last_conversation_node_id = node.id
         self.graph.save()

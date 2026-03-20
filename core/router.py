@@ -136,9 +136,15 @@ class QueryRouter:
             self.mode_manager.end_cycle()
         return responses
 
-    def _enqueue_hypotheses(self, hypotheses: List[str]) -> None:
-        for hypothesis in hypotheses:
-            if not hypothesis:
+    def _enqueue_hypotheses(self, hypotheses: list) -> None:
+        for item in hypotheses:
+            if isinstance(item, dict):
+                text = str(item.get("text", "")).strip()
+            elif isinstance(item, str):
+                text = item.strip()
+            else:
                 continue
-            if hypothesis not in self._hypothesis_queue:
-                self._hypothesis_queue.append(hypothesis)
+            if not text:
+                continue
+            if text not in self._hypothesis_queue:
+                self._hypothesis_queue.append(text)

@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from typing import List
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
 from ..core.types import Node
+
+logger = logging.getLogger("boggers.adapters.wikipedia")
 
 
 class WikipediaAdapter:
@@ -27,8 +30,12 @@ class WikipediaAdapter:
         )
         url = f"https://en.wikipedia.org/w/api.php?{params}"
 
-        with urlopen(url, timeout=10) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with urlopen(url, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:
+            logger.warning("Wikipedia fetch failed for '%s': %s", topic, exc)
+            return []
 
         pages = payload.get("query", {}).get("pages", {})
         nodes: List[Node] = []

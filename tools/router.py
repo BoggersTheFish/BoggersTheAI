@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import List, Optional
+
+logger = logging.getLogger("boggers.tools.router")
 
 
 @dataclass(slots=True)
@@ -25,12 +28,14 @@ class ToolRouter:
         if self._is_file_read_query(q):
             path = self._extract_quoted_or_backticked(raw_query)
             if path:
+                logger.info("Routing to file_read: path=%s", path)
                 return ToolCall(tool_name="file_read", args={"path": path})
 
         if self._is_code_run_query(raw_query):
             code = self._extract_code_block(raw_query)
             if code:
                 language = self._detect_language(q)
+                logger.info("Routing to code_run: language=%s", language)
                 return ToolCall(
                     tool_name="code_run", args={"code": code, "language": language}
                 )
@@ -38,16 +43,24 @@ class ToolRouter:
         if self._is_math_query(q):
             expression = self._extract_math_expression(query)
             if expression:
+                logger.info("Routing to calc: expression=%s", expression)
                 return ToolCall(tool_name="calc", args={"expression": expression})
 
         if "search for" in q or "look up" in q or q.startswith("search "):
             search_query = query.strip()
+            logger.info("Routing to search (explicit): query=%s", search_query[:80])
             return ToolCall(tool_name="search", args={"query": search_query})
 
         if sufficiency_score < self.sufficiency_threshold:
             fallback = " ".join(topics) if topics else query.strip()
+            logger.info(
+                "Routing to search (fallback, score=%.2f): query=%s",
+                sufficiency_score,
+                fallback[:80],
+            )
             return ToolCall(tool_name="search", args={"query": fallback})
 
+        logger.info("No tool routed (sufficiency=%.2f)", sufficiency_score)
         return None
 
     def _is_file_read_query(self, query: str) -> bool:

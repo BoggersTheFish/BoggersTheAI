@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,8 @@ from typing import Iterable, List, Protocol
 
 from .graph.universal_living_graph import UniversalLivingGraph
 from .types import Node
+
+logger = logging.getLogger("boggers.query")
 
 
 class GraphProtocol(Protocol):
@@ -287,7 +290,7 @@ class QueryProcessor:
             context_nodes = [self._node_from_dict(item) for item in activated_context]
             context_nodes = [node for node in context_nodes if node is not None]
             if context_nodes:
-                print(f"Using {len(context_nodes)} activated nodes for synthesis context.")
+                logger.info("Using %d activated nodes for synthesis context", len(context_nodes))
                 return context_nodes
 
         seen: dict[str, Node] = {}
@@ -320,12 +323,15 @@ class QueryProcessor:
     def _score_sufficiency(self, nodes: List[Node]) -> float:
         if not nodes:
             return 0.0
-        count_score = min(len(nodes) / 10.0, 1.0) * 0.4
+        w_count = float(self.synthesis_config.get("sufficiency_weight_count", 0.4))
+        w_activation = float(self.synthesis_config.get("sufficiency_weight_activation", 0.4))
+        w_recency = float(self.synthesis_config.get("sufficiency_weight_recency", 0.2))
+        count_score = min(len(nodes) / 10.0, 1.0) * w_count
         activation_score = min(
             sum(node.activation for node in nodes) / max(len(nodes), 1), 1.0
-        ) * 0.4
+        ) * w_activation
         recency_score = (
-            min(max(node.last_wave for node in nodes) / 10.0, 1.0) * 0.2
+            min(max(node.last_wave for node in nodes) / 10.0, 1.0) * w_recency
             if nodes
             else 0.0
         )
@@ -339,19 +345,24 @@ class QueryProcessor:
             and bool(ollama_cfg.get("enabled", False))
             and self.local_llm is not None
         ):
-            try:
-                llm_output = self.local_llm.summarize_and_hypothesize(context_text, query)
-                answer = str(llm_output.get("answer", "")).strip()
-                hypotheses = llm_output.get("hypotheses", [])
-                if not isinstance(hypotheses, list):
-                    hypotheses = []
-                hypotheses = self._check_hypothesis_consistency(hypotheses, context)
-                confidence = float(llm_output.get("confidence", 0.0))
-                reasoning_trace = str(llm_output.get("reasoning_trace", "")).strip()
-                if answer:
-                    return answer, hypotheses, max(0.0, min(confidence, 1.0)), reasoning_trace
-            except Exception:
-                pass
+            max_retries = 2
+            for attempt in range(max_retries):
+                try:
+                    llm_output = self.local_llm.summarize_and_hypothesize(context_text, query)
+                    answer = str(llm_output.get("answer", "")).strip()
+                    hypotheses = llm_output.get("hypotheses", [])
+                    if not isinstance(hypotheses, list):
+                        hypotheses = []
+                    hypotheses = self._check_hypothesis_consistency(hypotheses, context)
+                    confidence = float(llm_output.get("confidence", 0.0))
+                    reasoning_trace = str(llm_output.get("reasoning_trace", "")).strip()
+                    if answer:
+                        return answer, hypotheses, max(0.0, min(confidence, 1.0)), reasoning_trace
+                    break
+                except Exception as exc:
+                    logger.warning("LLM synthesis attempt %d failed: %s", attempt + 1, exc)
+                    if attempt == max_retries - 1:
+                        break
 
         if self.adapters.inference:
             answer = self.adapters.inference.synthesize(context_text, query)

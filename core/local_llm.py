@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Dict, List
 
 import ollama
+
+logger = logging.getLogger("boggers.llm")
 
 
 class LocalLLM:
@@ -61,7 +64,7 @@ class LocalLLM:
             "hypotheses": hypotheses,
         }
 
-    def load_adapter(self, adapter_path: str, base_model: str | None = None) -> None:
+    def load_adapter(self, adapter_path: str, base_model: str | None = None, max_seq_length: int = 2048) -> None:
         if self.adapter_path and self.adapter_path != adapter_path:
             self.previous_adapter_path = self.adapter_path
         self.adapter_path = adapter_path
@@ -73,14 +76,15 @@ class LocalLLM:
 
             model, tokenizer = FastLanguageModel.from_pretrained(
                 model_name=self.base_model,
-                max_seq_length=2048,
+                max_seq_length=max_seq_length,
                 dtype=None,
                 load_in_4bit=True,
             )
             model = PeftModel.from_pretrained(model, adapter_path)
             self._unsloth_model = model
             self._unsloth_tokenizer = tokenizer
-        except Exception:
+        except Exception as exc:
+            logger.warning("Adapter load failed for %s: %s", adapter_path, exc)
             self._unsloth_model = None
             self._unsloth_tokenizer = None
 
@@ -112,8 +116,8 @@ class LocalLLM:
                     )
                 text = self._unsloth_tokenizer.decode(outputs[0], skip_special_tokens=True)
                 return text.split("### Response:")[-1].strip()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Unsloth generation failed, falling back to Ollama: %s", exc)
 
         response = ollama.chat(
             model=self.model,
@@ -124,6 +128,21 @@ class LocalLLM:
             },
         )
         return response.get("message", {}).get("content", "").strip()
+
+    def health_check(self) -> dict:
+        status = {
+            "model": self.model,
+            "adapter_loaded": self._unsloth_model is not None,
+            "adapter_path": self.adapter_path,
+            "previous_adapter": self.previous_adapter_path,
+            "can_generate": False,
+        }
+        try:
+            result = self._run_generation("Reply with OK")
+            status["can_generate"] = bool(result.strip())
+        except Exception as exc:
+            status["error"] = str(exc)
+        return status
 
     def _parse_json(self, content: str) -> Dict[str, Any]:
         try:

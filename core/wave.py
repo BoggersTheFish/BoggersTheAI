@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from typing import List
 
 from .graph.universal_living_graph import UniversalLivingGraph
 from .types import Node, Tension
+
+_wave_history: deque[dict] = deque(maxlen=100)
+
+
+def get_wave_history() -> list[dict]:
+    return list(_wave_history)
 
 
 @dataclass(slots=True)
@@ -126,6 +133,13 @@ def run_wave(graph: UniversalLivingGraph) -> WaveResult:
     strongest = graph.strongest_node()
     if strongest:
         strongest.last_wave += 1
+    _wave_history.append({
+        "strongest": strongest.id if strongest else None,
+        "tension_count": len(tensions),
+        "total_tension": sum(t.score for t in tensions),
+        "collapsed": collapsed,
+        "evolved_count": len(evolved_nodes),
+    })
     return WaveResult(
         strongest_node=strongest,
         tensions=tensions,

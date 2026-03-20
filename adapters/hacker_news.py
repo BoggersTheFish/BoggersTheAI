@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from typing import List
 from urllib.parse import quote_plus
 from urllib.request import urlopen
 
 from ..core.types import Node
+
+logger = logging.getLogger("boggers.adapters.hacker_news")
 
 
 class HackerNewsAdapter:
@@ -18,8 +21,12 @@ class HackerNewsAdapter:
             "https://hn.algolia.com/api/v1/search?tags=story&hitsPerPage=20&query="
             f"{quote_plus(query)}"
         )
-        with urlopen(url, timeout=10) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with urlopen(url, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except Exception as exc:
+            logger.warning("HackerNews fetch failed for '%s': %s", query, exc)
+            return []
 
         nodes: List[Node] = []
         for hit in payload.get("hits", []):

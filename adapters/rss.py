@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import xml.etree.ElementTree as ET
 from typing import List
 from urllib.request import urlopen
 
 from ..core.types import Node
+
+logger = logging.getLogger("boggers.adapters.rss")
 
 
 class RSSAdapter:
@@ -16,9 +19,13 @@ class RSSAdapter:
         if not feed_url:
             return []
 
-        with urlopen(feed_url, timeout=10) as response:
-            raw_xml = response.read()
-        root = ET.fromstring(raw_xml)
+        try:
+            with urlopen(feed_url, timeout=10) as response:
+                raw_xml = response.read()
+            root = ET.fromstring(raw_xml)
+        except Exception as exc:
+            logger.warning("RSS fetch failed for '%s': %s", feed_url, exc)
+            return []
 
         nodes: List[Node] = []
         # RSS 2.0

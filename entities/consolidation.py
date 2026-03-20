@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Iterable, List, Tuple
 
 from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.types import Node
 
+logger = logging.getLogger("boggers.consolidation")
+
 
 @dataclass(slots=True)
 class ConsolidationResult:
     merged_count: int = 0
     merged_pairs: List[Tuple[str, str]] = field(default_factory=list)
+    candidates_count: int = 0
 
 
 class ConsolidationEngine:
@@ -21,7 +25,7 @@ class ConsolidationEngine:
         self, graph: UniversalLivingGraph, nodes: Iterable[Node] | None = None
     ) -> ConsolidationResult:
         candidates = [n for n in (nodes or graph.nodes.values()) if not n.collapsed]
-        result = ConsolidationResult()
+        result = ConsolidationResult(candidates_count=len(candidates))
         processed: set[str] = set()
 
         for left_index in range(len(candidates)):
@@ -88,8 +92,8 @@ class ConsolidationEngine:
                     topic_set.discard(absorbed.id)
                     if not topic_set:
                         graph._topic_index.pop(topic, None)  # noqa: SLF001
-        except AttributeError:
-            pass
+        except (AttributeError, KeyError) as exc:
+            logger.debug("Topic index cleanup skipped: %s", exc)
 
         absorbed.topics = []
         absorbed.collapsed = True
@@ -97,6 +101,5 @@ class ConsolidationEngine:
         absorbed.stability = 0.0
         try:
             graph.add_edge(absorbed.id, survivor.id, weight=0.05)
-        except KeyError:
-            # If either node vanishes from a custom graph implementation, skip.
-            pass
+        except KeyError as exc:
+            logger.debug("Edge creation skipped (node missing): %s", exc)

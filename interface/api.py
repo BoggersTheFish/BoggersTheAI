@@ -1,16 +1,32 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict
 
 from .runtime import BoggersRuntime
 
+logger = logging.getLogger("boggers.api")
+
+_shared_runtime: BoggersRuntime | None = None
+
+
+def get_runtime() -> BoggersRuntime:
+    global _shared_runtime
+    if _shared_runtime is None:
+        _shared_runtime = BoggersRuntime()
+    return _shared_runtime
+
 
 def handle_query(payload: Dict[str, Any], runtime: BoggersRuntime | None = None) -> Dict[str, Any]:
-    rt = runtime or BoggersRuntime()
+    rt = runtime or get_runtime()
     query = str(payload.get("query", "")).strip()
     if not query:
         return {"ok": False, "error": "query is required"}
-    response = rt.ask(query)
+    try:
+        response = rt.ask(query)
+    except Exception as exc:
+        logger.error("Query failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
     return {
         "ok": True,
         "query": response.query,

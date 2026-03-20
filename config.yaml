@@ -34,10 +34,10 @@ inference:
       adapter_save_path: "models/fine_tuned_adapter"
       auto_hotswap: true
       auto_schedule: true
-      min_new_traces: 50
+      min_new_traces: 1
       validation_enabled: true
       max_memory_gb: 12
-      safety_dry_run: true
+      safety_dry_run: false
   synthesis:
     use_graph_subgraph: true
     top_k_nodes: 5

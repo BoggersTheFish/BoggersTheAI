@@ -6,13 +6,16 @@ from urllib.request import urlopen
 
 
 class SearchTool:
+    def __init__(self, base_url: str = "https://hn.algolia.com/api/v1/search") -> None:
+        self.base_url = base_url
+
     def execute(self, **kwargs) -> str:
         query = str(kwargs.get("query", "")).strip()
         if not query:
             return "Search query is empty."
 
         url = (
-            "https://hn.algolia.com/api/v1/search?tags=story&hitsPerPage=5&query="
+            f"{self.base_url}?tags=story&hitsPerPage=5&query="
             f"{quote_plus(query)}"
         )
         try:
