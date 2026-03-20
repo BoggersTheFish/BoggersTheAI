@@ -11,8 +11,6 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pathlib import Path
 
-logger = logging.getLogger("boggers.runtime")
-
 from ..adapters import (
     AdapterRegistry,
     HackerNewsAdapter,
@@ -37,6 +35,8 @@ from ..core.graph.rules_engine import spawn_emergence
 from ..entities import ConsolidationEngine, InferenceRouter, InsightEngine, ThrottlePolicy
 from ..multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
 from ..tools import ToolExecutor, ToolRouter
+
+logger = logging.getLogger("boggers.runtime")
 
 
 @dataclass(slots=True)

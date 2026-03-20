@@ -4,7 +4,7 @@ from BoggersTheAI.core.fine_tuner import UnslothFineTuner, FineTuningConfig
 
 
 def test_fine_tuner_disabled():
-    cfg = FineTuningConfig(enabled=False)
+    FineTuningConfig(enabled=False)
 
     class FakeConfig:
         inference = {"self_improvement": {"fine_tuning": {"enabled": False}}}
@@ -16,7 +16,7 @@ def test_fine_tuner_disabled():
 
 
 def test_fine_tuner_missing_dataset():
-    cfg = FineTuningConfig(enabled=True, safety_dry_run=False, train_path="nonexistent.jsonl")
+    FineTuningConfig(enabled=True, safety_dry_run=False, train_path="nonexistent.jsonl")
 
     class FakeConfig:
         inference = {
