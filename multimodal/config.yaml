@@ -1,0 +1,16 @@
+enabled:
+  voice_in: true
+  voice_out: true
+  image_in: true
+
+voice_in:
+  backend: "faster-whisper"
+  sample_rate_hz: 16000
+
+voice_out:
+  backend: "piper"
+  voice: "en_US-lessac-medium"
+
+image_in:
+  backend: "blip2"
+  include_embedding_hint: true

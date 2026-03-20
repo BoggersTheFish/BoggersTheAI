@@ -1,0 +1,52 @@
+modules:
+  core: true
+  adapters: true
+  tools: true
+  multimodal: true
+  consolidation_insight: true
+  interface: true
+
+inference:
+  mode: "local"
+  local_engine: "boggers_synthesis"
+  remote_fallback: "disabled"
+  throttle_seconds: 60
+
+adapters:
+  enabled:
+    wikipedia: true
+    rss: true
+    hacker_news: true
+    vault: true
+    x_api: false
+
+tools:
+  enabled:
+    search: true
+    calc: true
+    code_run: true
+    file_read: true
+  code_run_timeout_seconds: 5
+
+multimodal:
+  voice_in_backend: "faster-whisper"
+  voice_out_backend: "piper"
+  image_in_backend: "blip2"
+
+runtime:
+  insight_vault_path: "./vault"
+  max_hypotheses_per_cycle: 2
+
+deployment_tiers:
+  laptop:
+    graph: "local-json"
+    inference: "local-3b-equivalent"
+    throttle_seconds: 60
+  desktop:
+    graph: "local-json"
+    inference: "local-7b-equivalent"
+    throttle_seconds: 30
+  cloud_burst:
+    graph: "local-plus-sync"
+    inference: "api-fallback"
+    throttle_seconds: 10

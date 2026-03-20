@@ -1,0 +1,9 @@
+enabled:
+  search: true
+  calc: true
+  code_run: true
+  file_read: true
+
+runtime:
+  code_run_timeout_seconds: 5
+  max_search_results: 5

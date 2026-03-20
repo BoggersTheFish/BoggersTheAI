@@ -1,0 +1,24 @@
+enabled:
+  wikipedia: true
+  rss: true
+  hacker_news: true
+  markdown: true
+  vault: true
+  x_api: false
+
+sources:
+  wikipedia:
+    - "thinking system"
+  rss:
+    - "https://hnrss.org/frontpage"
+  hacker_news:
+    - "ai"
+  markdown:
+    - "./notes"
+  vault:
+    - "./vault"
+
+poll_interval_overrides:
+  rss: 3600
+  hacker_news: 900
+  vault: 300
