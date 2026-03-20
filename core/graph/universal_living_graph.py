@@ -32,6 +32,14 @@ class UniversalLivingGraph:
         self._wave_cycle_count = 0
         self._last_tension = 0.0
         self._lock = threading.RLock()
+        self._sqlite_backend = None
+        self._dirty_nodes: set[str] = set()
+        backend = self._resolve_backend(config)
+        if backend == "sqlite":
+            from .sqlite_backend import SQLiteGraphBackend
+
+            db_path = self._resolve_sqlite_path(config)
+            self._sqlite_backend = SQLiteGraphBackend(db_path)
         if auto_load:
             self.load()
 
@@ -59,6 +67,7 @@ class UniversalLivingGraph:
             "relax_decay": 0.85,
             "tension_threshold": 0.2,
             "prune_threshold": 0.25,
+            "max_nodes_per_cycle": 50,
         }
         if config is None:
             return defaults
@@ -69,6 +78,40 @@ class UniversalLivingGraph:
         if isinstance(wave, dict):
             return {**defaults, **wave}
         return defaults
+
+    def _resolve_backend(self, config: object | None) -> str:
+        if config is None:
+            return "json"
+        if isinstance(config, dict):
+            return str(config.get("runtime", {}).get("graph_backend", "json"))
+        runtime = getattr(config, "runtime", None)
+        if isinstance(runtime, dict):
+            return str(runtime.get("graph_backend", "json"))
+        return "json"
+
+    def _resolve_sqlite_path(self, config: object | None) -> str:
+        if config is None:
+            return "graph.db"
+        if isinstance(config, dict):
+            return str(config.get("runtime", {}).get("sqlite_path", "graph.db"))
+        runtime = getattr(config, "runtime", None)
+        if isinstance(runtime, dict):
+            return str(runtime.get("sqlite_path", "graph.db"))
+        return "graph.db"
+
+    def save_incremental(self) -> int:
+        with self._lock:
+            if not self._dirty_nodes:
+                return 0
+            count = len(self._dirty_nodes)
+            dirty = [self.nodes[nid] for nid in self._dirty_nodes if nid in self.nodes]
+            self._dirty_nodes.clear()
+            if hasattr(self, "_sqlite_backend") and self._sqlite_backend:
+                self._sqlite_backend.save_nodes_batch(dirty)
+                self._sqlite_backend.save_edges_batch(self.edges)
+            else:
+                self.save()
+            return count
 
     def add_node(
         self,
@@ -96,6 +139,7 @@ class UniversalLivingGraph:
                 attributes=dict(attributes or {}),
             )
             self.nodes[node_id] = node
+            self._dirty_nodes.add(node_id)
             self._adjacency.setdefault(node_id, {})
 
             if old:
@@ -195,6 +239,7 @@ class UniversalLivingGraph:
             if node is None:
                 raise KeyError(f"Node '{node_id}' does not exist.")
             node.activation = max(0.0, min(1.0, node.activation + delta))
+            self._dirty_nodes.add(node_id)
             return node.activation
 
     def strongest_node(self) -> Node | None:
@@ -272,6 +317,12 @@ class UniversalLivingGraph:
 
     def save(self, path: str | Path | None = None) -> Path:
         with self._lock:
+            if self._sqlite_backend and path is None:
+                nodes_list = list(self.nodes.values())
+                self._sqlite_backend.save_nodes_batch(nodes_list)
+                self._sqlite_backend.save_edges_batch(self.edges)
+                self._dirty_nodes.clear()
+                return Path(self._sqlite_backend.db_path)
             target = Path(path) if path is not None else self.graph_path
             target.parent.mkdir(parents=True, exist_ok=True)
             payload = {
@@ -283,6 +334,8 @@ class UniversalLivingGraph:
 
     def load(self, path: str | Path | None = None) -> "UniversalLivingGraph":
         with self._lock:
+            if self._sqlite_backend and path is None:
+                return self._load_from_sqlite()
             target = Path(path) if path is not None else self.graph_path
             if not target.exists():
                 return self
@@ -314,7 +367,32 @@ class UniversalLivingGraph:
                         weight=float(item.get("weight", 1.0)),
                         relation=item.get("relation", "relates"),
                     )
+            self._dirty_nodes.clear()
             return self
+
+    def _load_from_sqlite(self) -> "UniversalLivingGraph":
+        self.nodes.clear()
+        self.edges.clear()
+        self._adjacency.clear()
+        self._topic_index.clear()
+        loaded_nodes = self._sqlite_backend.load_all_nodes()
+        for node in loaded_nodes.values():
+            self.nodes[node.id] = node
+            self._adjacency.setdefault(node.id, {})
+            for topic in node.topics:
+                self._topic_index.setdefault(topic, set()).add(node.id)
+        loaded_edges = self._sqlite_backend.load_all_edges()
+        for edge in loaded_edges:
+            if edge.src in self.nodes and edge.dst in self.nodes:
+                self.edges.append(edge)
+                self._adjacency.setdefault(edge.src, {})[edge.dst] = edge.weight
+        self._dirty_nodes.clear()
+        logger.info(
+            "Loaded %d nodes, %d edges from SQLite",
+            len(self.nodes),
+            len(self.edges),
+        )
+        return self
 
     def start_background_wave(self) -> threading.Thread:
         if self._wave_thread and self._wave_thread.is_alive():
@@ -346,6 +424,15 @@ class UniversalLivingGraph:
                 self._last_tension = max(tensions.values()) if tensions else 0.0
 
                 self._wave_cycle_count += 1
+                MAX_NODES_PER_CYCLE = 50
+                MAX_CYCLE_NODES = int(
+                    self._wave_settings.get("max_nodes_per_cycle", MAX_NODES_PER_CYCLE)
+                )
+                if len(self.nodes) > MAX_CYCLE_NODES * 200:
+                    logger.warning(
+                        "Node count %d exceeds safety cap; skipping emergence",
+                        len(self.nodes),
+                    )
                 if log_each_cycle:
                     strongest_label = (
                         strongest.topics[0]
@@ -359,7 +446,7 @@ class UniversalLivingGraph:
                         f"| Pruned: {pruned_count} | New emergence: {len(emergent_ids)}"
                     )
                 if bool(self._wave_settings.get("auto_save", True)):
-                    self.save()
+                    self.save_incremental()
 
         self._wave_thread = threading.Thread(
             target=_wave_loop,

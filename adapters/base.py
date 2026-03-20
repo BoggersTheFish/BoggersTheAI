@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Protocol, Tuple
 
 from ..core.types import Node
 
+logger = logging.getLogger("boggers.adapters")
+
 _adapter_cache: dict[str, Tuple[float, List[Node]]] = {}
 _CACHE_TTL = 300.0  # 5 minutes
+
+_adapter_call_counts: dict[str, int] = {}
+_MAX_CALLS_PER_MINUTE = 30
 
 
 class IngestProtocol(Protocol):
@@ -34,6 +40,13 @@ class AdapterRegistry:
         cached = _adapter_cache.get(cache_key)
         if cached and (now - cached[0]) < _CACHE_TTL:
             return cached[1]
+        import time as _time
+
+        _call_key = f"{name}:{int(_time.time() // 60)}"
+        _adapter_call_counts[_call_key] = _adapter_call_counts.get(_call_key, 0) + 1
+        if _adapter_call_counts[_call_key] > _MAX_CALLS_PER_MINUTE:
+            logger.warning("Rate limit hit for adapter %s", name)
+            return cached[1] if cached else []
         adapter = self._adapters.get(name)
         if adapter is None:
             return []

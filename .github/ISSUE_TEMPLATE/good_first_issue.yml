@@ -1,0 +1,22 @@
+name: Good first issue
+description: A task suitable for new contributors.
+title: "[Good First Issue]: "
+labels: ["good first issue", "help wanted"]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Task description
+      description: What needs to be done?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant files
+      description: Which files/modules are involved?
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How do we know this is done?

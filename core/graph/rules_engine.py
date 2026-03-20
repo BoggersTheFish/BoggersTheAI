@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 from .node import GraphNode
 from .wave_propagation import elect_strongest, propagate, relax_toward_base_strength
+
+logger = logging.getLogger("boggers.graph.rules")
 
 
 @dataclass(slots=True)
@@ -30,13 +33,28 @@ def prune_edges(
     return pruned
 
 
-def detect_tension(nodes: Dict[str, GraphNode]) -> Dict[str, float]:
+_TYPE_STABILITY_THRESHOLDS = {
+    "conversation": 0.15,
+    "insight": 0.25,
+    "emergent": 0.3,
+    "autonomous": 0.2,
+    "default": 0.2,
+}
+
+
+def detect_tension(
+    nodes: Dict[str, GraphNode],
+    type_thresholds: Dict[str, float] | None = None,
+) -> Dict[str, float]:
+    thresholds = type_thresholds or _TYPE_STABILITY_THRESHOLDS
     tensions: Dict[str, float] = {}
     for node in nodes.values():
         if node.collapsed:
             continue
+        node_type = str(node.attributes.get("type", "default"))
+        threshold = thresholds.get(node_type, thresholds.get("default", 0.2))
         tension = abs(node.activation - node.base_strength)
-        if tension > 0.2:
+        if tension > threshold:
             tensions[node.id] = tension
     return tensions
 
@@ -67,7 +85,104 @@ def spawn_emergence(
         )
         edges.append((node_id, emergent_id, 0.3))
         created.append(emergent_id)
+        logger.info(
+            "Emergence: spawned %s from tension on %s (tension=%.3f)",
+            emergent_id,
+            node_id,
+            tension,
+        )
     return created
+
+
+def merge_similar_topics(
+    nodes: Dict[str, GraphNode],
+    edges: List[Tuple[str, str, float]],
+    similarity_threshold: float = 0.7,
+) -> List[str]:
+    merged: List[str] = []
+    topic_groups: Dict[str, List[str]] = {}
+    for node in nodes.values():
+        if node.collapsed:
+            continue
+        for topic in node.topics:
+            topic_groups.setdefault(topic.lower(), []).append(node.id)
+
+    for topic, ids in topic_groups.items():
+        if len(ids) < 2:
+            continue
+        keeper_id = ids[0]
+        keeper = nodes.get(keeper_id)
+        if keeper is None:
+            continue
+        for other_id in ids[1:]:
+            other = nodes.get(other_id)
+            if other is None or other.collapsed:
+                continue
+            topic_overlap = len(set(keeper.topics) & set(other.topics)) / max(
+                len(set(keeper.topics) | set(other.topics)), 1
+            )
+            if topic_overlap >= similarity_threshold:
+                keeper.activation = max(keeper.activation, other.activation)
+                keeper.stability = max(keeper.stability, other.stability)
+                other.collapsed = True
+                other.activation = 0.0
+                merged.append(other.id)
+                logger.info(
+                    "Merge: collapsed %s into %s (overlap=%.2f)",
+                    other.id,
+                    keeper_id,
+                    topic_overlap,
+                )
+    return merged
+
+
+def split_overactivated(
+    nodes: Dict[str, GraphNode],
+    edges: List[Tuple[str, str, float]],
+    activation_cap: float = 0.95,
+) -> List[str]:
+    created: List[str] = []
+    for node in list(nodes.values()):
+        if node.collapsed or node.activation < activation_cap:
+            continue
+        split_id = f"split:{node.id}"
+        if split_id in nodes:
+            continue
+        nodes[split_id] = GraphNode(
+            id=split_id,
+            content=f"Split from overactivated {node.id}",
+            topics=node.topics[:],
+            activation=node.activation * 0.5,
+            stability=node.stability * 0.9,
+            base_strength=node.base_strength,
+            attributes={"type": "split", "source": node.id},
+        )
+        node.activation *= 0.5
+        edges.append((node.id, split_id, 0.4))
+        created.append(split_id)
+        logger.info(
+            "Split: created %s from overactivated %s (activation was %.3f)",
+            split_id,
+            node.id,
+            node.activation * 2,
+        )
+    return created
+
+
+def reward_novelty(
+    nodes: Dict[str, GraphNode],
+    novelty_boost: float = 0.05,
+    recency_window: int = 10,
+    current_wave: int = 0,
+) -> int:
+    boosted = 0
+    for node in nodes.values():
+        if node.collapsed:
+            continue
+        if current_wave - node.last_wave <= recency_window:
+            node.activation = min(1.0, node.activation + novelty_boost)
+            boosted += 1
+    return boosted
 
 
 def run_rules_cycle(
@@ -79,6 +194,8 @@ def run_rules_cycle(
     propagate(nodes, adjacency)
     relax_toward_base_strength(nodes.values())
     pruned = prune_edges(adjacency)
+    merge_similar_topics(nodes, edges)
+    split = split_overactivated(nodes, edges)
     tensions = detect_tension(nodes)
     emergent = spawn_emergence(nodes, tensions, edges)
     strongest_id = strongest.id if strongest else None
@@ -86,5 +203,5 @@ def run_rules_cycle(
         strongest_node_id=strongest_id,
         tensions=tensions,
         pruned_edges=pruned,
-        emergent_nodes=emergent,
+        emergent_nodes=emergent + split,
     )

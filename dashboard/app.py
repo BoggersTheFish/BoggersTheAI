@@ -123,6 +123,89 @@ def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
     return {"nodes": nodes, "edges": edges}
 
 
+@app.get("/graph/viz", response_class=HTMLResponse)
+def graph_viz() -> str:
+    return """<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>BoggersTheAI Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sigma.js/2.4.0/sigma.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/graphology/0.25.4/graphology.umd.min.js"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #1a1a2e; color: #eee; }
+    #container { width: 100vw; height: 85vh; }
+    #info { padding: 10px 20px; background: #16213e; }
+    #details { position: fixed; top: 10px; right: 10px; background: #16213e; padding: 15px; border-radius: 8px; max-width: 350px; display: none; }
+  </style>
+</head>
+<body>
+  <div id="info"><b>BoggersTheAI Living Graph</b> | Click a node for details | Scroll to zoom</div>
+  <div id="container"></div>
+  <div id="details"></div>
+  <script>
+    const graph = new graphology.Graph();
+    async function load() {
+      const resp = await fetch("/graph");
+      const data = await resp.json();
+      data.nodes.forEach((n, i) => {
+        const size = 3 + (n.activation || 0) * 12;
+        const color = n.collapsed ? "#555" : (n.stability > 0.7 ? "#00d2ff" : "#ff6b6b");
+        graph.addNode(n.id, {
+          label: n.topics && n.topics[0] ? n.topics[0] : n.id.substring(0, 20),
+          x: Math.cos(2 * Math.PI * i / data.nodes.length) * 100 + Math.random() * 50,
+          y: Math.sin(2 * Math.PI * i / data.nodes.length) * 100 + Math.random() * 50,
+          size: size,
+          color: color,
+          _data: n,
+        });
+      });
+      data.edges.forEach((e, i) => {
+        if (graph.hasNode(e.src) && graph.hasNode(e.dst)) {
+          graph.addEdge(e.src, e.dst, { size: Math.max(0.5, e.weight * 2), color: "#334" });
+        }
+      });
+      const renderer = new Sigma(graph, document.getElementById("container"), {
+        renderLabels: true,
+        labelColor: { color: "#ddd" },
+        labelSize: 12,
+      });
+      renderer.on("clickNode", ({node}) => {
+        const d = graph.getNodeAttributes(node)._data;
+        const det = document.getElementById("details");
+        det.style.display = "block";
+        det.innerHTML = "<b>" + node + "</b><br>"
+          + "Topics: " + (d.topics || []).join(", ") + "<br>"
+          + "Activation: " + (d.activation || 0).toFixed(3) + "<br>"
+          + "Stability: " + (d.stability || 0).toFixed(3) + "<br>"
+          + "Collapsed: " + (d.collapsed || false) + "<br>"
+          + "<hr><small>" + (d.id || "") + "</small>";
+      });
+    }
+    load();
+  </script>
+</body>
+</html>"""
+
+
+@app.get("/metrics")
+def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
+    metrics = runtime.graph.get_metrics()
+    wave_status = runtime.get_status()
+
+    stability_trend: list[float] = []
+    with _history_lock:
+        for entry in _tension_history[-50:]:
+            stability_trend.append(1.0 - entry.get("tension", 0.0))
+
+    return {
+        "graph": metrics,
+        "wave": wave_status,
+        "stability_trend": stability_trend,
+        "tension_history_length": len(_tension_history),
+    }
+
+
 @app.get("/traces")
 def traces(_: None = Depends(_check_auth), limit: int = 20) -> dict[str, Any]:
     traces_dir = Path("traces")

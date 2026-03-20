@@ -282,6 +282,20 @@ class BoggersRuntime:
         with self._state_lock:
             self._last_query_time = time.time()
         caption = self.image_in.caption(image)
+        if caption and not caption.startswith("["):
+            caption_node_id = f"image_caption:{int(time.time() * 1000)}"
+            self.graph.add_node(
+                node_id=caption_node_id,
+                content=caption,
+                topics=["image", "caption", "multimodal"],
+                activation=0.25,
+                stability=0.6,
+                base_strength=0.5,
+                attributes={
+                    "type": "image_caption",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+            )
         base_query = f"{query_hint}\nimage_context: {caption}".strip()
         effective_query = self._apply_history_context(base_query)
         response = self.query_router.process_text(effective_query)
@@ -341,6 +355,14 @@ class BoggersRuntime:
                 return stats
 
         adapter_path = str(stats.get("adapter_path", ""))
+
+        if validation_enabled and adapter_path:
+            test_result = self._run_quality_gate(adapter_path, fine_cfg)
+            if not test_result.get("passed", False):
+                stats["hotswapped"] = False
+                stats["quality_gate"] = test_result
+                return stats
+
         backup_path = None
         if (
             self.local_llm is not None
@@ -395,6 +417,28 @@ class BoggersRuntime:
                     )
                 self.query_processor.local_llm = self.local_llm
                 stats["hotswapped"] = True
+                lineage_id = (
+                    f"finetune:{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+                )
+                self.graph.add_node(
+                    node_id=lineage_id,
+                    content=f"Fine-tuned adapter from {stats.get('epochs', 1)} epochs, loss={stats.get('loss', 0):.4f}",
+                    topics=["finetune", "self_improvement", "lineage"],
+                    activation=0.1,
+                    stability=0.9,
+                    base_strength=0.8,
+                    attributes={
+                        "type": "finetune_lineage",
+                        "adapter_path": adapter_path,
+                        "epochs": stats.get("epochs", 1),
+                        "loss": stats.get("loss", 0.0),
+                        "val_loss": stats.get("val_loss"),
+                        "wave_cycle": self.graph.get_wave_status().get(
+                            "cycle_count", 0
+                        ),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
+                )
             except Exception as exc:
                 rolled_back = False
                 if self.local_llm is not None:
@@ -840,6 +884,37 @@ class BoggersRuntime:
         attributes.update(updates)
         node.attributes = attributes
         self.graph.save()
+
+    def _run_quality_gate(self, adapter_path: str, fine_cfg: dict) -> dict:
+        try:
+            test_llm = LocalLLM(
+                model=(
+                    str(fine_cfg.get("model", "llama3.2"))
+                    if isinstance(fine_cfg, dict)
+                    else "llama3.2"
+                ),
+                adapter_path=adapter_path,
+                base_model=(
+                    str(fine_cfg.get("base_model", "unsloth/llama-3.2-1b-instruct"))
+                    if isinstance(fine_cfg, dict)
+                    else "unsloth/llama-3.2-1b-instruct"
+                ),
+            )
+            result = test_llm.summarize_and_hypothesize(
+                "Test context about TS-OS graph wave architecture.",
+                "What is the core TS-OS loop?",
+            )
+            confidence = float(result.get("confidence", 0.0))
+            has_answer = bool(str(result.get("answer", "")).strip())
+            passed = has_answer and confidence > 0.3
+            return {
+                "passed": passed,
+                "confidence": confidence,
+                "has_answer": has_answer,
+            }
+        except Exception as exc:
+            logger.warning("Quality gate failed: %s", exc)
+            return {"passed": False, "error": str(exc)}
 
     def _resolve_session_id(self) -> str:
         runtime_cfg = self.config.get("runtime", {})
