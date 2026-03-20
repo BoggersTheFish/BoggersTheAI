@@ -15,6 +15,7 @@ class Node:
     last_wave: int = 0
     collapsed: bool = False
     attributes: Dict[str, object] = field(default_factory=dict)
+    embedding: List[float] = field(default_factory=list)
 
 
 @dataclass(slots=True)

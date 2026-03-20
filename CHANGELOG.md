@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.3.0] - 2026-03-20
+
+### Added
+- **Node embeddings** via Ollama (`nomic-embed-text`) — auto-embed on node creation when enabled (`core/embeddings.py`).
+- **Hybrid propagation** — cosine similarity as second channel alongside topological spread in `wave_propagation.py`.
+- **Activation normalization + damping** — configurable `damping` and `activation_cap` in wave settings; global cap enforced in propagate/relax.
+- **Contradiction detection** — `core/contradiction.py` finds conflicting high-activation nodes sharing topics with antonym content; auto-resolves by weakening lower-stability node.
+- **Cognitive temperament presets** — `core/temperament.py` with contemplative, analytical, reactive, critical, creative, default profiles applied via `wave.temperament` config.
+- **Multiple concurrent contexts/minds** — `core/context_mind.py` with `ContextManager` for topic/node-filtered subgraph views per context.
+- **Graph state versioning + rollback** — `core/graph/snapshots.py` with save/list/restore/delete snapshot methods.
+- **GraphML + JSON-LD export** — `core/graph/export.py` with `export_graphml()` and `export_json_ld()`.
+- **Resource guardrails** — max nodes (5000), max cycles/hour (200), high-tension pause (0.95) in wave loop.
+- **Immutable snapshot reads** — `snapshot_read()` returns deep copies for thread-safe reads without locking.
+- **Code sandbox** — `tools/code_run.py` blocks dangerous imports (os, subprocess, socket, etc.) via import hook; configurable on/off.
+- **LLM-powered evolve** — `spawn_emergence` and `evolve()` accept optional `evolve_fn` callback; wired to `LocalLLM.synthesize_evolved_content`.
+- **Incremental save every N waves** — configurable `incremental_save_interval` (default 5) instead of every cycle.
+- **Self-improvement first-run warning** — logs experimental warning when fine-tuning is enabled.
+- **Cytoscape.js graph visualization** — replaced Sigma.js in `/graph/viz` with Cytoscape.js (cose layout, activation/stability mapping).
+- **Mermaid wave cycle diagram** in README.
+- **Optional dependency groups** — `pip install .[llm]` / `.[gpu]` / `.[dev]` / `.[all]`; core only needs `pyyaml`.
+- 43 new tests (83 total) covering embeddings, contradiction, temperament, snapshots, export, context_mind, code sandbox, graph guardrails, damping, embeddings roundtrip.
+
+### Changed
+- **SQLite is now default** persistence backend (`runtime.graph_backend: "sqlite"` in config).
+- **Fine-tuning off by default** — `fine_tuning.enabled: false`, `auto_schedule: false`, `safety_dry_run: true`.
+- `rules_engine.py` now runs contradiction detection + resolution as part of `run_rules_cycle`.
+- `wave.py` relax/break steps now integrate `rules_detect_tension` and contradiction resolution.
+- `propagate()` uses damping factor and activation cap throughout.
+- Wave logging uses `logger.info` instead of print.
+- Heavy dependencies (`ollama`, `unsloth`, `torch`) moved to optional extras.
+- Dashboard version bumped to 0.3.0.
+
 ## [0.2.1] - 2026-03-20
 
 ### Changed

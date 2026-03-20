@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import threading
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 from ..types import Edge, Node
 from .rules_engine import (
@@ -16,6 +17,10 @@ from .rules_engine import (
 )
 
 logger = logging.getLogger("boggers.graph")
+
+_MAX_NODES_SAFETY = 10000
+_MAX_CYCLES_PER_HOUR = 200
+_HIGH_TENSION_PAUSE_THRESHOLD = 0.95
 
 
 class UniversalLivingGraph:
@@ -34,14 +39,27 @@ class UniversalLivingGraph:
         self._lock = threading.RLock()
         self._sqlite_backend = None
         self._dirty_nodes: set[str] = set()
+        self._cycles_this_hour: int = 0
+        self._hour_marker: int = 0
+        self._evolve_fn: Optional[Callable[[str, List[str], str], str]] = None
+        self._embedder = None
+        self._snapshot_manager = None
+
         backend = self._resolve_backend(config)
         if backend == "sqlite":
             from .sqlite_backend import SQLiteGraphBackend
 
             db_path = self._resolve_sqlite_path(config)
             self._sqlite_backend = SQLiteGraphBackend(db_path)
+
         if auto_load:
             self.load()
+
+    def set_evolve_fn(self, fn: Callable[[str, List[str], str], str]) -> None:
+        self._evolve_fn = fn
+
+    def set_embedder(self, embedder: object) -> None:
+        self._embedder = embedder
 
     def _resolve_graph_path(self, config: object | None) -> Path:
         if config is None:
@@ -68,6 +86,10 @@ class UniversalLivingGraph:
             "tension_threshold": 0.2,
             "prune_threshold": 0.25,
             "max_nodes_per_cycle": 50,
+            "damping": 0.95,
+            "activation_cap": 1.0,
+            "semantic_weight": 0.3,
+            "incremental_save_interval": 5,
         }
         if config is None:
             return defaults
@@ -81,13 +103,13 @@ class UniversalLivingGraph:
 
     def _resolve_backend(self, config: object | None) -> str:
         if config is None:
-            return "json"
+            return "sqlite"
         if isinstance(config, dict):
-            return str(config.get("runtime", {}).get("graph_backend", "json"))
+            return str(config.get("runtime", {}).get("graph_backend", "sqlite"))
         runtime = getattr(config, "runtime", None)
         if isinstance(runtime, dict):
-            return str(runtime.get("graph_backend", "json"))
-        return "json"
+            return str(runtime.get("graph_backend", "sqlite"))
+        return "sqlite"
 
     def _resolve_sqlite_path(self, config: object | None) -> str:
         if config is None:
@@ -99,6 +121,12 @@ class UniversalLivingGraph:
             return str(runtime.get("sqlite_path", "graph.db"))
         return "graph.db"
 
+    def snapshot_read(self) -> tuple[Dict[str, Node], List[Edge]]:
+        with self._lock:
+            nodes_copy = {nid: copy.deepcopy(n) for nid, n in self.nodes.items()}
+            edges_copy = [copy.deepcopy(e) for e in self.edges]
+        return nodes_copy, edges_copy
+
     def save_incremental(self) -> int:
         with self._lock:
             if not self._dirty_nodes:
@@ -106,7 +134,7 @@ class UniversalLivingGraph:
             count = len(self._dirty_nodes)
             dirty = [self.nodes[nid] for nid in self._dirty_nodes if nid in self.nodes]
             self._dirty_nodes.clear()
-            if hasattr(self, "_sqlite_backend") and self._sqlite_backend:
+            if self._sqlite_backend:
                 self._sqlite_backend.save_nodes_batch(dirty)
                 self._sqlite_backend.save_edges_batch(self.edges)
             else:
@@ -123,10 +151,24 @@ class UniversalLivingGraph:
         base_strength: float = 0.5,
         last_wave: int = 0,
         attributes: dict | None = None,
+        embedding: list[float] | None = None,
     ) -> Node:
         with self._lock:
             normalized_topics = sorted(set(topics or []))
             old = self.nodes.get(node_id)
+
+            node_embedding = embedding or []
+            if (
+                not node_embedding
+                and self._embedder is not None
+                and content
+                and hasattr(self._embedder, "embed")
+            ):
+                try:
+                    node_embedding = self._embedder.embed(content)
+                except Exception:
+                    pass
+
             node = Node(
                 id=node_id,
                 content=content,
@@ -137,6 +179,7 @@ class UniversalLivingGraph:
                 last_wave=int(last_wave),
                 collapsed=False if old is None else old.collapsed,
                 attributes=dict(attributes or {}),
+                embedding=node_embedding,
             )
             self.nodes[node_id] = node
             self._dirty_nodes.add(node_id)
@@ -175,7 +218,6 @@ class UniversalLivingGraph:
         return [self.nodes[node_id] for node_id in node_ids if node_id in self.nodes]
 
     def get_activated_subgraph(self, query_topic: str, top_k: int = 5) -> list[dict]:
-        """Return top activated nodes + context for synthesis."""
         topic = query_topic.strip().lower()
         candidates: List[Node] = []
         seen_ids: set[str] = set()
@@ -238,7 +280,8 @@ class UniversalLivingGraph:
             node = self.nodes.get(node_id)
             if node is None:
                 raise KeyError(f"Node '{node_id}' does not exist.")
-            node.activation = max(0.0, min(1.0, node.activation + delta))
+            cap = float(self._wave_settings.get("activation_cap", 1.0))
+            node.activation = max(0.0, min(cap, node.activation + delta))
             self._dirty_nodes.add(node_id)
             return node.activation
 
@@ -253,27 +296,60 @@ class UniversalLivingGraph:
 
     def propagate(self) -> None:
         with self._lock:
+            cap = float(self._wave_settings.get("activation_cap", 1.0))
+            damping = float(self._wave_settings.get("damping", 0.95))
+            semantic = float(self._wave_settings.get("semantic_weight", 0.3))
             updates: Dict[str, float] = {}
             for node in self.nodes.values():
                 if node.collapsed:
                     continue
                 for neighbor_id, weight in self._adjacency.get(node.id, {}).items():
-                    updates[neighbor_id] = updates.get(neighbor_id, 0.0) + (
+                    if (
+                        neighbor_id not in self.nodes
+                        or self.nodes[neighbor_id].collapsed
+                    ):
+                        continue
+                    topo = (
                         node.activation
                         * weight
                         * float(self._wave_settings.get("spread_factor", 0.1))
+                        * damping
                     )
+                    sem = 0.0
+                    if (
+                        semantic > 0
+                        and node.embedding
+                        and self.nodes[neighbor_id].embedding
+                    ):
+                        from ..embeddings import cosine_similarity
+
+                        sim = cosine_similarity(
+                            node.embedding, self.nodes[neighbor_id].embedding
+                        )
+                        sem = (
+                            node.activation
+                            * sim
+                            * float(self._wave_settings.get("spread_factor", 0.1))
+                            * damping
+                            * semantic
+                        )
+                    updates[neighbor_id] = updates.get(neighbor_id, 0.0) + topo + sem
             for node_id, delta in updates.items():
-                self.update_activation(node_id, delta)
+                if node_id in self.nodes:
+                    node = self.nodes[node_id]
+                    node.activation = max(0.0, min(cap, node.activation + delta))
+                    self._dirty_nodes.add(node_id)
 
     def relax(self) -> None:
         with self._lock:
+            cap = float(self._wave_settings.get("activation_cap", 1.0))
             for node in self.nodes.values():
                 if node.collapsed:
                     continue
                 node.activation = node.base_strength + (
                     node.activation - node.base_strength
                 ) * float(self._wave_settings.get("relax_decay", 0.85))
+                node.activation = max(0.0, min(cap, node.activation))
 
     def prune(self, threshold: float | None = None) -> int:
         if threshold is None:
@@ -309,11 +385,38 @@ class UniversalLivingGraph:
             }
             adjacency = {src: dict(dst) for src, dst in self._adjacency.items()}
             edges = [(edge.src, edge.dst, edge.weight) for edge in self.edges]
-            result = run_rules_cycle(graph_nodes, adjacency, edges)
+            result = run_rules_cycle(
+                graph_nodes,
+                adjacency,
+                edges,
+                damping=float(self._wave_settings.get("damping", 0.95)),
+                activation_cap=float(self._wave_settings.get("activation_cap", 1.0)),
+                semantic_weight=float(self._wave_settings.get("semantic_weight", 0.3)),
+                evolve_fn=self._evolve_fn,
+            )
             self._apply_graph_node_updates(graph_nodes)
             self._adjacency = adjacency
             self._sync_edges_from_tuples(edges)
             return result
+
+    def _check_guardrails(self) -> str | None:
+        active_count = sum(1 for n in self.nodes.values() if not n.collapsed)
+        if active_count > _MAX_NODES_SAFETY:
+            return f"node_cap_exceeded ({active_count} > {_MAX_NODES_SAFETY})"
+
+        import time
+
+        current_hour = int(time.time() // 3600)
+        if current_hour != self._hour_marker:
+            self._hour_marker = current_hour
+            self._cycles_this_hour = 0
+        if self._cycles_this_hour >= _MAX_CYCLES_PER_HOUR:
+            return f"cycles_per_hour_exceeded ({self._cycles_this_hour})"
+
+        if self._last_tension >= _HIGH_TENSION_PAUSE_THRESHOLD:
+            return f"high_tension_pause (tension={self._last_tension:.2f})"
+
+        return None
 
     def save(self, path: str | Path | None = None) -> Path:
         with self._lock:
@@ -357,6 +460,7 @@ class UniversalLivingGraph:
                     base_strength=float(item.get("base_strength", 0.5)),
                     last_wave=int(item.get("last_wave", 0)),
                     attributes=item.get("attributes", {}),
+                    embedding=item.get("embedding", []),
                 )
                 node.collapsed = bool(item.get("collapsed", False))
             for item in raw.get("edges", []):
@@ -394,6 +498,43 @@ class UniversalLivingGraph:
         )
         return self
 
+    def save_graph_snapshot(self, label: str = "") -> Path | None:
+        from .snapshots import GraphSnapshotManager
+
+        if self._snapshot_manager is None:
+            self._snapshot_manager = GraphSnapshotManager()
+        nodes_copy, edges_copy = self.snapshot_read()
+        return self._snapshot_manager.save_snapshot(
+            {nid: n for nid, n in nodes_copy.items()},
+            edges_copy,
+            label=label,
+        )
+
+    def restore_graph_snapshot(self, filename: str) -> None:
+        from .snapshots import GraphSnapshotManager
+
+        if self._snapshot_manager is None:
+            self._snapshot_manager = GraphSnapshotManager()
+        nodes, edges = self._snapshot_manager.restore_snapshot(filename)
+        with self._lock:
+            self.nodes = nodes
+            self.edges = edges
+            self._rebuild_adjacency()
+            self._rebuild_topic_index()
+            self._dirty_nodes = set(self.nodes.keys())
+
+    def export_graphml(self, path: str | Path) -> Path:
+        from .export import export_graphml
+
+        nodes_copy, edges_copy = self.snapshot_read()
+        return export_graphml(nodes_copy, edges_copy, path)
+
+    def export_json_ld(self, path: str | Path) -> Path:
+        from .export import export_json_ld
+
+        nodes_copy, edges_copy = self.snapshot_read()
+        return export_json_ld(nodes_copy, edges_copy, path)
+
     def start_background_wave(self) -> threading.Thread:
         if self._wave_thread and self._wave_thread.is_alive():
             return self._wave_thread
@@ -401,11 +542,18 @@ class UniversalLivingGraph:
         self._wave_stop_event.clear()
         interval = float(self._wave_settings.get("interval_seconds", 30))
         log_each_cycle = bool(self._wave_settings.get("log_each_cycle", True))
+        save_interval = int(self._wave_settings.get("incremental_save_interval", 5))
 
         def _wave_loop() -> None:
             while not self._wave_stop_event.is_set():
                 if self._wave_stop_event.wait(interval):
                     break
+
+                guardrail = self._check_guardrails()
+                if guardrail:
+                    logger.warning("Wave cycle skipped: %s", guardrail)
+                    continue
+
                 strongest = self.elect_strongest()
                 self.propagate()
                 self.relax()
@@ -418,21 +566,19 @@ class UniversalLivingGraph:
                 }
                 edge_tuples = [(edge.src, edge.dst, edge.weight) for edge in self.edges]
                 tensions = detect_tension(graph_nodes)
-                emergent_ids = spawn_emergence(graph_nodes, tensions, edge_tuples)
+                emergent_ids = spawn_emergence(
+                    graph_nodes,
+                    tensions,
+                    edge_tuples,
+                    evolve_fn=self._evolve_fn,
+                )
                 self._apply_graph_node_updates(graph_nodes)
                 self._sync_edges_from_tuples(edge_tuples)
                 self._last_tension = max(tensions.values()) if tensions else 0.0
 
                 self._wave_cycle_count += 1
-                MAX_NODES_PER_CYCLE = 50
-                MAX_CYCLE_NODES = int(
-                    self._wave_settings.get("max_nodes_per_cycle", MAX_NODES_PER_CYCLE)
-                )
-                if len(self.nodes) > MAX_CYCLE_NODES * 200:
-                    logger.warning(
-                        "Node count %d exceeds safety cap; skipping emergence",
-                        len(self.nodes),
-                    )
+                self._cycles_this_hour += 1
+
                 if log_each_cycle:
                     strongest_label = (
                         strongest.topics[0]
@@ -440,13 +586,24 @@ class UniversalLivingGraph:
                         else (strongest.id if strongest else "none")
                     )
                     tension_score = max(tensions.values()) if tensions else 0.0
-                    print(
-                        f"🌊 Wave cycle #{self._wave_cycle_count} | Tension: {tension_score:.2f} "
-                        f'| Nodes: {len(self.nodes)} | Strongest: "{strongest_label}" '
-                        f"| Pruned: {pruned_count} | New emergence: {len(emergent_ids)}"
+                    logger.info(
+                        "Wave cycle #%d | Tension: %.2f | Nodes: %d | Strongest: %s | Pruned: %d | Emergence: %d",
+                        self._wave_cycle_count,
+                        tension_score,
+                        len(self.nodes),
+                        strongest_label,
+                        pruned_count,
+                        len(emergent_ids),
                     )
+
                 if bool(self._wave_settings.get("auto_save", True)):
-                    self.save_incremental()
+                    if (
+                        save_interval > 0
+                        and self._wave_cycle_count % save_interval == 0
+                    ):
+                        self.save_incremental()
+                    elif save_interval <= 0:
+                        self.save_incremental()
 
         self._wave_thread = threading.Thread(
             target=_wave_loop,
@@ -462,16 +619,21 @@ class UniversalLivingGraph:
             self._wave_thread.join(timeout=2.0)
 
     def get_wave_status(self) -> dict:
-        """Return current wave health for observability."""
         return {
-            "cycle_count": getattr(self, "_wave_cycle_count", 0),
+            "cycle_count": self._wave_cycle_count,
             "thread_alive": (
                 self._wave_thread.is_alive() if self._wave_thread else False
             ),
             "nodes": len(self.nodes),
             "edges": len(self.edges),
-            "tension": float(getattr(self, "_last_tension", 0.0)),
-            "last_cycle": "running" if self._wave_thread else "stopped",
+            "tension": float(self._last_tension),
+            "last_cycle": (
+                "running"
+                if self._wave_thread and self._wave_thread.is_alive()
+                else "stopped"
+            ),
+            "cycles_this_hour": self._cycles_this_hour,
+            "backend": "sqlite" if self._sqlite_backend else "json",
         }
 
     def get_metrics(self) -> dict:
@@ -482,6 +644,7 @@ class UniversalLivingGraph:
                 topic_counts[topic] = topic_counts.get(topic, 0) + 1
         avg_activation = sum(n.activation for n in active) / max(len(active), 1)
         avg_stability = sum(n.stability for n in active) / max(len(active), 1)
+        embedded = sum(1 for n in active if n.embedding)
         return {
             "total_nodes": len(self.nodes),
             "active_nodes": len(active),
@@ -491,12 +654,19 @@ class UniversalLivingGraph:
             "avg_stability": round(avg_stability, 4),
             "topics": topic_counts,
             "edge_density": round(len(self.edges) / max(len(active), 1), 4),
+            "embedded_nodes": embedded,
         }
 
     def _rebuild_adjacency(self) -> None:
         self._adjacency = {node_id: {} for node_id in self.nodes}
         for edge in self.edges:
             self._adjacency.setdefault(edge.src, {})[edge.dst] = edge.weight
+
+    def _rebuild_topic_index(self) -> None:
+        self._topic_index.clear()
+        for node in self.nodes.values():
+            for topic in node.topics:
+                self._topic_index.setdefault(topic, set()).add(node.id)
 
     def _sync_edges_from_tuples(self, tuples: List[Tuple[str, str, float]]) -> None:
         self.edges = [
@@ -518,6 +688,7 @@ class UniversalLivingGraph:
             last_wave=node.last_wave,
             collapsed=node.collapsed,
             attributes=dict(node.attributes),
+            embedding=node.embedding[:] if node.embedding else [],
         )
 
     def _apply_graph_node_updates(self, graph_nodes: Dict[str, object]) -> None:
@@ -537,6 +708,7 @@ class UniversalLivingGraph:
                     base_strength=graph_node.base_strength,
                     last_wave=graph_node.last_wave,
                     attributes=graph_node.attributes,
+                    embedding=graph_node.embedding,
                 )
                 self.nodes[node_id].collapsed = graph_node.collapsed
                 continue
@@ -548,19 +720,15 @@ class UniversalLivingGraph:
             existing.last_wave = graph_node.last_wave
             existing.collapsed = graph_node.collapsed
             existing.attributes = dict(graph_node.attributes)
-            self.add_node(
-                node_id=existing.id,
-                content=existing.content,
-                topics=existing.topics,
-                activation=existing.activation,
-                stability=existing.stability,
-                base_strength=existing.base_strength,
-                last_wave=existing.last_wave,
-                attributes=existing.attributes,
-            )
+            existing.embedding = graph_node.embedding[:] if graph_node.embedding else []
+            self._dirty_nodes.add(node_id)
+            for topic in existing.topics:
+                self._topic_index.setdefault(topic, set()).add(node_id)
 
     def __repr__(self) -> str:
         return (
             "UniversalLivingGraph("
-            f"nodes={len(self.nodes)}, edges={len(self.edges)}, path='{self.graph_path.as_posix()}')"
+            f"nodes={len(self.nodes)}, edges={len(self.edges)}, "
+            f"backend={'sqlite' if self._sqlite_backend else 'json'}, "
+            f"path='{self.graph_path.as_posix()}')"
         )

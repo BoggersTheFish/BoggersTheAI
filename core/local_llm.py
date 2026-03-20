@@ -153,6 +153,41 @@ class LocalLLM:
             status["error"] = str(exc)
         return status
 
+    def synthesize_evolved_content(
+        self,
+        parent_content: str,
+        neighbor_contents: List[str],
+        topics: str,
+    ) -> str:
+        neighbors_text = "\n".join(f"- {c[:200]}" for c in neighbor_contents[:3])
+        prompt = (
+            "You are a knowledge synthesis engine. A graph node has collapsed under tension. "
+            "Generate a single concise paragraph (2-4 sentences) that synthesizes a new insight "
+            "from the collapsed parent and its neighbors.\n\n"
+            f"Collapsed parent: {parent_content[:300]}\n"
+            f"Neighbor context:\n{neighbors_text}\n"
+            f"Topics: {topics}\n\n"
+            "New synthesized insight:"
+        )
+        try:
+            result = self._run_generation(prompt)
+            cleaned = result.strip()
+            if len(cleaned) > 10:
+                return cleaned[:500]
+        except Exception as exc:
+            logger.warning("Evolve synthesis failed: %s", exc)
+        return f"Evolved synthesis from: {parent_content[:100]}"
+
+    def embed_text(self, text: str) -> List[float]:
+        try:
+            response = ollama.embeddings(model="nomic-embed-text", prompt=text)
+            vec = response.get("embedding", [])
+            if isinstance(vec, list) and len(vec) > 0:
+                return vec
+        except Exception as exc:
+            logger.debug("Embedding via ollama failed: %s", exc)
+        return []
+
     def _parse_json(self, content: str) -> Dict[str, Any]:
         try:
             return json.loads(content)

@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
+from ..contradiction import detect_contradictions, resolve_contradiction
 from .node import GraphNode
-from .wave_propagation import elect_strongest, propagate, relax_toward_base_strength
+from .wave_propagation import (
+    elect_strongest,
+    normalise_activations,
+    propagate,
+    relax_toward_base_strength,
+)
 
 logger = logging.getLogger("boggers.graph.rules")
 
@@ -16,6 +22,8 @@ class RulesEngineCycleResult:
     tensions: Dict[str, float]
     pruned_edges: int
     emergent_nodes: List[str] = field(default_factory=list)
+    contradictions_found: int = 0
+    contradictions_resolved: int = 0
 
 
 def prune_edges(
@@ -63,6 +71,7 @@ def spawn_emergence(
     nodes: Dict[str, GraphNode],
     tensions: Dict[str, float],
     edges: List[Tuple[str, str, float]],
+    evolve_fn: Optional[Callable[[str, List[str], str], str]] = None,
 ) -> List[str]:
     created: List[str] = []
     if not tensions:
@@ -74,9 +83,26 @@ def spawn_emergence(
         if emergent_id in nodes:
             continue
         source = nodes[node_id]
+
+        neighbor_ids = [dst for src, dst, _ in edges if src == node_id and dst in nodes]
+        neighbor_contents = [
+            nodes[nid].content for nid in neighbor_ids[:3] if nid in nodes
+        ]
+
+        content = f"Emerged from tension around {node_id}"
+        if evolve_fn is not None:
+            try:
+                content = evolve_fn(
+                    source.content,
+                    neighbor_contents,
+                    ",".join(source.topics),
+                )
+            except Exception as exc:
+                logger.warning("LLM evolve failed for %s: %s", node_id, exc)
+
         nodes[emergent_id] = GraphNode(
             id=emergent_id,
-            content=f"Emerged from tension around {node_id}",
+            content=content,
             topics=source.topics[:],
             activation=min(1.0, 0.3 + tension * 0.2),
             stability=0.7,
@@ -189,19 +215,40 @@ def run_rules_cycle(
     nodes: Dict[str, GraphNode],
     adjacency: Dict[str, Dict[str, float]],
     edges: List[Tuple[str, str, float]],
+    damping: float = 0.95,
+    activation_cap: float = 1.0,
+    semantic_weight: float = 0.3,
+    evolve_fn: Optional[Callable[[str, List[str], str], str]] = None,
 ) -> RulesEngineCycleResult:
     strongest = elect_strongest(nodes)
-    propagate(nodes, adjacency)
-    relax_toward_base_strength(nodes.values())
+    propagate(
+        nodes,
+        adjacency,
+        damping=damping,
+        activation_cap=activation_cap,
+        semantic_weight=semantic_weight,
+    )
+    relax_toward_base_strength(nodes.values(), activation_cap=activation_cap)
+    normalise_activations(nodes, cap=activation_cap)
     pruned = prune_edges(adjacency)
     merge_similar_topics(nodes, edges)
-    split = split_overactivated(nodes, edges)
+    split = split_overactivated(nodes, edges, activation_cap=activation_cap)
+
+    # Contradiction detection + resolution
+    contradictions = detect_contradictions(nodes)
+    resolved = 0
+    for c in contradictions:
+        resolve_contradiction(nodes, c, strategy="weaken_lower")
+        resolved += 1
+
     tensions = detect_tension(nodes)
-    emergent = spawn_emergence(nodes, tensions, edges)
+    emergent = spawn_emergence(nodes, tensions, edges, evolve_fn=evolve_fn)
     strongest_id = strongest.id if strongest else None
     return RulesEngineCycleResult(
         strongest_node_id=strongest_id,
         tensions=tensions,
         pruned_edges=pruned,
         emergent_nodes=emergent + split,
+        contradictions_found=len(contradictions),
+        contradictions_resolved=resolved,
     )

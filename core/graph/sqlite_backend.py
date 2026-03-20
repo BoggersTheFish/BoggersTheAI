@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS nodes (
     base_strength REAL NOT NULL DEFAULT 0.5,
     last_wave INTEGER NOT NULL DEFAULT 0,
     collapsed INTEGER NOT NULL DEFAULT 0,
-    attributes TEXT NOT NULL DEFAULT '{}'
+    attributes TEXT NOT NULL DEFAULT '{}',
+    embedding TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE IF NOT EXISTS edges (
     src TEXT NOT NULL,
@@ -61,14 +62,27 @@ class SQLiteGraphBackend:
         conn = self._get_conn()
         conn.executescript(_SCHEMA)
         conn.commit()
+        self._ensure_embedding_column(conn)
+
+    def _ensure_embedding_column(self, conn: sqlite3.Connection) -> None:
+        try:
+            cursor = conn.execute("PRAGMA table_info(nodes)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if "embedding" not in columns:
+                conn.execute(
+                    "ALTER TABLE nodes ADD COLUMN embedding TEXT NOT NULL DEFAULT '[]'"
+                )
+                conn.commit()
+        except Exception:
+            pass
 
     def save_node(self, node: Node) -> None:
         conn = self._get_conn()
         conn.execute(
             """INSERT OR REPLACE INTO nodes
                (id, content, topics, activation, stability, base_strength,
-                last_wave, collapsed, attributes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                last_wave, collapsed, attributes, embedding)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 node.id,
                 node.content,
@@ -79,6 +93,7 @@ class SQLiteGraphBackend:
                 node.last_wave,
                 int(node.collapsed),
                 json.dumps(node.attributes, default=str),
+                json.dumps(node.embedding if node.embedding else []),
             ),
         )
         conn.commit()
@@ -88,8 +103,8 @@ class SQLiteGraphBackend:
         conn.executemany(
             """INSERT OR REPLACE INTO nodes
                (id, content, topics, activation, stability, base_strength,
-                last_wave, collapsed, attributes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                last_wave, collapsed, attributes, embedding)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 (
                     n.id,
@@ -101,6 +116,7 @@ class SQLiteGraphBackend:
                     n.last_wave,
                     int(n.collapsed),
                     json.dumps(n.attributes, default=str),
+                    json.dumps(n.embedding if n.embedding else []),
                 )
                 for n in nodes
             ],
@@ -130,6 +146,7 @@ class SQLiteGraphBackend:
         rows = conn.execute("SELECT * FROM nodes").fetchall()
         nodes: Dict[str, Node] = {}
         for row in rows:
+            raw_embed = row["embedding"] if "embedding" in row.keys() else "[]"
             nodes[row["id"]] = Node(
                 id=row["id"],
                 content=row["content"],
@@ -140,6 +157,7 @@ class SQLiteGraphBackend:
                 last_wave=row["last_wave"],
                 collapsed=bool(row["collapsed"]),
                 attributes=json.loads(row["attributes"]),
+                embedding=json.loads(raw_embed) if raw_embed else [],
             )
         return nodes
 

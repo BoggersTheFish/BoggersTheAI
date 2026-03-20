@@ -25,6 +25,7 @@ vault/
 traces/
 dataset/
 models/
+snapshots/
 *.log
 *.db
 *.sqlite

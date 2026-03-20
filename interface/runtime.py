@@ -31,6 +31,7 @@ from ..core.fine_tuner import UnslothFineTuner
 from ..core.graph.rules_engine import spawn_emergence
 from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.local_llm import LocalLLM
+from ..core.temperament import apply_temperament, get_temperament
 from ..core.trace_processor import TraceProcessor
 from ..entities import (
     ConsolidationEngine,
@@ -71,14 +72,14 @@ class RuntimeConfig:
                     "split_ratio": 0.8,
                 },
                 "fine_tuning": {
-                    "enabled": True,
+                    "enabled": False,
                     "base_model": "unsloth/llama-3.2-1b-instruct",
                     "max_seq_length": 2048,
                     "learning_rate": 2e-4,
                     "epochs": 1,
                     "adapter_save_path": "models/fine_tuned_adapter",
                     "auto_hotswap": True,
-                    "auto_schedule": True,
+                    "auto_schedule": False,
                     "min_new_traces": 50,
                     "validation_enabled": True,
                     "max_memory_gb": 12,
@@ -135,8 +136,16 @@ class BoggersRuntime:
         from ..core.config_loader import load_and_apply
 
         self.raw_config = load_and_apply(self.config)
+
+        self._apply_temperament()
+
         self.graph = UniversalLivingGraph(config=self.config)
         self.graph.load()
+
+        self._warn_self_improvement()
+
+        self._setup_embedder()
+
         if self.config.get("wave", {}).get("enabled", True):
             self.graph.start_background_wave()
         self._last_query_time = time.time()
@@ -211,6 +220,7 @@ class BoggersRuntime:
                 temperature=float(ollama_cfg.get("temperature", 0.3)),
                 max_tokens=int(ollama_cfg.get("max_tokens", 512)),
             )
+        self._setup_evolve_fn()
         self.query_processor = QueryProcessor(
             graph=self.graph,
             adapters=adapters,
@@ -990,3 +1000,49 @@ class BoggersRuntime:
                 )
             self._last_conversation_node_id = node.id
         self.graph.save()
+
+    def _apply_temperament(self) -> None:
+        wave_cfg = self.config.get("wave", {})
+        if not isinstance(wave_cfg, dict):
+            return
+        name = str(wave_cfg.get("temperament", "default"))
+        if name and name != "default":
+            temperament = get_temperament(name)
+            updated = apply_temperament(wave_cfg, temperament)
+            wave_cfg.update(updated)
+            logger.info("Applied cognitive temperament: %s", name)
+
+    def _warn_self_improvement(self) -> None:
+        inference_cfg = self.config.get("inference", {})
+        if not isinstance(inference_cfg, dict):
+            return
+        si_cfg = inference_cfg.get("self_improvement", {})
+        if not isinstance(si_cfg, dict):
+            return
+        ft_cfg = si_cfg.get("fine_tuning", {})
+        if isinstance(ft_cfg, dict) and bool(ft_cfg.get("enabled", False)):
+            logger.warning(
+                "Self-improvement (fine-tuning) is EXPERIMENTAL and can degrade model quality. "
+                "Ensure validation_enabled=true and safety_dry_run=true for safe testing."
+            )
+
+    def _setup_embedder(self) -> None:
+        embed_cfg = self.raw_config.get("embeddings", {})
+        if not isinstance(embed_cfg, dict) or not bool(embed_cfg.get("enabled", False)):
+            return
+        try:
+            from ..core.embeddings import OllamaEmbedder
+
+            model = str(embed_cfg.get("model", "nomic-embed-text"))
+            embedder = OllamaEmbedder(model=model)
+            if embedder.is_available():
+                self.graph.set_embedder(embedder)
+                logger.info("Embedder active: %s", model)
+            else:
+                logger.info("Embedder not available (model %s not pulled?)", model)
+        except Exception as exc:
+            logger.debug("Embedder setup failed: %s", exc)
+
+    def _setup_evolve_fn(self) -> None:
+        if self.local_llm is not None:
+            self.graph.set_evolve_fn(self.local_llm.synthesize_evolved_content)

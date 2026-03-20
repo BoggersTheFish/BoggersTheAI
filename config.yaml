@@ -26,18 +26,18 @@ inference:
       output_dir: "dataset"
       split_ratio: 0.8
     fine_tuning:
-      enabled: true
+      enabled: false
       base_model: "unsloth/llama-3.2-1b-instruct"
       max_seq_length: 2048
       learning_rate: 2e-4
       epochs: 1
       adapter_save_path: "models/fine_tuned_adapter"
       auto_hotswap: true
-      auto_schedule: true
-      min_new_traces: 1
+      auto_schedule: false
+      min_new_traces: 50
       validation_enabled: true
       max_memory_gb: 12
-      safety_dry_run: false
+      safety_dry_run: true
       supported_models:
         - "unsloth/llama-3.2-1b-instruct"
         - "unsloth/Phi-3-mini-4k-instruct"
@@ -61,6 +61,7 @@ tools:
     code_run: true
     file_read: true
   code_run_timeout_seconds: 5
+  code_run_sandbox: true
 
 multimodal:
   voice_in_backend: "faster-whisper"
@@ -69,17 +70,27 @@ multimodal:
 
 runtime:
   graph_path: "./graph.json"
-  graph_backend: "json"  # "json" or "sqlite"
+  graph_backend: "sqlite"
   sqlite_path: "./graph.db"
   insight_vault_path: "./vault"
   max_hypotheses_per_cycle: 2
   session_id: "auto"
+  snapshot_dir: "snapshots"
 
 wave:
   interval_seconds: 30
   enabled: true
   log_each_cycle: true
   auto_save: true
+  damping: 0.95
+  activation_cap: 1.0
+  semantic_weight: 0.3
+  incremental_save_interval: 5
+  spread_factor: 0.10
+  relax_decay: 0.85
+  tension_threshold: 0.20
+  prune_threshold: 0.25
+  temperament: "default"
 
 os_loop:
   enabled: true
@@ -97,6 +108,16 @@ autonomous:
   exploration_strength: 0.3
   consolidation_prune_threshold: 0.2
   insight_min_tension: 0.8
+
+guardrails:
+  max_nodes: 5000
+  max_cycles_per_hour: 200
+  high_tension_pause: 0.95
+
+embeddings:
+  enabled: true
+  model: "nomic-embed-text"
+  embed_on_creation: true
 
 deployment_tiers:
   laptop:

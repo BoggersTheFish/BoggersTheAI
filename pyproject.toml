@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "BoggersTheAI"
-version = "0.2.1"
+version = "0.3.0"
 description = "Modular TS-OS architecture with graph-wave reasoning pipeline."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,13 +21,18 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-  "ollama",
   "pyyaml",
-  "unsloth[colab-new]>=2024.9",
-  "torch>=2.4.0",
 ]
 
 [project.optional-dependencies]
+llm = [
+  "ollama",
+]
+gpu = [
+  "ollama",
+  "unsloth[colab-new]>=2024.9",
+  "torch>=2.4.0",
+]
 dev = [
   "pytest",
   "pytest-cov",
@@ -37,6 +42,16 @@ dev = [
   "mypy",
   "fastapi",
   "uvicorn",
+  "ollama",
+]
+all = [
+  "ollama",
+  "unsloth[colab-new]>=2024.9",
+  "torch>=2.4.0",
+  "rich",
+  "fastapi",
+  "uvicorn",
+  "feedparser",
 ]
 
 [project.scripts]

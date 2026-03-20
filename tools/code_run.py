@@ -4,10 +4,56 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+_RESTRICTED_IMPORTS = frozenset(
+    {
+        "os",
+        "sys",
+        "subprocess",
+        "shutil",
+        "socket",
+        "http",
+        "urllib",
+        "requests",
+        "ctypes",
+        "signal",
+        "importlib",
+        "pathlib",
+        "glob",
+        "io",
+        "builtins",
+        "__builtin__",
+        "pickle",
+        "shelve",
+        "sqlite3",
+        "webbrowser",
+        "smtplib",
+        "ftplib",
+        "telnetlib",
+    }
+)
+
+_SANDBOX_PREAMBLE = """
+import builtins as _builtins
+_original_import = _builtins.__import__
+_BLOCKED = {blocked}
+def _safe_import(name, *args, _blocked=_BLOCKED, _orig=_original_import, **kwargs):
+    base = name.split(".")[0]
+    if base in _blocked:
+        raise ImportError(f"Import of '{{name}}' is blocked in sandbox mode")
+    return _orig(name, *args, **kwargs)
+_builtins.__import__ = _safe_import
+del _builtins, _original_import, _safe_import, _BLOCKED
+"""
+
 
 class CodeRunTool:
-    def __init__(self, timeout_seconds: int = 5) -> None:
+    def __init__(
+        self,
+        timeout_seconds: int = 5,
+        sandbox: bool = True,
+    ) -> None:
         self.timeout_seconds = timeout_seconds
+        self.sandbox = sandbox
 
     def execute(self, **kwargs) -> str:
         code = str(kwargs.get("code", "")).strip()
@@ -17,9 +63,25 @@ class CodeRunTool:
         if language != "python":
             return f"Unsupported language: {language}. Only python is enabled."
 
+        if self.sandbox:
+            for line in code.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("import ") or stripped.startswith("from "):
+                    parts = (
+                        stripped.replace("import ", " ").replace("from ", " ").split()
+                    )
+                    for part in parts:
+                        base = part.split(".")[0]
+                        if base in _RESTRICTED_IMPORTS:
+                            return f"Blocked: import of '{base}' is not allowed in sandbox mode."
+
         with tempfile.TemporaryDirectory() as temp_dir:
             script_path = Path(temp_dir) / "snippet.py"
-            script_path.write_text(code, encoding="utf-8")
+            if self.sandbox:
+                preamble = _SANDBOX_PREAMBLE.format(blocked=repr(_RESTRICTED_IMPORTS))
+                script_path.write_text(preamble + "\n" + code, encoding="utf-8")
+            else:
+                script_path.write_text(code, encoding="utf-8")
             try:
                 completed = subprocess.run(
                     ["python", str(script_path)],
@@ -27,7 +89,11 @@ class CodeRunTool:
                     text=True,
                     timeout=self.timeout_seconds,
                     check=False,
+                    cwd=temp_dir,
+                    env={"PATH": ""},
                 )
+            except subprocess.TimeoutExpired:
+                return f"Code execution timed out after {self.timeout_seconds}s."
             except Exception as exc:
                 return f"Code execution failed: {exc}"
 

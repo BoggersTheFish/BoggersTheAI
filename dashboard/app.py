@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from BoggersTheAI import BoggersRuntime
 
-app = FastAPI(title="BoggersTheAI Dashboard", version="0.2.1")
+app = FastAPI(title="BoggersTheAI Dashboard", version="0.3.0")
 runtime = BoggersRuntime()
 _tension_history: list[dict[str, Any]] = []
 _history_lock = threading.Lock()
@@ -129,57 +129,77 @@ def graph_viz() -> str:
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>BoggersTheAI Graph</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sigma.js/2.4.0/sigma.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/graphology/0.25.4/graphology.umd.min.js"></script>
+  <title>BoggersTheAI Living Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
   <style>
     body { margin: 0; font-family: sans-serif; background: #1a1a2e; color: #eee; }
-    #container { width: 100vw; height: 85vh; }
-    #info { padding: 10px 20px; background: #16213e; }
-    #details { position: fixed; top: 10px; right: 10px; background: #16213e; padding: 15px; border-radius: 8px; max-width: 350px; display: none; }
+    #cy { width: 100vw; height: 90vh; }
+    #info { padding: 8px 20px; background: #16213e; font-size: 14px; }
+    #details { position: fixed; top: 10px; right: 10px; background: #16213e; padding: 15px;
+               border-radius: 8px; max-width: 350px; display: none; z-index: 10; font-size: 13px; }
   </style>
 </head>
 <body>
-  <div id="info"><b>BoggersTheAI Living Graph</b> | Click a node for details | Scroll to zoom</div>
-  <div id="container"></div>
+  <div id="info"><b>BoggersTheAI Living Graph</b> | Click a node for details | Scroll to zoom | Drag to pan</div>
+  <div id="cy"></div>
   <div id="details"></div>
   <script>
-    const graph = new graphology.Graph();
     async function load() {
       const resp = await fetch("/graph");
       const data = await resp.json();
-      data.nodes.forEach((n, i) => {
-        const size = 3 + (n.activation || 0) * 12;
-        const color = n.collapsed ? "#555" : (n.stability > 0.7 ? "#00d2ff" : "#ff6b6b");
-        graph.addNode(n.id, {
-          label: n.topics && n.topics[0] ? n.topics[0] : n.id.substring(0, 20),
-          x: Math.cos(2 * Math.PI * i / data.nodes.length) * 100 + Math.random() * 50,
-          y: Math.sin(2 * Math.PI * i / data.nodes.length) * 100 + Math.random() * 50,
-          size: size,
-          color: color,
-          _data: n,
+      const elements = [];
+      data.nodes.forEach(n => {
+        elements.push({
+          data: {
+            id: n.id,
+            label: n.topics && n.topics[0] ? n.topics[0] : n.id.substring(0, 20),
+            activation: n.activation || 0,
+            stability: n.stability || 0,
+            collapsed: n.collapsed || false,
+            topics: (n.topics || []).join(", "),
+          }
         });
       });
       data.edges.forEach((e, i) => {
-        if (graph.hasNode(e.src) && graph.hasNode(e.dst)) {
-          graph.addEdge(e.src, e.dst, { size: Math.max(0.5, e.weight * 2), color: "#334" });
-        }
+        elements.push({
+          data: { id: "e" + i, source: e.src, target: e.dst, weight: e.weight || 0.5 }
+        });
       });
-      const renderer = new Sigma(graph, document.getElementById("container"), {
-        renderLabels: true,
-        labelColor: { color: "#ddd" },
-        labelSize: 12,
+      const cy = cytoscape({
+        container: document.getElementById("cy"),
+        elements: elements,
+        style: [
+          { selector: "node", style: {
+            "label": "data(label)",
+            "width": "mapData(activation, 0, 1, 20, 60)",
+            "height": "mapData(activation, 0, 1, 20, 60)",
+            "background-color": "mapData(stability, 0, 1, #ff6b6b, #00d2ff)",
+            "color": "#ddd", "font-size": "10px",
+            "text-valign": "bottom", "text-halign": "center",
+            "border-width": 1, "border-color": "#334",
+          }},
+          { selector: "node[?collapsed]", style: { "background-color": "#555", "opacity": 0.4 }},
+          { selector: "edge", style: {
+            "width": "mapData(weight, 0, 1, 0.5, 4)",
+            "line-color": "#334", "curve-style": "bezier",
+            "target-arrow-shape": "triangle", "target-arrow-color": "#445",
+            "arrow-scale": 0.6,
+          }},
+        ],
+        layout: { name: "cose", animate: false, nodeRepulsion: 8000, idealEdgeLength: 80 },
       });
-      renderer.on("clickNode", ({node}) => {
-        const d = graph.getNodeAttributes(node)._data;
+      cy.on("tap", "node", function(evt) {
+        const d = evt.target.data();
         const det = document.getElementById("details");
         det.style.display = "block";
-        det.innerHTML = "<b>" + node + "</b><br>"
-          + "Topics: " + (d.topics || []).join(", ") + "<br>"
-          + "Activation: " + (d.activation || 0).toFixed(3) + "<br>"
-          + "Stability: " + (d.stability || 0).toFixed(3) + "<br>"
-          + "Collapsed: " + (d.collapsed || false) + "<br>"
-          + "<hr><small>" + (d.id || "") + "</small>";
+        det.innerHTML = "<b>" + d.id + "</b><br>"
+          + "Topics: " + d.topics + "<br>"
+          + "Activation: " + (d.activation).toFixed(3) + "<br>"
+          + "Stability: " + (d.stability).toFixed(3) + "<br>"
+          + "Collapsed: " + d.collapsed;
+      });
+      cy.on("tap", function(evt) {
+        if (evt.target === cy) document.getElementById("details").style.display = "none";
       });
     }
     load();

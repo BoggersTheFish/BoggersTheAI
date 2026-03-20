@@ -1,6 +1,6 @@
 # BoggersTheAI
 
-**Status: Living OS v0.2.1**
+**Status: Living OS v0.3.0**
 
 BoggersTheAI is a **local-first TS-OS (Thinking System Operating System)** runtime: a **living graph** (nodes, edges, activation, stability) plus **wave propagation** (elect → propagate → relax → prune → tension → emergence), **query processing** (retrieval, optional tools/adapters, synthesis), and optional **autonomy** (background OS loop), **self-improvement** (traces → dataset → QLoRA fine-tune → hot-swap), and **observability** (CLI, Rich TUI, FastAPI dashboard).
 
@@ -31,12 +31,12 @@ It favors **constraints, structure, and emergence** over scaling a single monoli
 
 | Area | Capabilities |
 |------|----------------|
-| **Graph** | `UniversalLivingGraph`: nodes/edges, topic index, wave cycle, JSON or SQLite persistence, thread-safe updates |
+| **Graph** | `UniversalLivingGraph`: nodes/edges with **embeddings**, topic index, hybrid topo+semantic wave, **SQLite** (default) or JSON persistence, thread-safe updates, **snapshot versioning + rollback**, **GraphML / JSON-LD export** |
 | **Query pipeline** | Topic/context retrieval (including graph-aware subgraph), sufficiency scoring, optional Wikipedia/RSS/HN/Vault/Markdown/X ingestion, tools (search, calc, code run, file read), extractive or **Ollama** synthesis, **hypotheses + confidence + reasoning trace** |
 | **Self-improvement** | High-confidence traces → Alpaca JSONL → `build_training_dataset` → optional **Unsloth QLoRA** `fine_tune_and_hotswap` / `trigger_self_improvement` with validation gating |
-| **Autonomy** | Background **wave** thread; **OS loop** (exploration / consolidation / insight) when idle; **nightly consolidation** (UTC hour configurable); **multi-turn** session memory in the graph |
+| **Autonomy** | Background **wave** thread with **damping, activation cap, guardrails** (max nodes, cycles/hr, tension pause); **OS loop** (exploration / consolidation / insight) when idle; **nightly consolidation**; **multi-turn** session memory; **cognitive temperament** presets |
 | **Multimodal** | `ask_audio` / `ask_image` / `speak` — faster-whisper, piper, BLIP2-style captioning with graceful fallbacks if deps missing |
-| **UX** | CLI commands, optional **Rich TUI** (`tui.enabled`), **FastAPI** dashboard (status, wave chart, graph JSON, Sigma viz, metrics, traces) |
+| **UX** | CLI commands, optional **Rich TUI** (`tui.enabled`), **FastAPI** dashboard (status, wave chart, graph JSON, **Cytoscape.js** viz, metrics, traces) |
 
 ---
 
@@ -57,13 +57,11 @@ It favors **constraints, structure, and emergence** over scaling a single monoli
 From the **`BoggersTheAI` directory** (the folder that contains `pyproject.toml`):
 
 ```bash
-pip install -e .
-```
-
-Development tooling (pytest, black, isort, ruff, mypy, FastAPI, uvicorn):
-
-```bash
-pip install -e ".[dev]"
+pip install -e .            # core only (pyyaml)
+pip install -e ".[llm]"     # + ollama for LLM synthesis & embeddings
+pip install -e ".[gpu]"     # + unsloth + torch for QLoRA fine-tuning
+pip install -e ".[dev]"     # + pytest, black, ruff, mypy, fastapi, uvicorn
+pip install -e ".[all]"     # everything
 ```
 
 ---
@@ -221,6 +219,32 @@ These are listed in `.gitignore`; don’t commit private graphs or traces unless
 - **Truth model:** stable **nodes** and **edges**; **activation** and **stability** change under wave rules.
 - **Loop:** Propagate → Relax → (if tension high) Break → Evolve — implemented in `core/graph/rules_engine.py` and `core/wave.py`.
 - **Query path:** extract topics → retrieve context (graph + adapters/tools) → synthesize (extractive or LLM) → optional consolidation/insight → trace logging when confidence is high.
+
+### Wave cycle diagram
+
+```mermaid
+flowchart LR
+    A[Elect Strongest] --> B[Propagate]
+    B --> C[Relax]
+    C --> D{Tension High?}
+    D -- Yes --> E[Break Weakest]
+    E --> F[Evolve / Spawn Emergence]
+    D -- No --> G[Contradiction Check]
+    F --> G
+    G --> H[Normalise Activations]
+    H --> I[Incremental Save]
+    I --> A
+
+    style A fill:#1a1a2e,color:#00d2ff
+    style B fill:#16213e,color:#eee
+    style C fill:#16213e,color:#eee
+    style D fill:#0f3460,color:#e94560
+    style E fill:#533483,color:#eee
+    style F fill:#2b2d42,color:#8d99ae
+    style G fill:#16213e,color:#eee
+    style H fill:#16213e,color:#eee
+    style I fill:#1a1a2e,color:#00d2ff
+```
 
 ---
 
