@@ -7,8 +7,8 @@ import shutil
 import threading
 import time
 import uuid
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ..adapters import (
@@ -27,11 +27,11 @@ from ..core import (
     RegistryIngestAdapter,
     RouterConfig,
 )
-from ..core.local_llm import LocalLLM
 from ..core.fine_tuner import UnslothFineTuner
-from ..core.trace_processor import TraceProcessor
-from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.graph.rules_engine import spawn_emergence
+from ..core.graph.universal_living_graph import UniversalLivingGraph
+from ..core.local_llm import LocalLLM
+from ..core.trace_processor import TraceProcessor
 from ..entities import (
     ConsolidationEngine,
     InferenceRouter,

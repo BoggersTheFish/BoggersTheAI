@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from BoggersTheAI.core.fine_tuner import UnslothFineTuner, FineTuningConfig
+from BoggersTheAI.core.fine_tuner import FineTuningConfig, UnslothFineTuner
 
 
 def test_fine_tuner_disabled():

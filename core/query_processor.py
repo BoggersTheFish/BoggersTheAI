@@ -4,9 +4,9 @@ import hashlib
 import json
 import logging
 import re
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from dataclasses import dataclass
 from typing import Iterable, List, Protocol
 
 from .graph.universal_living_graph import UniversalLivingGraph

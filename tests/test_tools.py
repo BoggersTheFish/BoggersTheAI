@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from BoggersTheAI.tools.calc import CalcTool
-from BoggersTheAI.tools.search import SearchTool
 from BoggersTheAI.tools.file_read import FileReadTool
+from BoggersTheAI.tools.search import SearchTool
 
 
 def test_calc_basic_math():

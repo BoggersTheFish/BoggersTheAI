@@ -76,8 +76,8 @@ class LocalLLM:
         if base_model:
             self.base_model = base_model
         try:
-            from unsloth import FastLanguageModel
             from peft import PeftModel
+            from unsloth import FastLanguageModel
 
             model, tokenizer = FastLanguageModel.from_pretrained(
                 model_name=self.base_model,

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from BoggersTheAI.core.router import QueryRouter
-from BoggersTheAI.core.mode_manager import ModeManager
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
+from BoggersTheAI.core.mode_manager import ModeManager
 from BoggersTheAI.core.query_processor import QueryAdapters, QueryProcessor
+from BoggersTheAI.core.router import QueryRouter
 
 
 def test_enqueue_hypotheses_handles_dicts():

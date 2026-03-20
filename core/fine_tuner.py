@@ -83,8 +83,8 @@ class UnslothFineTuner:
 
         try:
             from datasets import load_dataset
-            from trl import SFTTrainer
             from transformers import TrainingArguments
+            from trl import SFTTrainer
             from unsloth import FastLanguageModel
 
             model, tokenizer = FastLanguageModel.from_pretrained(

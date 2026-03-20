@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from BoggersTheAI.core.query_processor import QueryAdapters, QueryProcessor
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
+from BoggersTheAI.core.query_processor import QueryAdapters, QueryProcessor
 
 
 def test_query_processor_returns_answer_from_context() -> None:

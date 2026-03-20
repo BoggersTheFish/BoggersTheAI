@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from BoggersTheAI.entities.consolidation import ConsolidationEngine
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
+from BoggersTheAI.entities.consolidation import ConsolidationEngine
 
 
 def test_consolidation_merges_similar_nodes():
