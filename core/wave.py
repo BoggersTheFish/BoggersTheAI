@@ -71,7 +71,9 @@ def relax(
             violations.append("stability_too_low")
 
         if score > 0:
-            tensions.append(Tension(node_id=node.id, score=score, violations=violations))
+            tensions.append(
+                Tension(node_id=node.id, score=score, violations=violations)
+            )
 
     return tensions
 
@@ -133,13 +135,15 @@ def run_wave(graph: UniversalLivingGraph) -> WaveResult:
     strongest = graph.strongest_node()
     if strongest:
         strongest.last_wave += 1
-    _wave_history.append({
-        "strongest": strongest.id if strongest else None,
-        "tension_count": len(tensions),
-        "total_tension": sum(t.score for t in tensions),
-        "collapsed": collapsed,
-        "evolved_count": len(evolved_nodes),
-    })
+    _wave_history.append(
+        {
+            "strongest": strongest.id if strongest else None,
+            "tension_count": len(tensions),
+            "total_tension": sum(t.score for t in tensions),
+            "collapsed": collapsed,
+            "evolved_count": len(evolved_nodes),
+        }
+    )
     return WaveResult(
         strongest_node=strongest,
         tensions=tensions,

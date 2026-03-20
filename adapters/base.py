@@ -13,8 +13,7 @@ _CACHE_TTL = 300.0  # 5 minutes
 class IngestProtocol(Protocol):
     poll_interval: int
 
-    def ingest(self, source: str) -> List[Node]:
-        ...
+    def ingest(self, source: str) -> List[Node]: ...
 
 
 @dataclass(slots=True)

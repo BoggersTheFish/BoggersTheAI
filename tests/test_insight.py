@@ -20,5 +20,7 @@ def test_write_insight_creates_file():
 
 def test_extract_hypotheses_returns_list():
     engine = InsightEngine()
-    result = engine.extract_hypotheses("Some content about AI and graphs", ["ai", "graphs"])
+    result = engine.extract_hypotheses(
+        "Some content about AI and graphs", ["ai", "graphs"]
+    )
     assert isinstance(result, list)

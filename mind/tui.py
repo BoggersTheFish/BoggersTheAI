@@ -21,7 +21,9 @@ class TUIState:
     theme: str = "matrix"
 
 
-def run_tui(runtime: "BoggersRuntime", stop_event: Event | None = None, theme: str = "matrix") -> None:
+def run_tui(
+    runtime: "BoggersRuntime", stop_event: Event | None = None, theme: str = "matrix"
+) -> None:
     console = Console()
     state = TUIState(recent_events=deque(maxlen=20), theme=theme)
     stop_event = stop_event or Event()
@@ -38,7 +40,9 @@ def run_tui(runtime: "BoggersRuntime", stop_event: Event | None = None, theme: s
 
 def _render(runtime: "BoggersRuntime", state: TUIState):
     status = runtime.get_status()
-    table = Table(title="BoggersTheAI TS-OS TUI", show_header=True, header_style="bold cyan")
+    table = Table(
+        title="BoggersTheAI TS-OS TUI", show_header=True, header_style="bold cyan"
+    )
     table.add_column("Metric", style="bold")
     table.add_column("Value")
     table.add_row("Theme", state.theme)
@@ -50,6 +54,8 @@ def _render(runtime: "BoggersRuntime", state: TUIState):
     table.add_row("Last cycle", str(status.get("last_cycle")))
 
     recent = "\n".join(list(state.recent_events)[:8]) or "No events yet."
-    traces_count = len(list(Path("traces").glob("*.jsonl"))) if Path("traces").exists() else 0
+    traces_count = (
+        len(list(Path("traces").glob("*.jsonl"))) if Path("traces").exists() else 0
+    )
     body = f"{table}\n\nRecent:\n{recent}\n\nTraces: {traces_count}"
     return Panel(body, border_style="green" if state.theme == "matrix" else "white")

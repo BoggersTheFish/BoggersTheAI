@@ -33,10 +33,14 @@ class RSSAdapter:
             title = (item.findtext("title") or "").strip()
             summary = (item.findtext("description") or "").strip()
             link = (item.findtext("link") or "").strip()
-            content = " ".join([segment for segment in [title, summary] if segment]).strip()
+            content = " ".join(
+                [segment for segment in [title, summary] if segment]
+            ).strip()
             if not content:
                 continue
-            digest = hashlib.sha1(f"rss:{link or title}".encode("utf-8")).hexdigest()[:12]
+            digest = hashlib.sha1(f"rss:{link or title}".encode("utf-8")).hexdigest()[
+                :12
+            ]
             nodes.append(
                 Node(
                     id=f"rss:{digest}",
@@ -54,10 +58,14 @@ class RSSAdapter:
             summary = (
                 entry.findtext("{http://www.w3.org/2005/Atom}summary") or ""
             ).strip()
-            content = " ".join([segment for segment in [title, summary] if segment]).strip()
+            content = " ".join(
+                [segment for segment in [title, summary] if segment]
+            ).strip()
             if not content:
                 continue
-            digest = hashlib.sha1(f"atom:{title}:{summary}".encode("utf-8")).hexdigest()[:12]
+            digest = hashlib.sha1(
+                f"atom:{title}:{summary}".encode("utf-8")
+            ).hexdigest()[:12]
             nodes.append(
                 Node(
                     id=f"rss:{digest}",

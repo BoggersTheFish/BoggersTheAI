@@ -38,7 +38,10 @@ class ConsolidationEngine:
                     continue
                 if not self._share_topic(left, right):
                     continue
-                if self._jaccard(left.content, right.content) <= self.similarity_threshold:
+                if (
+                    self._jaccard(left.content, right.content)
+                    <= self.similarity_threshold
+                ):
                     continue
 
                 survivor, absorbed = self._pick_survivor(left, right)
@@ -70,7 +73,9 @@ class ConsolidationEngine:
         self, graph: UniversalLivingGraph, survivor: Node, absorbed: Node
     ) -> None:
         merged_topics = sorted(set(survivor.topics + absorbed.topics))
-        merged_content = f"{survivor.content}\n\n---\nMerged from {absorbed.id}:\n{absorbed.content}"
+        merged_content = (
+            f"{survivor.content}\n\n---\nMerged from {absorbed.id}:\n{absorbed.content}"
+        )
         survivor.activation = max(survivor.activation, absorbed.activation)
         survivor.stability = max(survivor.stability, absorbed.stability)
         survivor.content = merged_content

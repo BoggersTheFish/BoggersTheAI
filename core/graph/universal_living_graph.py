@@ -8,7 +8,12 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Set, Tuple
 
 from ..types import Edge, Node
-from .rules_engine import RulesEngineCycleResult, detect_tension, run_rules_cycle, spawn_emergence
+from .rules_engine import (
+    RulesEngineCycleResult,
+    detect_tension,
+    run_rules_cycle,
+    spawn_emergence,
+)
 
 logger = logging.getLogger("boggers.graph")
 
@@ -157,7 +162,8 @@ class UniversalLivingGraph:
         conversation_nodes = [
             node
             for node in self.nodes.values()
-            if not node.collapsed and "conversation" in [topic.lower() for topic in node.topics]
+            if not node.collapsed
+            and "conversation" in [topic.lower() for topic in node.topics]
         ]
         ranked = sorted(
             conversation_nodes,
@@ -208,8 +214,10 @@ class UniversalLivingGraph:
                     continue
                 for neighbor_id, weight in self._adjacency.get(node.id, {}).items():
                     updates[neighbor_id] = updates.get(neighbor_id, 0.0) + (
-                    node.activation * weight * float(self._wave_settings.get("spread_factor", 0.1))
-                )
+                        node.activation
+                        * weight
+                        * float(self._wave_settings.get("spread_factor", 0.1))
+                    )
             for node_id, delta in updates.items():
                 self.update_activation(node_id, delta)
 
@@ -218,7 +226,9 @@ class UniversalLivingGraph:
             for node in self.nodes.values():
                 if node.collapsed:
                     continue
-                node.activation = node.base_strength + (node.activation - node.base_strength) * float(self._wave_settings.get("relax_decay", 0.85))
+                node.activation = node.base_strength + (
+                    node.activation - node.base_strength
+                ) * float(self._wave_settings.get("relax_decay", 0.85))
 
     def prune(self, threshold: float | None = None) -> int:
         if threshold is None:
@@ -344,7 +354,7 @@ class UniversalLivingGraph:
                     )
                     tension_score = max(tensions.values()) if tensions else 0.0
                     print(
-                        f'🌊 Wave cycle #{self._wave_cycle_count} | Tension: {tension_score:.2f} '
+                        f"🌊 Wave cycle #{self._wave_cycle_count} | Tension: {tension_score:.2f} "
                         f'| Nodes: {len(self.nodes)} | Strongest: "{strongest_label}" '
                         f"| Pruned: {pruned_count} | New emergence: {len(emergent_ids)}"
                     )
@@ -368,7 +378,9 @@ class UniversalLivingGraph:
         """Return current wave health for observability."""
         return {
             "cycle_count": getattr(self, "_wave_cycle_count", 0),
-            "thread_alive": self._wave_thread.is_alive() if self._wave_thread else False,
+            "thread_alive": (
+                self._wave_thread.is_alive() if self._wave_thread else False
+            ),
             "nodes": len(self.nodes),
             "edges": len(self.edges),
             "tension": float(getattr(self, "_last_tension", 0.0)),

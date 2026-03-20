@@ -46,7 +46,9 @@ class InsightEngine:
     def extract_hypotheses(
         self, content: str, topics: Iterable[str], limit: int = 5
     ) -> List[str]:
-        seeds = list(dict.fromkeys([topic.strip().lower() for topic in topics if topic]))
+        seeds = list(
+            dict.fromkeys([topic.strip().lower() for topic in topics if topic])
+        )
         tokens = [tok.strip(".,:;!?()[]{}").lower() for tok in content.split()]
         candidates = [tok for tok in tokens if len(tok) > 5 and tok.isascii()]
 

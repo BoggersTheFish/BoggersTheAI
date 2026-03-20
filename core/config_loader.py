@@ -59,7 +59,11 @@ def load_yaml(path: Path | str | None = None) -> Dict[str, Any]:
 def apply_yaml_to_config(config: object, yaml_data: Dict[str, Any]) -> None:
     if not yaml_data:
         return
-    field_names = {f.name for f in fields(config)} if hasattr(config, "__dataclass_fields__") else set()
+    field_names = (
+        {f.name for f in fields(config)}
+        if hasattr(config, "__dataclass_fields__")
+        else set()
+    )
 
     for key, value in yaml_data.items():
         if key not in field_names:
@@ -72,7 +76,12 @@ def apply_yaml_to_config(config: object, yaml_data: Dict[str, Any]) -> None:
 
     runtime_section = yaml_data.get("runtime", {})
     if isinstance(runtime_section, dict):
-        for attr in ("graph_path", "insight_vault_path", "max_hypotheses_per_cycle", "session_id"):
+        for attr in (
+            "graph_path",
+            "insight_vault_path",
+            "max_hypotheses_per_cycle",
+            "session_id",
+        ):
             if attr in runtime_section and attr in field_names:
                 setattr(config, attr, runtime_section[attr])
 

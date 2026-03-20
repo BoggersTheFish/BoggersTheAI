@@ -32,7 +32,12 @@ from ..core.fine_tuner import UnslothFineTuner
 from ..core.trace_processor import TraceProcessor
 from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.graph.rules_engine import spawn_emergence
-from ..entities import ConsolidationEngine, InferenceRouter, InsightEngine, ThrottlePolicy
+from ..entities import (
+    ConsolidationEngine,
+    InferenceRouter,
+    InsightEngine,
+    ThrottlePolicy,
+)
 from ..multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
 from ..tools import ToolExecutor, ToolRouter
 
@@ -128,6 +133,7 @@ class BoggersRuntime:
     def __init__(self, config: RuntimeConfig | None = None) -> None:
         self.config = config or RuntimeConfig()
         from ..core.config_loader import load_and_apply
+
         self.raw_config = load_and_apply(self.config)
         self.graph = UniversalLivingGraph(config=self.config)
         self.graph.load()
@@ -196,9 +202,7 @@ class BoggersRuntime:
                     dataset_dir = str(dataset_build_cfg.get("output_dir", "dataset"))
                     Path(dataset_dir).mkdir(parents=True, exist_ok=True)
         ollama_cfg = (
-            inference_cfg.get("ollama", {})
-            if isinstance(inference_cfg, dict)
-            else {}
+            inference_cfg.get("ollama", {}) if isinstance(inference_cfg, dict) else {}
         )
         self.local_llm = None
         if isinstance(ollama_cfg, dict) and bool(ollama_cfg.get("enabled", False)):
@@ -218,7 +222,9 @@ class BoggersRuntime:
             graph=self.graph,
             query_processor=self.query_processor,
             mode_manager=self.mode_manager,
-            config=RouterConfig(max_hypotheses_per_cycle=self.config.max_hypotheses_per_cycle),
+            config=RouterConfig(
+                max_hypotheses_per_cycle=self.config.max_hypotheses_per_cycle
+            ),
         )
         self.trace_processor = TraceProcessor(config=self.config)
         self.fine_tuner = UnslothFineTuner(config=self.config)
@@ -227,10 +233,16 @@ class BoggersRuntime:
             .get("self_improvement", {})
             .get("fine_tuning", {})
         )
-        adapter_save_path = str(fine_cfg.get("adapter_save_path", "models/fine_tuned_adapter"))
+        adapter_save_path = str(
+            fine_cfg.get("adapter_save_path", "models/fine_tuned_adapter")
+        )
         Path(adapter_save_path).mkdir(parents=True, exist_ok=True)
         Path("models/backups").mkdir(parents=True, exist_ok=True)
-        self.min_traces_for_tune = int(fine_cfg.get("min_new_traces", 50)) if isinstance(fine_cfg, dict) else 50
+        self.min_traces_for_tune = (
+            int(fine_cfg.get("min_new_traces", 50))
+            if isinstance(fine_cfg, dict)
+            else 50
+        )
         state = self._get_self_improvement_state()
         self._last_fine_tune_time = float(state.get("last_fine_tune_time", 0.0))
         self._last_tuned_trace_count = int(state.get("last_tuned_trace_count", 0))
@@ -303,12 +315,24 @@ class BoggersRuntime:
             .get("self_improvement", {})
             .get("fine_tuning", {})
         )
-        auto_hotswap = bool(fine_cfg.get("auto_hotswap", True)) if isinstance(fine_cfg, dict) else True
-        validation_enabled = bool(fine_cfg.get("validation_enabled", True)) if isinstance(fine_cfg, dict) else True
+        auto_hotswap = (
+            bool(fine_cfg.get("auto_hotswap", True))
+            if isinstance(fine_cfg, dict)
+            else True
+        )
+        validation_enabled = (
+            bool(fine_cfg.get("validation_enabled", True))
+            if isinstance(fine_cfg, dict)
+            else True
+        )
         state = self._get_self_improvement_state()
         previous_best_loss = state.get("best_val_loss")
         new_val_loss = stats.get("val_loss")
-        if validation_enabled and new_val_loss is not None and previous_best_loss is not None:
+        if (
+            validation_enabled
+            and new_val_loss is not None
+            and previous_best_loss is not None
+        ):
             if float(new_val_loss) >= float(previous_best_loss):
                 stats["hotswapped"] = False
                 stats["skipped"] = True
@@ -325,8 +349,13 @@ class BoggersRuntime:
         ):
             backup_root = Path("models/backups")
             backup_root.mkdir(parents=True, exist_ok=True)
-            backup_path = backup_root / f"adapter_{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
-            shutil.copytree(str(self.local_llm.adapter_path), str(backup_path), dirs_exist_ok=True)
+            backup_path = (
+                backup_root
+                / f"adapter_{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+            )
+            shutil.copytree(
+                str(self.local_llm.adapter_path), str(backup_path), dirs_exist_ok=True
+            )
 
         if auto_hotswap and adapter_path:
             try:
@@ -341,16 +370,28 @@ class BoggersRuntime:
                         temperature=float(ollama_cfg.get("temperature", 0.3)),
                         max_tokens=int(ollama_cfg.get("max_tokens", 512)),
                         adapter_path=adapter_path,
-                        base_model=str(
-                            fine_cfg.get("base_model", "unsloth/llama-3.2-1b-instruct")
-                        ) if isinstance(fine_cfg, dict) else "unsloth/llama-3.2-1b-instruct",
+                        base_model=(
+                            str(
+                                fine_cfg.get(
+                                    "base_model", "unsloth/llama-3.2-1b-instruct"
+                                )
+                            )
+                            if isinstance(fine_cfg, dict)
+                            else "unsloth/llama-3.2-1b-instruct"
+                        ),
                     )
                 else:
                     self.local_llm.load_adapter(
                         adapter_path,
-                        base_model=str(
-                            fine_cfg.get("base_model", "unsloth/llama-3.2-1b-instruct")
-                        ) if isinstance(fine_cfg, dict) else "unsloth/llama-3.2-1b-instruct",
+                        base_model=(
+                            str(
+                                fine_cfg.get(
+                                    "base_model", "unsloth/llama-3.2-1b-instruct"
+                                )
+                            )
+                            if isinstance(fine_cfg, dict)
+                            else "unsloth/llama-3.2-1b-instruct"
+                        ),
                     )
                 self.query_processor.local_llm = self.local_llm
                 stats["hotswapped"] = True
@@ -361,9 +402,15 @@ class BoggersRuntime:
                 if not rolled_back and backup_path and self.local_llm is not None:
                     self.local_llm.load_adapter(
                         str(backup_path),
-                        base_model=str(
-                            fine_cfg.get("base_model", "unsloth/llama-3.2-1b-instruct")
-                        ) if isinstance(fine_cfg, dict) else "unsloth/llama-3.2-1b-instruct",
+                        base_model=(
+                            str(
+                                fine_cfg.get(
+                                    "base_model", "unsloth/llama-3.2-1b-instruct"
+                                )
+                            )
+                            if isinstance(fine_cfg, dict)
+                            else "unsloth/llama-3.2-1b-instruct"
+                        ),
                     )
                     rolled_back = True
                 stats["hotswapped"] = False
@@ -381,7 +428,9 @@ class BoggersRuntime:
             "last_tuned_trace_count": self._last_tuned_trace_count,
         }
         if validation_enabled and new_val_loss is not None:
-            if previous_best_loss is None or float(new_val_loss) < float(previous_best_loss):
+            if previous_best_loss is None or float(new_val_loss) < float(
+                previous_best_loss
+            ):
                 state_update["best_val_loss"] = float(new_val_loss)
         self._update_self_improvement_state(state_update)
         stats["previous_best_val_loss"] = (
@@ -441,7 +490,9 @@ class BoggersRuntime:
             if idle_seconds < idle_threshold_seconds:
                 continue
 
-            mode_name = autonomous_modes[self._autonomous_mode_index % len(autonomous_modes)]
+            mode_name = autonomous_modes[
+                self._autonomous_mode_index % len(autonomous_modes)
+            ]
             self._autonomous_mode_index += 1
             if mode_name == "exploration":
                 self._autonomous_exploration()
@@ -474,9 +525,7 @@ class BoggersRuntime:
         )
         created = 0
         for idx in range(2):
-            node_id = (
-                f"auto:explore:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}:{idx}"
-            )
+            node_id = f"auto:explore:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}:{idx}"
             if node_id in self.graph.nodes:
                 continue
             self.graph.add_node(
@@ -636,9 +685,7 @@ class BoggersRuntime:
 
         highest_tension_node_id = max(tensions, key=tensions.get)
         node = self.graph.get_node(highest_tension_node_id)
-        topic = (
-            node.topics[0] if node and node.topics else highest_tension_node_id
-        )
+        topic = node.topics[0] if node and node.topics else highest_tension_node_id
         query = f"Autonomous insight synthesis for {topic}"
         response = self.query_processor.process_query(query)
         traces_dir = Path("traces")
@@ -739,7 +786,11 @@ class BoggersRuntime:
             if isinstance(inference_cfg, dict)
             else {}
         )
-        traces_dir = str(self_improvement_cfg.get("traces_dir", "traces")) if isinstance(self_improvement_cfg, dict) else "traces"
+        traces_dir = (
+            str(self_improvement_cfg.get("traces_dir", "traces"))
+            if isinstance(self_improvement_cfg, dict)
+            else "traces"
+        )
         traces_path = Path(traces_dir)
         if not traces_path.exists():
             return 0
@@ -856,7 +907,11 @@ class BoggersRuntime:
         if self.graph.get_node(session_node_id) is not None:
             self.graph.add_edge(session_node_id, node.id, weight=0.2)
         with self._state_lock:
-            if self._last_conversation_node_id and self.graph.get_node(self._last_conversation_node_id):
-                self.graph.add_edge(self._last_conversation_node_id, node.id, weight=0.3)
+            if self._last_conversation_node_id and self.graph.get_node(
+                self._last_conversation_node_id
+            ):
+                self.graph.add_edge(
+                    self._last_conversation_node_id, node.id, weight=0.3
+                )
             self._last_conversation_node_id = node.id
         self.graph.save()

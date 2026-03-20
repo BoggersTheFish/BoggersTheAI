@@ -69,10 +69,15 @@ class UnslothFineTuner:
 
         try:
             import torch
+
             if torch.cuda.is_available():
                 gpu_mem_gb = torch.cuda.get_device_properties(0).total_mem / (1024**3)
                 if gpu_mem_gb < float(self.config.max_memory_gb) * 0.5:
-                    logger.warning("GPU memory %.1fGB may be insufficient (config max: %dGB)", gpu_mem_gb, self.config.max_memory_gb)
+                    logger.warning(
+                        "GPU memory %.1fGB may be insufficient (config max: %dGB)",
+                        gpu_mem_gb,
+                        self.config.max_memory_gb,
+                    )
         except Exception:
             pass
 
@@ -186,7 +191,11 @@ class UnslothFineTuner:
 
         inference_cfg: Dict[str, Any] = {}
         if isinstance(config, dict):
-            inference_cfg = config.get("inference", {}) if isinstance(config.get("inference", {}), dict) else {}
+            inference_cfg = (
+                config.get("inference", {})
+                if isinstance(config.get("inference", {}), dict)
+                else {}
+            )
         else:
             maybe = getattr(config, "inference", {})
             inference_cfg = maybe if isinstance(maybe, dict) else {}
@@ -213,7 +222,9 @@ class UnslothFineTuner:
             max_seq_length=int(fine_cfg.get("max_seq_length", 2048)),
             learning_rate=float(fine_cfg.get("learning_rate", 2e-4)),
             epochs=int(fine_cfg.get("epochs", 1)),
-            adapter_save_path=str(fine_cfg.get("adapter_save_path", "models/fine_tuned_adapter")),
+            adapter_save_path=str(
+                fine_cfg.get("adapter_save_path", "models/fine_tuned_adapter")
+            ),
             auto_hotswap=bool(fine_cfg.get("auto_hotswap", True)),
             validation_enabled=bool(fine_cfg.get("validation_enabled", True)),
             max_memory_gb=int(fine_cfg.get("max_memory_gb", 12)),
@@ -221,9 +232,18 @@ class UnslothFineTuner:
             lora_r=int(fine_cfg.get("lora_r", 16)),
             lora_alpha=int(fine_cfg.get("lora_alpha", 16)),
             lora_dropout=float(fine_cfg.get("lora_dropout", 0.0)),
-            target_modules=str(fine_cfg.get("target_modules", "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj")),
+            target_modules=str(
+                fine_cfg.get(
+                    "target_modules",
+                    "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
+                )
+            ),
             batch_size=int(fine_cfg.get("batch_size", 2)),
-            gradient_accumulation_steps=int(fine_cfg.get("gradient_accumulation_steps", 4)),
-            train_path=str(Path(dataset_cfg.get("output_dir", "dataset")) / "train.jsonl"),
+            gradient_accumulation_steps=int(
+                fine_cfg.get("gradient_accumulation_steps", 4)
+            ),
+            train_path=str(
+                Path(dataset_cfg.get("output_dir", "dataset")) / "train.jsonl"
+            ),
             val_path=str(Path(dataset_cfg.get("output_dir", "dataset")) / "val.jsonl"),
         )

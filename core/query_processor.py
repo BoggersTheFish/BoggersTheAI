@@ -28,7 +28,9 @@ class GraphProtocol(Protocol):
 
     def add_edge(self, src: str, dst: str, weight: float = 1.0) -> object: ...
     def get_nodes_by_topic(self, topic: str) -> List[Node]: ...
-    def get_activated_subgraph(self, query_topic: str, top_k: int = 5) -> list[dict]: ...
+    def get_activated_subgraph(
+        self, query_topic: str, top_k: int = 5
+    ) -> list[dict]: ...
 
 
 class InferenceProtocol(Protocol):
@@ -48,11 +50,15 @@ class ToolProtocol(Protocol):
 
 
 class ToolRouterProtocol(Protocol):
-    def route(self, query: str, sufficiency_score: float, topics: List[str]) -> object | None: ...
+    def route(
+        self, query: str, sufficiency_score: float, topics: List[str]
+    ) -> object | None: ...
 
 
 class ConsolidationProtocol(Protocol):
-    def consolidate(self, graph: object, nodes: Iterable[Node] | None = None) -> object: ...
+    def consolidate(
+        self, graph: object, nodes: Iterable[Node] | None = None
+    ) -> object: ...
 
 
 class InsightProtocol(Protocol):
@@ -148,7 +154,9 @@ class QueryProcessor:
             used_tool = True
             tool_name = tool_node.topics[0] if tool_node.topics else None
 
-        answer, hypotheses, confidence, reasoning_trace = self._synthesize(query, context)
+        answer, hypotheses, confidence, reasoning_trace = self._synthesize(
+            query, context
+        )
         min_confidence_for_log = float(
             self.self_improvement_config.get("min_confidence_for_log", 0.7)
         )
@@ -290,7 +298,9 @@ class QueryProcessor:
             context_nodes = [self._node_from_dict(item) for item in activated_context]
             context_nodes = [node for node in context_nodes if node is not None]
             if context_nodes:
-                logger.info("Using %d activated nodes for synthesis context", len(context_nodes))
+                logger.info(
+                    "Using %d activated nodes for synthesis context", len(context_nodes)
+                )
                 return context_nodes
 
         seen: dict[str, Node] = {}
@@ -324,12 +334,15 @@ class QueryProcessor:
         if not nodes:
             return 0.0
         w_count = float(self.synthesis_config.get("sufficiency_weight_count", 0.4))
-        w_activation = float(self.synthesis_config.get("sufficiency_weight_activation", 0.4))
+        w_activation = float(
+            self.synthesis_config.get("sufficiency_weight_activation", 0.4)
+        )
         w_recency = float(self.synthesis_config.get("sufficiency_weight_recency", 0.2))
         count_score = min(len(nodes) / 10.0, 1.0) * w_count
-        activation_score = min(
-            sum(node.activation for node in nodes) / max(len(nodes), 1), 1.0
-        ) * w_activation
+        activation_score = (
+            min(sum(node.activation for node in nodes) / max(len(nodes), 1), 1.0)
+            * w_activation
+        )
         recency_score = (
             min(max(node.last_wave for node in nodes) / 10.0, 1.0) * w_recency
             if nodes
@@ -337,7 +350,9 @@ class QueryProcessor:
         )
         return count_score + activation_score + recency_score
 
-    def _synthesize(self, query: str, context: List[Node]) -> tuple[str, List[dict], float, str]:
+    def _synthesize(
+        self, query: str, context: List[Node]
+    ) -> tuple[str, List[dict], float, str]:
         context_text = self._render_context_text(context)
         ollama_cfg = self.inference_config.get("ollama", {})
         if (
@@ -348,7 +363,9 @@ class QueryProcessor:
             max_retries = 2
             for attempt in range(max_retries):
                 try:
-                    llm_output = self.local_llm.summarize_and_hypothesize(context_text, query)
+                    llm_output = self.local_llm.summarize_and_hypothesize(
+                        context_text, query
+                    )
                     answer = str(llm_output.get("answer", "")).strip()
                     hypotheses = llm_output.get("hypotheses", [])
                     if not isinstance(hypotheses, list):
@@ -357,10 +374,17 @@ class QueryProcessor:
                     confidence = float(llm_output.get("confidence", 0.0))
                     reasoning_trace = str(llm_output.get("reasoning_trace", "")).strip()
                     if answer:
-                        return answer, hypotheses, max(0.0, min(confidence, 1.0)), reasoning_trace
+                        return (
+                            answer,
+                            hypotheses,
+                            max(0.0, min(confidence, 1.0)),
+                            reasoning_trace,
+                        )
                     break
                 except Exception as exc:
-                    logger.warning("LLM synthesis attempt %d failed: %s", attempt + 1, exc)
+                    logger.warning(
+                        "LLM synthesis attempt %d failed: %s", attempt + 1, exc
+                    )
                     if attempt == max_retries - 1:
                         break
 
@@ -411,13 +435,15 @@ class QueryProcessor:
             if not supporting_nodes and node_ids:
                 supporting_nodes = node_ids[:2]
 
-            supporting_nodes = list(dict.fromkeys(str(node_id) for node_id in supporting_nodes))
+            supporting_nodes = list(
+                dict.fromkeys(str(node_id) for node_id in supporting_nodes)
+            )
             contradiction = (
-                (" not " in lowered_text and lowered_text.replace(" not ", " ") in context_blob)
-                or (
-                    " never " in lowered_text
-                    and lowered_text.replace(" never ", " always ") in context_blob
-                )
+                " not " in lowered_text
+                and lowered_text.replace(" not ", " ") in context_blob
+            ) or (
+                " never " in lowered_text
+                and lowered_text.replace(" never ", " always ") in context_blob
             )
             if contradiction:
                 confidence = max(0.0, confidence - 0.25)

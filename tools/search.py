@@ -14,10 +14,7 @@ class SearchTool:
         if not query:
             return "Search query is empty."
 
-        url = (
-            f"{self.base_url}?tags=story&hitsPerPage=5&query="
-            f"{quote_plus(query)}"
-        )
+        url = f"{self.base_url}?tags=story&hitsPerPage=5&query=" f"{quote_plus(query)}"
         try:
             with urlopen(url, timeout=10) as response:
                 payload = json.loads(response.read().decode("utf-8"))

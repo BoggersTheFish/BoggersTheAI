@@ -34,4 +34,6 @@ def relax_toward_base_strength(nodes: Iterable[GraphNode], decay: float = 0.85) 
     for node in nodes:
         if node.collapsed:
             continue
-        node.activation = node.base_strength + (node.activation - node.base_strength) * decay
+        node.activation = (
+            node.base_strength + (node.activation - node.base_strength) * decay
+        )

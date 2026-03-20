@@ -17,7 +17,9 @@ def get_runtime() -> BoggersRuntime:
     return _shared_runtime
 
 
-def handle_query(payload: Dict[str, Any], runtime: BoggersRuntime | None = None) -> Dict[str, Any]:
+def handle_query(
+    payload: Dict[str, Any], runtime: BoggersRuntime | None = None
+) -> Dict[str, Any]:
     rt = runtime or get_runtime()
     query = str(payload.get("query", "")).strip()
     if not query:

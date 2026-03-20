@@ -12,11 +12,9 @@ from .wave import run_wave
 
 
 class AdapterRegistryProtocol(Protocol):
-    def names(self) -> List[str]:
-        ...
+    def names(self) -> List[str]: ...
 
-    def ingest(self, name: str, source: str):
-        ...
+    def ingest(self, name: str, source: str): ...
 
 
 @dataclass(slots=True)

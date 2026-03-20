@@ -8,8 +8,7 @@ from .synthesis_engine import BoggersSynthesisEngine
 
 
 class SynthesisProtocol(Protocol):
-    def synthesize(self, context: str, query: str) -> str:
-        ...
+    def synthesize(self, context: str, query: str) -> str: ...
 
 
 @dataclass(slots=True)

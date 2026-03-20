@@ -53,7 +53,9 @@ class TraceProcessor:
         self._write_jsonl(val_path, val_rows)
 
         avg_confidence = (
-            sum(confidence_values) / len(confidence_values) if confidence_values else 0.0
+            sum(confidence_values) / len(confidence_values)
+            if confidence_values
+            else 0.0
         )
         return {
             "samples_built": len(rows),
@@ -73,7 +75,11 @@ class TraceProcessor:
 
         if isinstance(config, dict):
             inference = config.get("inference", {})
-            self_imp = inference.get("self_improvement", {}) if isinstance(inference, dict) else {}
+            self_imp = (
+                inference.get("self_improvement", {})
+                if isinstance(inference, dict)
+                else {}
+            )
             dataset_build = (
                 self_imp.get("dataset_build", {}) if isinstance(self_imp, dict) else {}
             )

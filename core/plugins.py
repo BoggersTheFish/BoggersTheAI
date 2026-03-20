@@ -25,8 +25,13 @@ class PluginRegistry:
         count = 0
         try:
             from importlib.metadata import entry_points
+
             eps = entry_points()
-            group_eps = eps.select(group=group) if hasattr(eps, "select") else eps.get(group, [])
+            group_eps = (
+                eps.select(group=group)
+                if hasattr(eps, "select")
+                else eps.get(group, [])
+            )
             for ep in group_eps:
                 try:
                     plugin = ep.load()

@@ -118,8 +118,7 @@ def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
         for n in runtime.graph.nodes.values()
     ]
     edges = [
-        {"src": e.src, "dst": e.dst, "weight": e.weight}
-        for e in runtime.graph.edges
+        {"src": e.src, "dst": e.dst, "weight": e.weight} for e in runtime.graph.edges
     ]
     return {"nodes": nodes, "edges": edges}
 
@@ -133,7 +132,9 @@ def traces(_: None = Depends(_check_auth), limit: int = 20) -> dict[str, Any]:
     items = []
     for f in files:
         try:
-            items.append({"file": f.name, "content": f.read_text(encoding="utf-8").strip()})
+            items.append(
+                {"file": f.name, "content": f.read_text(encoding="utf-8").strip()}
+            )
         except Exception:
             continue
     return {"traces": items, "count": len(items)}

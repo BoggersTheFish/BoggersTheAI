@@ -5,8 +5,7 @@ from typing import Dict, Protocol
 
 
 class ToolProtocol(Protocol):
-    def execute(self, **kwargs) -> str:
-        ...
+    def execute(self, **kwargs) -> str: ...
 
 
 @dataclass(slots=True)

@@ -10,8 +10,13 @@ WORKSPACE_ROOT = PROJECT_ROOT.parent
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
-from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph  # noqa: E402
-from BoggersTheAI.core.query_processor import QueryAdapters, QueryProcessor  # noqa: E402
+from BoggersTheAI.core.graph.universal_living_graph import (  # noqa: E402
+    UniversalLivingGraph,
+)
+from BoggersTheAI.core.query_processor import (  # noqa: E402
+    QueryAdapters,
+    QueryProcessor,
+)
 
 
 @pytest.fixture

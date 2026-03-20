@@ -64,7 +64,12 @@ class LocalLLM:
             "hypotheses": hypotheses,
         }
 
-    def load_adapter(self, adapter_path: str, base_model: str | None = None, max_seq_length: int = 2048) -> None:
+    def load_adapter(
+        self,
+        adapter_path: str,
+        base_model: str | None = None,
+        max_seq_length: int = 2048,
+    ) -> None:
         if self.adapter_path and self.adapter_path != adapter_path:
             self.previous_adapter_path = self.adapter_path
         self.adapter_path = adapter_path
@@ -114,10 +119,14 @@ class LocalLLM:
                         max_new_tokens=self.max_tokens,
                         temperature=self.temperature,
                     )
-                text = self._unsloth_tokenizer.decode(outputs[0], skip_special_tokens=True)
+                text = self._unsloth_tokenizer.decode(
+                    outputs[0], skip_special_tokens=True
+                )
                 return text.split("### Response:")[-1].strip()
             except Exception as exc:
-                logger.warning("Unsloth generation failed, falling back to Ollama: %s", exc)
+                logger.warning(
+                    "Unsloth generation failed, falling back to Ollama: %s", exc
+                )
 
         response = ollama.chat(
             model=self.model,
