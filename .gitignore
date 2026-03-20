@@ -14,9 +14,15 @@ env/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
 
 # Local runtime outputs
 vault/
+traces/
+dataset/
+models/
 *.log
 *.db
 *.sqlite

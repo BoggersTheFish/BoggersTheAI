@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterable, List, Tuple
 
-from ..core.graph import UniversalLivingGraph
+from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.types import Node
 
 

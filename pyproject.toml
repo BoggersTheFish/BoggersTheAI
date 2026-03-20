@@ -8,8 +8,39 @@ version = "0.1.0"
 description = "Modular TS-OS architecture with graph-wave reasoning pipeline."
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
 authors = [{ name = "BoggersTheAI Contributors" }]
-dependencies = []
+keywords = ["ts-os", "graph", "reasoning", "autonomy", "ollama"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "ollama",
+  "unsloth[colab-new]>=2024.9",
+  "torch>=2.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "black",
+  "isort",
+  "ruff",
+  "fastapi",
+  "uvicorn",
+]
+
+[project.scripts]
+boggers = "BoggersTheAI.interface.chat:run_chat"
+dashboard-start = "dashboard.app:main"
 
 [tool.setuptools]
 include-package-data = true

@@ -11,6 +11,36 @@ inference:
   local_engine: "boggers_synthesis"
   remote_fallback: "disabled"
   throttle_seconds: 60
+  ollama:
+    enabled: true
+    model: "llama3.2"
+    temperature: 0.3
+    max_tokens: 512
+  self_improvement:
+    trace_logging_enabled: true
+    min_confidence_for_log: 0.7
+    traces_dir: "traces"
+    dataset_build:
+      min_confidence: 0.75
+      max_samples: 5000
+      output_dir: "dataset"
+      split_ratio: 0.8
+    fine_tuning:
+      enabled: true
+      base_model: "unsloth/llama-3.2-1b-instruct"
+      max_seq_length: 2048
+      learning_rate: 2e-4
+      epochs: 1
+      adapter_save_path: "models/fine_tuned_adapter"
+      auto_hotswap: true
+      auto_schedule: true
+      min_new_traces: 50
+      validation_enabled: true
+      max_memory_gb: 12
+      safety_dry_run: true
+  synthesis:
+    use_graph_subgraph: true
+    top_k_nodes: 5
 
 adapters:
   enabled:
@@ -34,8 +64,33 @@ multimodal:
   image_in_backend: "blip2"
 
 runtime:
+  graph_path: "./graph.json"
   insight_vault_path: "./vault"
   max_hypotheses_per_cycle: 2
+  session_id: "auto"
+
+wave:
+  interval_seconds: 30
+  enabled: true
+  log_each_cycle: true
+  auto_save: true
+
+os_loop:
+  enabled: true
+  interval_seconds: 60
+  idle_threshold_seconds: 120
+  autonomous_modes: ["exploration", "consolidation", "insight"]
+  nightly_hour_utc: 3
+  multi_turn_enabled: true
+
+tui:
+  enabled: false
+  theme: "matrix"
+
+autonomous:
+  exploration_strength: 0.3
+  consolidation_prune_threshold: 0.2
+  insight_min_tension: 0.8
 
 deployment_tiers:
   laptop:

@@ -1,5 +1,45 @@
 # Contributing to BoggersTheAI
 
+Thanks for helping improve the living TS-OS.
+
+## Development setup
+
+1. Fork and clone the repository.
+2. Create a virtual environment.
+3. Install editable + dev dependencies:
+
+```bash
+pip install -e ".[dev]"
+```
+
+## Quality checks
+
+Run these before opening a PR:
+
+```bash
+black .
+isort .
+ruff check --fix .
+pytest -q
+```
+
+## Pull request guidelines
+
+- Keep changes focused and modular.
+- Add or update tests for behavior changes.
+- Update docs/config when introducing new features.
+- Keep runtime safety defaults intact.
+
+## Commit style
+
+- Prefer short imperative subjects.
+- Include rationale in body when needed.
+
+## Reporting issues
+
+Use the issue templates for bug reports and feature requests.
+# Contributing to BoggersTheAI
+
 ## Development Setup
 
 1. Create a venv:

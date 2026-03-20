@@ -1,4 +1,4 @@
-from .graph import UniversalLivingGraph
+from .graph.universal_living_graph import UniversalLivingGraph
 from .mode_manager import Mode, ModeManager
 from .query_processor import (
     GraphProtocol,

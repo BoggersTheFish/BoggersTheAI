@@ -5,7 +5,7 @@ from typing import Dict, List
 
 
 @dataclass(slots=True)
-class Node:
+class GraphNode:
     id: str
     content: str
     topics: List[str] = field(default_factory=list)
@@ -15,21 +15,3 @@ class Node:
     last_wave: int = 0
     collapsed: bool = False
     attributes: Dict[str, object] = field(default_factory=dict)
-
-
-@dataclass(slots=True)
-class Edge:
-    src: str
-    dst: str
-    weight: float = 1.0
-    relation: str = "relates"
-
-
-@dataclass(slots=True)
-class Tension:
-    node_id: str
-    score: float
-    violations: List[str] = field(default_factory=list)
-
-
-GraphState = Dict[str, Node]

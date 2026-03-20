@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Deque, Dict, List, Protocol
 
 from ..multimodal.base import ImageInProtocol, VoiceInProtocol
-from .graph import UniversalLivingGraph
+from .graph.universal_living_graph import UniversalLivingGraph
 from .mode_manager import ModeManager
 from .query_processor import QueryProcessor, QueryResponse
 from .wave import run_wave

@@ -23,4 +23,6 @@ def handle_query(payload: Dict[str, Any], runtime: BoggersRuntime | None = None)
         "consolidated_merges": response.consolidated_merges,
         "insight_path": response.insight_path,
         "hypotheses": response.hypotheses,
+        "confidence": response.confidence,
+        "reasoning_trace": response.reasoning_trace,
     }

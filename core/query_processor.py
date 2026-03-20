@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
+from datetime import datetime, timezone
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Iterable, List, Protocol
 
-from .graph import UniversalLivingGraph
+from .graph.universal_living_graph import UniversalLivingGraph
 from .types import Node
 
 
@@ -22,10 +25,15 @@ class GraphProtocol(Protocol):
 
     def add_edge(self, src: str, dst: str, weight: float = 1.0) -> object: ...
     def get_nodes_by_topic(self, topic: str) -> List[Node]: ...
+    def get_activated_subgraph(self, query_topic: str, top_k: int = 5) -> list[dict]: ...
 
 
 class InferenceProtocol(Protocol):
     def synthesize(self, context: str, query: str) -> str: ...
+
+
+class LocalLLMProtocol(Protocol):
+    def summarize_and_hypothesize(self, context: str, query: str) -> dict: ...
 
 
 class IngestProtocol(Protocol):
@@ -74,9 +82,13 @@ class QueryResponse:
     used_research: bool
     used_tool: bool
     tool_name: str | None
+    context_nodes: List[str]
+    activation_scores: List[float]
     consolidated_merges: int
     insight_path: str | None
-    hypotheses: List[str]
+    hypotheses: List[dict]
+    confidence: float
+    reasoning_trace: str
     answer: str
 
 
@@ -86,10 +98,17 @@ class QueryProcessor:
         graph: GraphProtocol,
         adapters: QueryAdapters | None = None,
         min_sufficiency: float = 0.4,
+        synthesis_config: dict | None = None,
+        inference_config: dict | None = None,
+        local_llm: LocalLLMProtocol | None = None,
     ) -> None:
         self.graph = graph
         self.adapters = adapters or QueryAdapters()
         self.min_sufficiency = min_sufficiency
+        self.synthesis_config = synthesis_config or {}
+        self.inference_config = inference_config or {}
+        self.local_llm = local_llm
+        self.self_improvement_config = self.inference_config.get("self_improvement", {})
 
     def process_query(self, query: str) -> QueryResponse:
         topics = self._extract_topics(query)
@@ -100,7 +119,9 @@ class QueryProcessor:
         tool_name: str | None = None
         consolidated_merges = 0
         insight_path: str | None = None
-        hypotheses: List[str] = []
+        hypotheses: List[dict] = []
+        confidence = 0.0
+        reasoning_trace = ""
 
         if sufficiency < self.min_sufficiency and self.adapters.ingest:
             for topic in topics:
@@ -124,7 +145,25 @@ class QueryProcessor:
             used_tool = True
             tool_name = tool_node.topics[0] if tool_node.topics else None
 
-        answer = self._synthesize(query, context)
+        answer, hypotheses, confidence, reasoning_trace = self._synthesize(query, context)
+        min_confidence_for_log = float(
+            self.self_improvement_config.get("min_confidence_for_log", 0.7)
+        )
+        trace_logging_enabled = bool(
+            self.self_improvement_config.get("trace_logging_enabled", True)
+        )
+        if (
+            trace_logging_enabled
+            and confidence > min_confidence_for_log
+            and reasoning_trace
+        ):
+            self._log_reasoning_trace(
+                query=query,
+                answer=answer,
+                hypotheses=hypotheses,
+                confidence=confidence,
+                reasoning_trace=reasoning_trace,
+            )
         query_node = self._consolidate(query, topics, context, answer)
         if self.adapters.consolidation:
             consolidation_result = self.adapters.consolidation.consolidate(
@@ -139,7 +178,15 @@ class QueryProcessor:
                 source_nodes=source_nodes,
                 vault_path=self.adapters.insight_vault_path,
             )
-            hypotheses = self.adapters.insight.extract_hypotheses(answer, topics)
+            extracted = self.adapters.insight.extract_hypotheses(answer, topics)
+            for item in extracted:
+                hypotheses.append(
+                    {
+                        "text": item,
+                        "confidence": 0.35,
+                        "supporting_nodes": [node.id for node in context[:3]],
+                    }
+                )
         return QueryResponse(
             query=query,
             topics=topics,
@@ -148,9 +195,13 @@ class QueryProcessor:
             used_research=used_research,
             used_tool=used_tool,
             tool_name=tool_name,
+            context_nodes=[node.id for node in context],
+            activation_scores=[node.activation for node in context],
             consolidated_merges=consolidated_merges,
             insight_path=insight_path,
             hypotheses=hypotheses,
+            confidence=confidence,
+            reasoning_trace=reasoning_trace,
             answer=answer,
         )
 
@@ -226,6 +277,19 @@ class QueryProcessor:
         return unique or ["general"]
 
     def _retrieve_context(self, topics: List[str]) -> List[Node]:
+        use_subgraph = bool(self.synthesis_config.get("use_graph_subgraph", True))
+        top_k = int(self.synthesis_config.get("top_k_nodes", 5))
+        if use_subgraph:
+            query_topic = topics[0] if topics else "general"
+            activated_context = self.graph.get_activated_subgraph(
+                query_topic=query_topic, top_k=top_k
+            )
+            context_nodes = [self._node_from_dict(item) for item in activated_context]
+            context_nodes = [node for node in context_nodes if node is not None]
+            if context_nodes:
+                print(f"Using {len(context_nodes)} activated nodes for synthesis context.")
+                return context_nodes
+
         seen: dict[str, Node] = {}
         for topic in topics:
             for node in self.graph.get_nodes_by_topic(topic):
@@ -236,6 +300,22 @@ class QueryProcessor:
             reverse=True,
         )
         return ranked[:20]
+
+    def _node_from_dict(self, item: dict) -> Node | None:
+        node_id = item.get("id")
+        if not node_id:
+            return None
+        return Node(
+            id=str(node_id),
+            content=str(item.get("content", "")),
+            topics=list(item.get("topics", [])),
+            activation=float(item.get("activation", 0.0)),
+            stability=float(item.get("stability", 1.0)),
+            base_strength=float(item.get("base_strength", 0.5)),
+            last_wave=int(item.get("last_wave", 0)),
+            collapsed=bool(item.get("collapsed", False)),
+            attributes=dict(item.get("attributes", {})),
+        )
 
     def _score_sufficiency(self, nodes: List[Node]) -> float:
         if not nodes:
@@ -251,17 +331,129 @@ class QueryProcessor:
         )
         return count_score + activation_score + recency_score
 
-    def _synthesize(self, query: str, context: List[Node]) -> str:
+    def _synthesize(self, query: str, context: List[Node]) -> tuple[str, List[dict], float, str]:
         context_text = self._render_context_text(context)
+        ollama_cfg = self.inference_config.get("ollama", {})
+        if (
+            isinstance(ollama_cfg, dict)
+            and bool(ollama_cfg.get("enabled", False))
+            and self.local_llm is not None
+        ):
+            try:
+                llm_output = self.local_llm.summarize_and_hypothesize(context_text, query)
+                answer = str(llm_output.get("answer", "")).strip()
+                hypotheses = llm_output.get("hypotheses", [])
+                if not isinstance(hypotheses, list):
+                    hypotheses = []
+                hypotheses = self._check_hypothesis_consistency(hypotheses, context)
+                confidence = float(llm_output.get("confidence", 0.0))
+                reasoning_trace = str(llm_output.get("reasoning_trace", "")).strip()
+                if answer:
+                    return answer, hypotheses, max(0.0, min(confidence, 1.0)), reasoning_trace
+            except Exception:
+                pass
+
         if self.adapters.inference:
-            return self.adapters.inference.synthesize(context_text, query)
+            answer = self.adapters.inference.synthesize(context_text, query)
+            return answer, [], 0.5, "inference_router_fallback"
         if not context:
-            return "No strong graph context yet; additional research may be required."
+            return (
+                "No strong graph context yet; additional research may be required.",
+                [],
+                0.2,
+                "no_context_fallback",
+            )
         preview = "; ".join(node.content for node in context[:3])
         return (
             f"Best graph-grounded response for '{query}': {preview}\n"
-            "Source: retrieved graph context only."
+            "Source: retrieved graph context only.",
+            [],
+            0.4,
+            "extractive_fallback",
         )
+
+    def _check_hypothesis_consistency(
+        self, hypotheses: List[dict], context_nodes: List[Node]
+    ) -> List[dict]:
+        node_ids = [node.id for node in context_nodes]
+        topic_to_node_ids: dict[str, list[str]] = {}
+        for node in context_nodes:
+            for topic in node.topics:
+                topic_to_node_ids.setdefault(topic.lower(), []).append(node.id)
+        context_blob = " ".join(node.content.lower() for node in context_nodes)
+        checked: List[dict] = []
+        for raw in hypotheses[:3]:
+            if not isinstance(raw, dict):
+                continue
+            text = str(raw.get("text", "")).strip()
+            if not text:
+                continue
+            confidence = float(raw.get("confidence", 0.0))
+            supporting_nodes = raw.get("supporting_nodes", [])
+            if not isinstance(supporting_nodes, list):
+                supporting_nodes = []
+            lowered_text = text.lower()
+
+            for topic, ids in topic_to_node_ids.items():
+                if topic in lowered_text:
+                    supporting_nodes.extend(ids[:2])
+            if not supporting_nodes and node_ids:
+                supporting_nodes = node_ids[:2]
+
+            supporting_nodes = list(dict.fromkeys(str(node_id) for node_id in supporting_nodes))
+            contradiction = (
+                (" not " in lowered_text and lowered_text.replace(" not ", " ") in context_blob)
+                or (
+                    " never " in lowered_text
+                    and lowered_text.replace(" never ", " always ") in context_blob
+                )
+            )
+            if contradiction:
+                confidence = max(0.0, confidence - 0.25)
+            if confidence < 0.15:
+                continue
+            checked.append(
+                {
+                    "text": text,
+                    "confidence": max(0.0, min(confidence, 1.0)),
+                    "supporting_nodes": supporting_nodes,
+                }
+            )
+        return checked
+
+    def _log_reasoning_trace(
+        self,
+        query: str,
+        answer: str,
+        hypotheses: List[dict],
+        confidence: float,
+        reasoning_trace: str,
+    ) -> None:
+        traces_dir = str(self.self_improvement_config.get("traces_dir", "traces"))
+        traces_path = Path(traces_dir)
+        traces_path.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
+        trace_file = traces_path / f"reasoning_{timestamp}.jsonl"
+
+        wave_status = {}
+        get_wave_status = getattr(self.graph, "get_wave_status", None)
+        if callable(get_wave_status):
+            try:
+                wave_status = get_wave_status() or {}
+            except Exception:
+                wave_status = {}
+
+        payload = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "query": query,
+            "answer": answer,
+            "hypotheses": hypotheses,
+            "confidence": max(0.0, min(float(confidence), 1.0)),
+            "reasoning_trace": reasoning_trace,
+            "graph_tension": float(wave_status.get("tension", 0.0)),
+            "cycle_count": int(wave_status.get("cycle_count", 0)),
+        }
+        trace_file.write_text(json.dumps(payload) + "\n", encoding="utf-8")
 
     def _render_context_text(self, context: List[Node]) -> str:
         if not context:
@@ -299,6 +491,15 @@ def process_query(
     query: str,
     graph: UniversalLivingGraph,
     adapters: QueryAdapters | None = None,
+    synthesis_config: dict | None = None,
+    inference_config: dict | None = None,
+    local_llm: LocalLLMProtocol | None = None,
 ) -> QueryResponse:
-    processor = QueryProcessor(graph=graph, adapters=adapters)
+    processor = QueryProcessor(
+        graph=graph,
+        adapters=adapters,
+        synthesis_config=synthesis_config,
+        inference_config=inference_config,
+        local_llm=local_llm,
+    )
     return processor.process_query(query)

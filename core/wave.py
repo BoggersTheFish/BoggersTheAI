@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List
 
-from .graph import UniversalLivingGraph
+from .graph.universal_living_graph import UniversalLivingGraph
 from .types import Node, Tension
 
 
