@@ -86,7 +86,10 @@ def detect_contradictions(
                         Contradiction(
                             node_a=aid,
                             node_b=bid,
-                            reason=f"antonym conflict on shared topics {overlap}: {conflict_words}",
+                            reason=(
+                                f"antonym conflict on shared topics {overlap}: "
+                                f"{conflict_words}"
+                            ),
                             severity=severity,
                         )
                     )

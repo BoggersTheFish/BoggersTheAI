@@ -31,7 +31,8 @@ def run_tui(
         while not stop_event.is_set():
             status = runtime.get_status()
             state.recent_events.appendleft(
-                f"cycle={status.get('cycle_count')} tension={float(status.get('tension', 0.0)):.2f}"
+                f"cycle={status.get('cycle_count')} "
+                f"tension={float(status.get('tension', 0.0)):.2f}"
             )
             live.update(_render(runtime, state))
             stop_event.wait(1.0)

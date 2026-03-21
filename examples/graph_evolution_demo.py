@@ -40,8 +40,9 @@ def main() -> None:
     print("Step 2: Running 5 wave cycles...")
     for i in range(5):
         result = run_wave(graph)
+        strongest_id = result.strongest_node.id if result.strongest_node else "none"
         print(
-            f"  Wave {i+1}: strongest={result.strongest_node.id if result.strongest_node else 'none'}, "
+            f"  Wave {i+1}: strongest={strongest_id}, "
             f"tensions={len(result.tensions)}, collapsed={result.collapsed_node_id}"
         )
 

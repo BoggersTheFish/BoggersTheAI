@@ -85,7 +85,10 @@ def wave() -> str:
         },
       });
 
-      const _token = document.cookie.replace(/(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const _token = document.cookie.replace(
+        /(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/,
+        "$1",
+      );
       const _hdrs = _token ? { "Authorization": "Bearer " + _token } : {};
       async function tick() {
         const response = await fetch("/status", { headers: _hdrs });
@@ -138,17 +141,33 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
     body { margin: 0; font-family: sans-serif; background: #1a1a2e; color: #eee; }
     #cy { width: 100vw; height: 90vh; }
     #info { padding: 8px 20px; background: #16213e; font-size: 14px; }
-    #details { position: fixed; top: 10px; right: 10px; background: #16213e; padding: 15px;
-               border-radius: 8px; max-width: 350px; display: none; z-index: 10; font-size: 13px; }
+    #details {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #16213e;
+      padding: 15px;
+      border-radius: 8px;
+      max-width: 350px;
+      display: none;
+      z-index: 10;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-  <div id="info"><b>BoggersTheAI Living Graph</b> | Click a node for details | Scroll to zoom | Drag to pan</div>
+  <div id="info">
+    <b>BoggersTheAI Living Graph</b> | Click a node for details | Scroll to zoom |
+    Drag to pan
+  </div>
   <div id="cy"></div>
   <div id="details"></div>
   <script>
     async function load() {
-      const _token = document.cookie.replace(/(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const _token = document.cookie.replace(
+        /(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/,
+        "$1",
+      );
       const _hdrs = _token ? { "Authorization": "Bearer " + _token } : {};
       const resp = await fetch("/graph", { headers: _hdrs });
       const data = await resp.json();
@@ -183,7 +202,10 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
             "text-valign": "bottom", "text-halign": "center",
             "border-width": 1, "border-color": "#334",
           }},
-          { selector: "node[?collapsed]", style: { "background-color": "#555", "opacity": 0.4 }},
+          {
+            selector: "node[?collapsed]",
+            style: { "background-color": "#555", "opacity": 0.4 },
+          },
           { selector: "edge", style: {
             "width": "mapData(weight, 0, 1, 0.5, 4)",
             "line-color": "#334", "curve-style": "bezier",
@@ -191,7 +213,12 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
             "arrow-scale": 0.6,
           }},
         ],
-        layout: { name: "cose", animate: false, nodeRepulsion: 8000, idealEdgeLength: 80 },
+        layout: {
+          name: "cose",
+          animate: false,
+          nodeRepulsion: 8000,
+          idealEdgeLength: 80,
+        },
       });
       cy.on("tap", "node", function(evt) {
         const d = evt.target.data();
@@ -204,7 +231,9 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
           + "Collapsed: " + d.collapsed;
       });
       cy.on("tap", function(evt) {
-        if (evt.target === cy) document.getElementById("details").style.display = "none";
+        if (evt.target === cy) {
+          document.getElementById("details").style.display = "none";
+        }
       });
     }
     load();

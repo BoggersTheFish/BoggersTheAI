@@ -457,9 +457,13 @@ class BoggersRuntime:
                 lineage_id = (
                     f"finetune:{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
                 )
+                finetune_content = (
+                    f"Fine-tuned adapter from {stats.get('epochs', 1)} epochs, "
+                    f"loss={stats.get('loss', 0):.4f}"
+                )
                 self.graph.add_node(
                     node_id=lineage_id,
-                    content=f"Fine-tuned adapter from {stats.get('epochs', 1)} epochs, loss={stats.get('loss', 0):.4f}",
+                    content=finetune_content,
                     topics=["finetune", "self_improvement", "lineage"],
                     activation=0.1,
                     stability=0.9,
@@ -605,8 +609,9 @@ class BoggersRuntime:
             else (strongest.id if strongest else "exploration")
         )
         created = 0
+        explore_ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         for idx in range(2):
-            node_id = f"auto:explore:{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}:{idx}"
+            node_id = f"auto:explore:{explore_ts}:{idx}"
             if node_id in self.graph.nodes:
                 continue
             self.graph.add_node(
@@ -680,7 +685,10 @@ class BoggersRuntime:
         self.graph.save()
         wave_status = self.graph.get_wave_status()
         logger.info(
-            "OS Loop: consolidation | tension: %.2f | pruned: %d | merged: %d | policy_pruned: %d",
+            (
+                "OS Loop: consolidation | tension: %.2f | pruned: %d | "
+                "merged: %d | policy_pruned: %d"
+            ),
             float(wave_status.get("tension", 0.0)),
             collapsed_count,
             merged_count,
@@ -743,7 +751,10 @@ class BoggersRuntime:
         self.graph.save()
         wave_status = self.graph.get_wave_status()
         logger.info(
-            "OS Loop: nightly_consolidation | tension: %.2f | pruned: %d | merged: %d | emergence: %d",
+            (
+                "OS Loop: nightly_consolidation | tension: %.2f | pruned: %d | "
+                "merged: %d | emergence: %d"
+            ),
             float(wave_status.get("tension", 0.0)),
             collapsed_count,
             merged_count,
@@ -1049,8 +1060,9 @@ class BoggersRuntime:
         ft_cfg = si_cfg.get("fine_tuning", {})
         if isinstance(ft_cfg, dict) and bool(ft_cfg.get("enabled", False)):
             logger.warning(
-                "Self-improvement (fine-tuning) is EXPERIMENTAL and can degrade model quality. "
-                "Ensure validation_enabled=true and safety_dry_run=true for safe testing."
+                "Self-improvement (fine-tuning) is EXPERIMENTAL and can "
+                "degrade model quality. Ensure validation_enabled=true and "
+                "safety_dry_run=true for safe testing."
             )
 
     def _setup_embedder(self) -> None:

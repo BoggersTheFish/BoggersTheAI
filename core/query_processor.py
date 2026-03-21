@@ -504,8 +504,8 @@ class QueryProcessor:
         lines: List[str] = []
         for node in context:
             lines.append(
-                f"[node:{node.id}] topic={','.join(node.topics)} activation={node.activation:.2f} "
-                f"stability={node.stability:.2f}"
+                f"[node:{node.id}] topic={','.join(node.topics)} "
+                f"activation={node.activation:.2f} stability={node.stability:.2f}"
             )
             lines.append(node.content.strip())
         return "\n".join(lines)

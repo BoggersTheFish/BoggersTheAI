@@ -604,7 +604,10 @@ class UniversalLivingGraph:
                     )
                     tension_score = max(tensions.values()) if tensions else 0.0
                     logger.info(
-                        "Wave cycle #%d | Tension: %.2f | Nodes: %d | Strongest: %s | Pruned: %d | Emergence: %d",
+                        (
+                            "Wave cycle #%d | Tension: %.2f | Nodes: %d | "
+                            "Strongest: %s | Pruned: %d | Emergence: %d"
+                        ),
                         self._wave_cycle_count,
                         tension_score,
                         len(self.nodes),

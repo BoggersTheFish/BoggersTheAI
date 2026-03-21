@@ -42,7 +42,8 @@ def run_chat(runtime: BoggersRuntime | None = None) -> None:
             metrics = rt.graph.get_metrics()
             print("Graph metrics:")
             print(
-                f"  Nodes: {metrics['active_nodes']} active / {metrics['total_nodes']} total"
+                f"  Nodes: {metrics['active_nodes']} active / "
+                f"{metrics['total_nodes']} total"
             )
             print(
                 f"  Edges: {metrics['edges']} | Density: {metrics['edge_density']:.4f}"
@@ -97,7 +98,8 @@ def run_chat(runtime: BoggersRuntime | None = None) -> None:
             else:
                 for item in history:
                     print(
-                        f"  [{item.get('timestamp', '?')}] {item.get('content', '')[:120]}"
+                        f"  [{item.get('timestamp', '?')}] "
+                        f"{item.get('content', '')[:120]}"
                     )
             continue
         try:

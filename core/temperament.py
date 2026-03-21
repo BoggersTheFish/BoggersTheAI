@@ -25,7 +25,10 @@ PRESETS: Dict[str, Temperament] = {
         prune_threshold=0.15,
         damping=0.98,
         activation_cap=0.8,
-        description="Slow, deep thinking. Low spread, gentle relaxation, tolerates more tension.",
+        description=(
+            "Slow, deep thinking. Low spread, gentle relaxation, "
+            "tolerates more tension."
+        ),
     ),
     "analytical": Temperament(
         name="analytical",
@@ -45,7 +48,9 @@ PRESETS: Dict[str, Temperament] = {
         prune_threshold=0.25,
         damping=0.90,
         activation_cap=1.0,
-        description="Fast reactions. High spread, strong relaxation, aggressive pruning.",
+        description=(
+            "Fast reactions. High spread, strong relaxation, aggressive pruning."
+        ),
     ),
     "critical": Temperament(
         name="critical",
@@ -55,7 +60,9 @@ PRESETS: Dict[str, Temperament] = {
         prune_threshold=0.35,
         damping=0.92,
         activation_cap=0.85,
-        description="Strict evaluation. High prune threshold catches weak ideas quickly.",
+        description=(
+            "Strict evaluation. High prune threshold catches weak ideas quickly."
+        ),
     ),
     "creative": Temperament(
         name="creative",
@@ -65,7 +72,9 @@ PRESETS: Dict[str, Temperament] = {
         prune_threshold=0.10,
         damping=0.88,
         activation_cap=1.0,
-        description="Divergent exploration. High spread, low pruning, tolerates high tension.",
+        description=(
+            "Divergent exploration. High spread, low pruning, tolerates high tension."
+        ),
     ),
     "default": Temperament(
         name="default",

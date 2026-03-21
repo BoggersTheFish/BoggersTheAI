@@ -161,8 +161,10 @@ class LocalLLM:
     ) -> str:
         neighbors_text = "\n".join(f"- {c[:200]}" for c in neighbor_contents[:3])
         prompt = (
-            "You are a knowledge synthesis engine. A graph node has collapsed under tension. "
-            "Generate a single concise paragraph (2-4 sentences) that synthesizes a new insight "
+            "You are a knowledge synthesis engine. "
+            "A graph node has collapsed under tension. "
+            "Generate a single concise paragraph (2-4 sentences) "
+            "that synthesizes a new insight "
             "from the collapsed parent and its neighbors.\n\n"
             f"Collapsed parent: {parent_content[:300]}\n"
             f"Neighbor context:\n{neighbors_text}\n"
