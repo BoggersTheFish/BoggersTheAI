@@ -18,6 +18,9 @@ class RSSAdapter:
         feed_url = source.strip()
         if not feed_url:
             return []
+        if not feed_url.startswith("https://"):
+            logger.warning("Rejecting non-HTTPS RSS URL: %s", feed_url[:80])
+            return []
 
         try:
             with urlopen(feed_url, timeout=10) as response:

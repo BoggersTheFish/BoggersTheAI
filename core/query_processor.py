@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Iterable, List, Protocol
 
 from .graph.universal_living_graph import UniversalLivingGraph
+from .metrics import metrics
 from .types import Node
 
 logger = logging.getLogger("boggers.query")
@@ -120,6 +121,11 @@ class QueryProcessor:
         self.self_improvement_config = self.inference_config.get("self_improvement", {})
 
     def process_query(self, query: str) -> QueryResponse:
+        metrics.increment("queries_total")
+        with metrics.timer("query_processing"):
+            return self._process_query_inner(query)
+
+    def _process_query_inner(self, query: str) -> QueryResponse:
         topics = self._extract_topics(query)
         context = self._retrieve_context(topics)
         sufficiency = self._score_sufficiency(context)
@@ -360,7 +366,7 @@ class QueryProcessor:
             and bool(ollama_cfg.get("enabled", False))
             and self.local_llm is not None
         ):
-            max_retries = 2
+            max_retries = int(self.synthesis_config.get("max_retries", 2))
             for attempt in range(max_retries):
                 try:
                     llm_output = self.local_llm.summarize_and_hypothesize(

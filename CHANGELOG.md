@@ -1,5 +1,77 @@
 # Changelog
 
+All notable changes to BoggersTheAI are documented in this file.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+---
+
+## [0.4.0] - 2026-03-21
+
+Comprehensive hardening pass across Phases 1–6: protocol centralization, config
+validation, performance optimization, thread safety, security hardening, CI
+expansion, and full test coverage overhaul.
+
+### Added
+- **`core/protocols.py`** — centralizes `VoiceIn`, `VoiceOut`, `ImageIn`, and `Graph` protocol definitions in a single module, eliminating scattered duck-typing.
+- **`core/config_resolver.py`** — utility for safe nested config access (`resolve(cfg, "a.b.c", default)`) without `KeyError` risk.
+- **`core/config_schema.py`** — validates the full `config.yaml` structure at startup; logs warnings for unknown keys and type mismatches.
+- **`ARCHITECTURE.md`** — comprehensive documentation covering module layout, data flow (Mermaid), wave cycle diagram, thread model, persistence backends, and self-improvement pipeline.
+- **7 new test files** with 64 new tests (147 total, up from 83):
+  - `test_protocols.py` — protocol compliance and re-export verification
+  - `test_config_schema.py` — schema validation edge cases
+  - `test_events_metrics.py` — event bus emission/subscription and metrics recording
+  - `test_health.py` — health checker registration and status aggregation
+  - `test_concurrency.py` — thread safety under concurrent graph mutation
+  - `test_tools_detailed.py` — tool execution, routing, and error paths
+  - `test_adapters_detailed.py` — adapter ingestion, caching, and failure modes
+- **`health` CLI command** — `boggers health` runs all registered health checks and prints aggregate status.
+- **EventBus wired into wave loop** — emits `wave_cycle_complete` after every cycle; wired into `ask()` pipeline for `query_processed` events.
+- **MetricsCollector wired into runtime** — tracks `queries_total`, `tool_calls_total`, `wave_cycles_total`; exposed via dashboard `/status`.
+- **HealthChecker** — registered checks for graph connectivity, wave engine liveness, and LLM availability.
+- **PluginRegistry entry-point discovery** — scans `boggers.adapters` and `boggers.tools` entry points at init for third-party plugins.
+- **PruningPolicy** — configurable pruning strategies applied in consolidation paths (`core/graph/pruning.py`).
+- **Python 3.10 / 3.11 / 3.12 CI matrix** — all three versions tested on every push/PR with `--cov-fail-under=50` threshold.
+- **`[multimodal]` optional dependency group** — `pip install -e ".[multimodal]"` installs faster-whisper, transformers, pillow, piper-tts.
+- **`[adapters]` optional dependency group** — `pip install -e ".[adapters]"` installs feedparser.
+- **`[tool.ruff]` config section** in `pyproject.toml` — line-length 88, target py310, E/F/W/I rule sets.
+
+### Changed
+- **Contradiction detection** uses topic-indexed O(k) scan instead of previous O(n²) pairwise comparison.
+- **`strongest_node()`** result is cached with invalidation on graph mutation, avoiding redundant full-graph scans.
+- **`_count_traces()`** uses a 60-second TTL cache to avoid repeated filesystem walks.
+- **`fine_cfg`** resolved once at init rather than re-reading config on every fine-tuning call.
+- **`rules_engine.py`** replaces all magic numbers with named `UPPER_SNAKE_CASE` constants at module level.
+- **`multimodal/base.py`** re-exports protocol types from `core/protocols.py` (backward compatible — existing `from multimodal.base import VoiceIn` still works).
+- **`core/router.py`** imports protocol types from `core/protocols.py` instead of cross-boundary import from `multimodal`, breaking the circular dependency.
+- **`max_retries`** is now configurable in synthesis config rather than hardcoded to 2.
+- **Coverage**: 74% line coverage (up from ~50%), 147 tests (up from 83).
+
+### Fixed
+- **Thread safety** — added `threading.Lock` on:
+  - `prune()` in `rules_engine.py`
+  - `_hypothesis_queue` in `router.py`
+  - `ContextManager` read paths in `context_mind.py`
+  - API singleton creation in `api.py`
+  - LLM hot-swap in `local_llm.py`
+- **`ModeManager.request_user_mode`** now accepts a `timeout` parameter and returns `bool` instead of blocking indefinitely.
+- **Temp file cleanup** in `voice_in.py` — temporary WAV files are deleted after transcription.
+- **Missing `embedding` field** in snapshot restore and SQLite import — nodes now round-trip embeddings correctly.
+- **Duplicate `detect_contradictions` call** in `run_wave()` — removed the redundant invocation that ran contradiction detection twice per cycle.
+- **`split_overactivated`** now logs pre-mutation activation values for debugging, not post-split values.
+- **`import time`** moved to module level in `universal_living_graph.py` (was inline inside a method).
+- **`JSON load()`** now calls `migrate_graph_data()` ensuring legacy graph files are upgraded on read.
+
+### Security
+- **AST-based sandbox scanning** in `code_run.py` blocks `__import__()`, `exec()`, `eval()`, and all known evasion patterns (attribute access, string concatenation, `getattr` tricks).
+- **`FileReadTool`** restricted to configured base directory — rejects all paths outside the allowed root, preventing directory traversal.
+- **RSS adapter HTTPS-only enforcement** — feed URLs using plain HTTP are rejected with a logged warning.
+- **Dashboard `/wave` and `/graph/viz`** include auth header requirements — unauthenticated requests receive 401.
+- **Dashboard `/graph/viz`** requires the auth dependency (was previously unprotected).
+- **`ask_audio` / `ask_image`** wrapped with defensive `try/except` — malformed audio or image input logs the error and returns a graceful fallback instead of crashing.
+- **`shutil.copytree` backup** wrapped with `try/except` — backup failures are logged and do not abort the operation that triggered them.
+
+---
+
 ## [0.3.0] - 2026-03-20
 
 ### Added
@@ -32,6 +104,8 @@
 - Heavy dependencies (`ollama`, `unsloth`, `torch`) moved to optional extras.
 - Dashboard version bumped to 0.3.0.
 
+---
+
 ## [0.2.1] - 2026-03-20
 
 ### Changed
@@ -40,6 +114,8 @@
 - [.env.example](.env.example) documents dashboard host/port/token variables.
 - [examples/README.md](examples/README.md) indexes quickstart, demos, and notebook.
 - Package version bumped to **0.2.1** (`pyproject.toml`, dashboard OpenAPI version).
+
+---
 
 ## [0.2.0] - 2026-03-20
 
@@ -91,6 +167,8 @@
 - Orphaned `core/graph/edge.py` (GraphEdge was never used; Edge from types.py is canonical).
 - Deprecated license classifier from pyproject.toml.
 - Duplicate content in CONTRIBUTING.md.
+
+---
 
 ## [0.1.0] - 2026-03-20
 

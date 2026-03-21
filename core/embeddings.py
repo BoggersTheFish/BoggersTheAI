@@ -6,8 +6,6 @@ from typing import Dict, List
 
 logger = logging.getLogger("boggers.embeddings")
 
-_EMBED_DIM = 768
-
 
 def cosine_similarity(a: List[float], b: List[float]) -> float:
     if not a or not b or len(a) != len(b):

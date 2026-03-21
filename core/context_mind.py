@@ -14,7 +14,6 @@ class ContextMind:
     node_filter: Set[str] = field(default_factory=set)
     topic_filter: Set[str] = field(default_factory=set)
     temperament: str = "default"
-    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     def includes_node(self, node_id: str, topics: list[str] | None = None) -> bool:
         if self.node_filter and node_id in self.node_filter:
@@ -57,10 +56,12 @@ class ContextManager:
             return ctx
 
     def get(self, name: str) -> ContextMind | None:
-        return self._contexts.get(name)
+        with self._lock:
+            return self._contexts.get(name)
 
     def get_or_default(self, name: str) -> ContextMind:
-        return self._contexts.get(name, self._default)
+        with self._lock:
+            return self._contexts.get(name, self._default)
 
     def delete(self, name: str) -> bool:
         if name == "global":
@@ -69,7 +70,8 @@ class ContextManager:
             return self._contexts.pop(name, None) is not None
 
     def list_contexts(self) -> List[str]:
-        return list(self._contexts.keys())
+        with self._lock:
+            return list(self._contexts.keys())
 
     def get_subgraph_view(
         self,

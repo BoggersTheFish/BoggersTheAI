@@ -15,6 +15,19 @@ from .wave_propagation import (
 
 logger = logging.getLogger("boggers.graph.rules")
 
+PRUNE_EDGE_THRESHOLD = 0.25
+EMERGENCE_MAX_SPAWN = 2
+EMERGENCE_BASE_ACTIVATION = 0.3
+EMERGENCE_TENSION_MULTIPLIER = 0.2
+EMERGENCE_BASE_STABILITY = 0.7
+EMERGENCE_BASE_STRENGTH = 0.6
+MERGE_SIMILARITY_THRESHOLD = 0.7
+SPLIT_ACTIVATION_CAP = 0.95
+SPLIT_ACTIVATION_FACTOR = 0.5
+SPLIT_STABILITY_FACTOR = 0.9
+NOVELTY_BOOST = 0.05
+NOVELTY_RECENCY_WINDOW = 10
+
 
 @dataclass(slots=True)
 class RulesEngineCycleResult:
@@ -28,7 +41,7 @@ class RulesEngineCycleResult:
 
 def prune_edges(
     adjacency: Dict[str, Dict[str, float]],
-    threshold: float = 0.25,
+    threshold: float = PRUNE_EDGE_THRESHOLD,
 ) -> int:
     pruned = 0
     for src, neighbors in list(adjacency.items()):
@@ -78,7 +91,7 @@ def spawn_emergence(
         return created
 
     sorted_tensions = sorted(tensions.items(), key=lambda item: item[1], reverse=True)
-    for node_id, tension in sorted_tensions[:2]:
+    for node_id, tension in sorted_tensions[:EMERGENCE_MAX_SPAWN]:
         emergent_id = f"emergent:{node_id}"
         if emergent_id in nodes:
             continue
@@ -104,9 +117,12 @@ def spawn_emergence(
             id=emergent_id,
             content=content,
             topics=source.topics[:],
-            activation=min(1.0, 0.3 + tension * 0.2),
-            stability=0.7,
-            base_strength=0.6,
+            activation=min(
+                1.0,
+                EMERGENCE_BASE_ACTIVATION + tension * EMERGENCE_TENSION_MULTIPLIER,
+            ),
+            stability=EMERGENCE_BASE_STABILITY,
+            base_strength=EMERGENCE_BASE_STRENGTH,
             attributes={"type": "emergent", "source": node_id},
         )
         edges.append((node_id, emergent_id, 0.3))
@@ -123,7 +139,7 @@ def spawn_emergence(
 def merge_similar_topics(
     nodes: Dict[str, GraphNode],
     edges: List[Tuple[str, str, float]],
-    similarity_threshold: float = 0.7,
+    similarity_threshold: float = MERGE_SIMILARITY_THRESHOLD,
 ) -> List[str]:
     merged: List[str] = []
     topic_groups: Dict[str, List[str]] = {}
@@ -165,7 +181,7 @@ def merge_similar_topics(
 def split_overactivated(
     nodes: Dict[str, GraphNode],
     edges: List[Tuple[str, str, float]],
-    activation_cap: float = 0.95,
+    activation_cap: float = SPLIT_ACTIVATION_CAP,
 ) -> List[str]:
     created: List[str] = []
     for node in list(nodes.values()):
@@ -174,6 +190,7 @@ def split_overactivated(
         split_id = f"split:{node.id}"
         if split_id in nodes:
             continue
+        original_activation = node.activation
         nodes[split_id] = GraphNode(
             id=split_id,
             content=f"Split from overactivated {node.id}",
@@ -190,15 +207,15 @@ def split_overactivated(
             "Split: created %s from overactivated %s (activation was %.3f)",
             split_id,
             node.id,
-            node.activation * 2,
+            original_activation,
         )
     return created
 
 
 def reward_novelty(
     nodes: Dict[str, GraphNode],
-    novelty_boost: float = 0.05,
-    recency_window: int = 10,
+    novelty_boost: float = NOVELTY_BOOST,
+    recency_window: int = NOVELTY_RECENCY_WINDOW,
     current_wave: int = 0,
 ) -> int:
     boosted = 0

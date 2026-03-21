@@ -9,6 +9,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse
 
 from BoggersTheAI import BoggersRuntime
+from BoggersTheAI.core.metrics import metrics as metrics_collector
 
 app = FastAPI(title="BoggersTheAI Dashboard", version="0.3.0")
 runtime = BoggersRuntime()
@@ -52,7 +53,7 @@ def status(_: None = Depends(_check_auth)) -> dict[str, Any]:
 @app.get("/wave", response_class=HTMLResponse)
 def wave() -> str:
     _collect_status()
-    return """<!doctype html>
+    return r"""<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -84,8 +85,10 @@ def wave() -> str:
         },
       });
 
+      const _token = document.cookie.replace(/(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const _hdrs = _token ? { "Authorization": "Bearer " + _token } : {};
       async function tick() {
-        const response = await fetch("/status");
+        const response = await fetch("/status", { headers: _hdrs });
         const payload = await response.json();
         const s = payload.status || {};
         chart.data.labels.push(s.cycle_count ?? 0);
@@ -124,8 +127,8 @@ def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
 
 
 @app.get("/graph/viz", response_class=HTMLResponse)
-def graph_viz() -> str:
-    return """<!doctype html>
+def graph_viz(_: None = Depends(_check_auth)) -> str:
+    return r"""<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -145,7 +148,9 @@ def graph_viz() -> str:
   <div id="details"></div>
   <script>
     async function load() {
-      const resp = await fetch("/graph");
+      const _token = document.cookie.replace(/(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+      const _hdrs = _token ? { "Authorization": "Bearer " + _token } : {};
+      const resp = await fetch("/graph", { headers: _hdrs });
       const data = await resp.json();
       const elements = [];
       data.nodes.forEach(n => {
@@ -210,7 +215,7 @@ def graph_viz() -> str:
 
 @app.get("/metrics")
 def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
-    metrics = runtime.graph.get_metrics()
+    graph_metrics = runtime.graph.get_metrics()
     wave_status = runtime.get_status()
 
     stability_trend: list[float] = []
@@ -219,10 +224,11 @@ def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
             stability_trend.append(1.0 - entry.get("tension", 0.0))
 
     return {
-        "graph": metrics,
+        "graph": graph_metrics,
         "wave": wave_status,
         "stability_trend": stability_trend,
         "tension_history_length": len(_tension_history),
+        "system": metrics_collector.snapshot(),
     }
 
 

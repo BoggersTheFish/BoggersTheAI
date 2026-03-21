@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import threading
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Deque, Dict, List, Protocol
 
-from ..multimodal.base import ImageInProtocol, VoiceInProtocol
 from .graph.universal_living_graph import UniversalLivingGraph
 from .mode_manager import ModeManager
+from .protocols import ImageInProtocol, VoiceInProtocol
 from .query_processor import QueryProcessor, QueryResponse
 from .wave import run_wave
 
@@ -87,6 +88,7 @@ class QueryRouter:
         self.mode_manager = mode_manager
         self.config = config or RouterConfig()
         self._hypothesis_queue: Deque[str] = deque()
+        self._queue_lock = threading.Lock()
 
     def process_text(self, query: str) -> QueryResponse:
         self.mode_manager.request_user_mode()
@@ -117,15 +119,19 @@ class QueryRouter:
         try:
             wave_result = run_wave(self.graph)
             strongest = wave_result.strongest_node
-            if strongest and strongest.topics:
-                self._hypothesis_queue.append(f"explore:{strongest.topics[0]}")
-            if strongest and not strongest.topics:
-                self._hypothesis_queue.append(f"explore:{strongest.id}")
+            with self._queue_lock:
+                if strongest and strongest.topics:
+                    self._hypothesis_queue.append(f"explore:{strongest.topics[0]}")
+                if strongest and not strongest.topics:
+                    self._hypothesis_queue.append(f"explore:{strongest.id}")
 
             limit = self.config.max_hypotheses_per_cycle
             processed = 0
-            while self._hypothesis_queue and processed < limit:
-                hypothesis = self._hypothesis_queue.popleft()
+            while processed < limit:
+                with self._queue_lock:
+                    if not self._hypothesis_queue:
+                        break
+                    hypothesis = self._hypothesis_queue.popleft()
                 response = self.query_processor.process_query(hypothesis)
                 responses.append(response)
                 self._enqueue_hypotheses(response.hypotheses)
@@ -135,14 +141,15 @@ class QueryRouter:
         return responses
 
     def _enqueue_hypotheses(self, hypotheses: list) -> None:
-        for item in hypotheses:
-            if isinstance(item, dict):
-                text = str(item.get("text", "")).strip()
-            elif isinstance(item, str):
-                text = item.strip()
-            else:
-                continue
-            if not text:
-                continue
-            if text not in self._hypothesis_queue:
-                self._hypothesis_queue.append(text)
+        with self._queue_lock:
+            for item in hypotheses:
+                if isinstance(item, dict):
+                    text = str(item.get("text", "")).strip()
+                elif isinstance(item, str):
+                    text = item.strip()
+                else:
+                    continue
+                if not text:
+                    continue
+                if text not in self._hypothesis_queue:
+                    self._hypothesis_queue.append(text)

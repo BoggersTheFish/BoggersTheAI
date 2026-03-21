@@ -86,10 +86,6 @@ class ToolRouter:
         return None
 
     def _detect_language(self, query: str) -> str:
-        if "python" in query:
-            return "python"
-        if "bash" in query or "shell" in query:
-            return "shell"
         return "python"
 
     def _extract_math_expression(self, query: str) -> str | None:

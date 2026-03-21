@@ -10,12 +10,17 @@ ALLOWED_EXTENSIONS = {".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv", ".
 
 
 class FileReadTool:
+    def __init__(self, base_dir: str | None = None) -> None:
+        self.base_dir = os.path.realpath(base_dir) if base_dir else os.getcwd()
+
     def execute(self, **kwargs) -> str:
         raw_path = str(kwargs.get("path", "")).strip()
         if not raw_path:
             return "File path is empty."
 
         resolved = os.path.realpath(raw_path)
+        if not resolved.startswith(self.base_dir):
+            return "Error: path escapes base directory"
         _, ext = os.path.splitext(resolved)
         if ext.lower() not in ALLOWED_EXTENSIONS:
             return f"Error: file extension '{ext}' not allowed"

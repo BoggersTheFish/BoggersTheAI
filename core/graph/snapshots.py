@@ -87,6 +87,7 @@ class GraphSnapshotManager:
                 last_wave=int(item.get("last_wave", 0)),
                 collapsed=bool(item.get("collapsed", False)),
                 attributes=item.get("attributes", {}),
+                embedding=item.get("embedding", []),
             )
         for item in data.get("edges", []):
             if item.get("src") in nodes and item.get("dst") in nodes:

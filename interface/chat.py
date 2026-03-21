@@ -22,6 +22,7 @@ def run_chat(runtime: BoggersRuntime | None = None) -> None:
             print("  wave pause  - Pause background wave")
             print("  wave resume - Resume background wave")
             print("  improve     - Trigger self-improvement cycle")
+            print("  health      - Run system health checks")
             print("  history     - Show conversation history")
             print("  help        - Show this help")
             print("  exit        - Quit")
@@ -81,6 +82,13 @@ def run_chat(runtime: BoggersRuntime | None = None) -> None:
             print("Running self-improvement check...")
             result = rt.trigger_self_improvement()
             print(f"Result: {result}")
+            continue
+        if cmd in {"health", "/health"}:
+            result = rt.run_health_checks()
+            print(f"Health: {result.get('overall', 'unknown')}")
+            for name, check in result.get("checks", {}).items():
+                status = "OK" if check.get("healthy") else "FAIL"
+                print(f"  {name}: {status} ({check.get('duration_ms', 0)}ms)")
             continue
         if cmd in {"history", "/history"}:
             history = rt.get_conversation_history()

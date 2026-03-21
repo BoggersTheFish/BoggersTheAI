@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Any, Dict
 
 from .runtime import BoggersRuntime
@@ -8,13 +9,17 @@ from .runtime import BoggersRuntime
 logger = logging.getLogger("boggers.api")
 
 _shared_runtime: BoggersRuntime | None = None
+_runtime_lock = threading.Lock()
 
 
 def get_runtime() -> BoggersRuntime:
     global _shared_runtime
-    if _shared_runtime is None:
-        _shared_runtime = BoggersRuntime()
-    return _shared_runtime
+    if _shared_runtime is not None:
+        return _shared_runtime
+    with _runtime_lock:
+        if _shared_runtime is None:
+            _shared_runtime = BoggersRuntime()
+        return _shared_runtime
 
 
 def handle_query(

@@ -40,9 +40,8 @@ class AdapterRegistry:
         cached = _adapter_cache.get(cache_key)
         if cached and (now - cached[0]) < _CACHE_TTL:
             return cached[1]
-        import time as _time
 
-        _call_key = f"{name}:{int(_time.time() // 60)}"
+        _call_key = f"{name}:{int(time.time() // 60)}"
         _adapter_call_counts[_call_key] = _adapter_call_counts.get(_call_key, 0) + 1
         if _adapter_call_counts[_call_key] > _MAX_CALLS_PER_MINUTE:
             logger.warning("Rate limit hit for adapter %s", name)

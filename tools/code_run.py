@@ -74,7 +74,47 @@ class CodeRunTool:
                     for part in parts:
                         base = part.split(".")[0]
                         if base in _RESTRICTED_IMPORTS:
-                            return f"Blocked: import of '{base}' is not allowed in sandbox mode."
+                            return (
+                                f"Blocked: import of '{base}'"
+                                " is not allowed in sandbox mode."
+                            )
+            try:
+                import ast
+
+                tree = ast.parse(code)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Call):
+                        func = node.func
+                        name = ""
+                        if isinstance(func, ast.Name):
+                            name = func.id
+                        elif isinstance(func, ast.Attribute):
+                            name = func.attr
+                        if name == "__import__" and node.args:
+                            arg = node.args[0]
+                            if isinstance(arg, ast.Constant) and isinstance(
+                                arg.value, str
+                            ):
+                                base = arg.value.split(".")[0]
+                                if base in _RESTRICTED_IMPORTS:
+                                    return (
+                                        f"Blocked: __import__('{base}')"
+                                        " is not allowed in sandbox mode."
+                                    )
+                        if name in ("exec", "eval") and node.args:
+                            arg = node.args[0]
+                            if isinstance(arg, ast.Constant) and isinstance(
+                                arg.value, str
+                            ):
+                                for restricted in _RESTRICTED_IMPORTS:
+                                    if f"import {restricted}" in arg.value:
+                                        return (
+                                            f"Blocked: dynamic import of"
+                                            f" '{restricted}' via {name}()"
+                                            " is not allowed in sandbox mode."
+                                        )
+            except SyntaxError:
+                pass
 
         with tempfile.TemporaryDirectory() as temp_dir:
             script_path = Path(temp_dir) / "snippet.py"

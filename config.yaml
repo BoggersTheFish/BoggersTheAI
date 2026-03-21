@@ -38,6 +38,7 @@ inference:
       validation_enabled: true
       max_memory_gb: 12
       safety_dry_run: true
+      backup_dir: "models/backups"
       supported_models:
         - "unsloth/llama-3.2-1b-instruct"
         - "unsloth/Phi-3-mini-4k-instruct"
@@ -45,6 +46,7 @@ inference:
   synthesis:
     use_graph_subgraph: true
     top_k_nodes: 5
+    max_retries: 2
 
 adapters:
   enabled:

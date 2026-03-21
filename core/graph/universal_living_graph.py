@@ -4,11 +4,14 @@ import copy
 import json
 import logging
 import threading
+import time
 from dataclasses import asdict
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
+from ..events import bus
 from ..types import Edge, Node
+from .migrate import migrate_graph_data
 from .rules_engine import (
     RulesEngineCycleResult,
     detect_tension,
@@ -44,6 +47,8 @@ class UniversalLivingGraph:
         self._evolve_fn: Optional[Callable[[str, List[str], str], str]] = None
         self._embedder = None
         self._snapshot_manager = None
+        self._strongest_cache: Node | None = None
+        self._strongest_cache_valid = False
 
         backend = self._resolve_backend(config)
         if backend == "sqlite":
@@ -183,6 +188,7 @@ class UniversalLivingGraph:
             )
             self.nodes[node_id] = node
             self._dirty_nodes.add(node_id)
+            self._strongest_cache_valid = False
             self._adjacency.setdefault(node_id, {})
 
             if old:
@@ -283,13 +289,24 @@ class UniversalLivingGraph:
             cap = float(self._wave_settings.get("activation_cap", 1.0))
             node.activation = max(0.0, min(cap, node.activation + delta))
             self._dirty_nodes.add(node_id)
+            self._strongest_cache_valid = False
             return node.activation
 
     def strongest_node(self) -> Node | None:
+        if self._strongest_cache_valid and self._strongest_cache is not None:
+            if not self._strongest_cache.collapsed:
+                return self._strongest_cache
         active = [node for node in self.nodes.values() if not node.collapsed]
         if not active:
+            self._strongest_cache = None
+            self._strongest_cache_valid = True
             return None
-        return max(active, key=lambda n: (n.activation * n.base_strength, n.stability))
+        result = max(
+            active, key=lambda n: (n.activation * n.base_strength, n.stability)
+        )
+        self._strongest_cache = result
+        self._strongest_cache_valid = True
+        return result
 
     def elect_strongest(self) -> Node | None:
         return self.strongest_node()
@@ -352,18 +369,19 @@ class UniversalLivingGraph:
                 node.activation = max(0.0, min(cap, node.activation))
 
     def prune(self, threshold: float | None = None) -> int:
-        if threshold is None:
-            threshold = float(self._wave_settings.get("prune_threshold", 0.25))
-        kept_edges: List[Edge] = []
-        pruned = 0
-        for edge in self.edges:
-            if edge.weight >= threshold:
-                kept_edges.append(edge)
-            else:
-                pruned += 1
-        self.edges = kept_edges
-        self._rebuild_adjacency()
-        return pruned
+        with self._lock:
+            if threshold is None:
+                threshold = float(self._wave_settings.get("prune_threshold", 0.25))
+            kept_edges: List[Edge] = []
+            pruned = 0
+            for edge in self.edges:
+                if edge.weight >= threshold:
+                    kept_edges.append(edge)
+                else:
+                    pruned += 1
+            self.edges = kept_edges
+            self._rebuild_adjacency()
+            return pruned
 
     def detect_tensions(self) -> Dict[str, float]:
         with self._lock:
@@ -403,8 +421,6 @@ class UniversalLivingGraph:
         active_count = sum(1 for n in self.nodes.values() if not n.collapsed)
         if active_count > _MAX_NODES_SAFETY:
             return f"node_cap_exceeded ({active_count} > {_MAX_NODES_SAFETY})"
-
-        import time
 
         current_hour = int(time.time() // 3600)
         if current_hour != self._hour_marker:
@@ -446,6 +462,7 @@ class UniversalLivingGraph:
             if not isinstance(raw, dict) or "nodes" not in raw:
                 logger.warning("Invalid graph.json structure; starting fresh")
                 return self
+            raw = migrate_graph_data(raw)
             self.nodes.clear()
             self.edges.clear()
             self._adjacency.clear()
@@ -596,6 +613,15 @@ class UniversalLivingGraph:
                         len(emergent_ids),
                     )
 
+                bus.emit(
+                    "wave_cycle",
+                    cycle=self._wave_cycle_count,
+                    tension=self._last_tension,
+                    nodes=len(self.nodes),
+                    pruned=pruned_count,
+                    emergent=len(emergent_ids),
+                )
+
                 if bool(self._wave_settings.get("auto_save", True)):
                     if (
                         save_interval > 0
@@ -722,6 +748,7 @@ class UniversalLivingGraph:
             existing.attributes = dict(graph_node.attributes)
             existing.embedding = graph_node.embedding[:] if graph_node.embedding else []
             self._dirty_nodes.add(node_id)
+            self._strongest_cache_valid = False
             for topic in existing.topics:
                 self._topic_index.setdefault(topic, set()).add(node_id)
 

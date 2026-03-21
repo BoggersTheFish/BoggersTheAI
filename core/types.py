@@ -31,6 +31,3 @@ class Tension:
     node_id: str
     score: float
     violations: List[str] = field(default_factory=list)
-
-
-GraphState = Dict[str, Node]

@@ -93,5 +93,9 @@ def apply_yaml_to_config(config: object, yaml_data: Dict[str, Any]) -> None:
 
 def load_and_apply(config: object, path: Path | str | None = None) -> Dict[str, Any]:
     yaml_data = load_yaml(path)
+    if yaml_data:
+        from .config_schema import validate_config
+
+        validate_config(yaml_data)
     apply_yaml_to_config(config, yaml_data)
     return yaml_data

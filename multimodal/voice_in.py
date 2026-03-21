@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 
 logger = logging.getLogger("boggers.multimodal.voice_in")
@@ -36,10 +37,16 @@ class VoiceInAdapter:
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
                 tmp.write(audio)
                 tmp_path = tmp.name
-            segments, _ = self._model.transcribe(tmp_path)
-            text = " ".join(seg.text for seg in segments).strip()
-            logger.info("Transcribed %d bytes -> %d chars", len(audio), len(text))
-            return text
+            try:
+                segments, _ = self._model.transcribe(tmp_path)
+                text = " ".join(seg.text for seg in segments).strip()
+                logger.info("Transcribed %d bytes -> %d chars", len(audio), len(text))
+                return text
+            finally:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
         except ImportError:
             logger.info("faster-whisper not installed; using placeholder")
             return self._transcribe_placeholder(audio)

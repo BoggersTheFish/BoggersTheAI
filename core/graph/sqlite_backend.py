@@ -227,6 +227,7 @@ class SQLiteGraphBackend:
                 last_wave=int(item.get("last_wave", 0)),
                 collapsed=bool(item.get("collapsed", False)),
                 attributes=item.get("attributes", {}),
+                embedding=item.get("embedding", []),
             )
             self.save_node(node)
             count += 1

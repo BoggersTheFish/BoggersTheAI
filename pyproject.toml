@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "BoggersTheAI"
-version = "0.3.0"
+version = "0.4.0"
 description = "Modular TS-OS architecture with graph-wave reasoning pipeline."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -53,6 +53,15 @@ all = [
   "uvicorn",
   "feedparser",
 ]
+multimodal = [
+  "faster-whisper",
+  "transformers",
+  "pillow",
+  "piper-tts",
+]
+adapters = [
+  "feedparser",
+]
 
 [project.scripts]
 boggers = "BoggersTheAI.interface.chat:run_chat"
@@ -75,6 +84,17 @@ packages = [
 
 [tool.setuptools.package-dir]
 BoggersTheAI = "."
+
+[project.entry-points."boggers.adapters"]
+
+[project.entry-points."boggers.tools"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
 
 [tool.isort]
 profile = "black"

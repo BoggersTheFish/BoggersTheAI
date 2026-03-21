@@ -199,8 +199,6 @@ def run_wave(graph: UniversalLivingGraph) -> WaveResult:
         if nid in graph.nodes:
             graph.nodes[nid].activation = gnode.activation
 
-    contradictions = detect_contradictions(graph.nodes)
-
     _wave_history.append(
         {
             "strongest": strongest.id if strongest else None,
@@ -208,7 +206,6 @@ def run_wave(graph: UniversalLivingGraph) -> WaveResult:
             "total_tension": sum(t.score for t in tensions),
             "collapsed": collapsed,
             "evolved_count": len(evolved_nodes),
-            "contradictions": len(contradictions),
         }
     )
     return WaveResult(
@@ -216,5 +213,4 @@ def run_wave(graph: UniversalLivingGraph) -> WaveResult:
         tensions=tensions,
         collapsed_node_id=collapsed,
         evolved_nodes=evolved_nodes,
-        contradictions_found=len(contradictions),
     )

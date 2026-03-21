@@ -34,12 +34,16 @@ class ModeManager:
                 self._mode = Mode.USER
             self._condition.notify_all()
 
-    def request_user_mode(self) -> None:
+    def request_user_mode(self, timeout: float = 30.0) -> bool:
         with self._condition:
             self._user_requested = True
+            deadline = timeout
             while self._cycle_active:
-                self._condition.wait()
+                if not self._condition.wait(timeout=deadline):
+                    self._user_requested = False
+                    return False
             self._mode = Mode.USER
+            return True
 
     def release_to_auto(self) -> None:
         with self._condition:
