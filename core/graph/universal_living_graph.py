@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import heapq
 import json
 import logging
 import threading
@@ -9,15 +10,13 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from ..events import bus
 from ..types import Edge, Node
 from .migrate import migrate_graph_data
 from .rules_engine import (
     RulesEngineCycleResult,
-    detect_tension,
     run_rules_cycle,
-    spawn_emergence,
 )
+from .wave_runner import WaveConfig, WaveCycleRunner
 
 logger = logging.getLogger("boggers.graph")
 
@@ -35,9 +34,7 @@ class UniversalLivingGraph:
         self._topic_index: Dict[str, Set[str]] = {}
         self.graph_path = self._resolve_graph_path(config)
         self._wave_settings = self._resolve_wave_settings(config)
-        self._wave_stop_event = threading.Event()
-        self._wave_thread: threading.Thread | None = None
-        self._wave_cycle_count = 0
+        self._wave_runner: WaveCycleRunner | None = None
         self._last_tension = 0.0
         self._lock = threading.RLock()
         self._sqlite_backend = None
@@ -235,18 +232,25 @@ class UniversalLivingGraph:
                     seen_ids.add(node.id)
 
         if len(candidates) < top_k:
-            ranked_global = sorted(
-                [node for node in self.nodes.values() if not node.collapsed],
-                key=lambda n: (n.activation, n.stability, n.base_strength, n.last_wave),
-                reverse=True,
-            )
+            needed = top_k - len(candidates)
+            pool = [
+                node
+                for node in self.nodes.values()
+                if not node.collapsed and node.id not in seen_ids
+            ]
+
+            def _rank_key(n):
+                return (
+                    n.activation,
+                    n.stability,
+                    n.base_strength,
+                    n.last_wave,
+                )
+
+            ranked_global = heapq.nlargest(needed, pool, key=_rank_key)
             for node in ranked_global:
-                if node.id in seen_ids:
-                    continue
                 candidates.append(node)
                 seen_ids.add(node.id)
-                if len(candidates) >= top_k:
-                    break
 
         return [asdict(node) for node in candidates[:top_k]]
 
@@ -418,21 +422,22 @@ class UniversalLivingGraph:
             return result
 
     def _check_guardrails(self) -> str | None:
-        active_count = sum(1 for n in self.nodes.values() if not n.collapsed)
-        if active_count > _MAX_NODES_SAFETY:
-            return f"node_cap_exceeded ({active_count} > {_MAX_NODES_SAFETY})"
+        with self._lock:
+            active_count = sum(1 for n in self.nodes.values() if not n.collapsed)
+            if active_count > _MAX_NODES_SAFETY:
+                return f"node_cap_exceeded ({active_count} > {_MAX_NODES_SAFETY})"
 
-        current_hour = int(time.time() // 3600)
-        if current_hour != self._hour_marker:
-            self._hour_marker = current_hour
-            self._cycles_this_hour = 0
-        if self._cycles_this_hour >= _MAX_CYCLES_PER_HOUR:
-            return f"cycles_per_hour_exceeded ({self._cycles_this_hour})"
+            current_hour = int(time.time() // 3600)
+            if current_hour != self._hour_marker:
+                self._hour_marker = current_hour
+                self._cycles_this_hour = 0
+            if self._cycles_this_hour >= _MAX_CYCLES_PER_HOUR:
+                return f"cycles_per_hour_exceeded ({self._cycles_this_hour})"
 
-        if self._last_tension >= _HIGH_TENSION_PAUSE_THRESHOLD:
-            return f"high_tension_pause (tension={self._last_tension:.2f})"
+            if self._last_tension >= _HIGH_TENSION_PAUSE_THRESHOLD:
+                return f"high_tension_pause (tension={self._last_tension:.2f})"
 
-        return None
+            return None
 
     def save(self, path: str | Path | None = None) -> Path:
         with self._lock:
@@ -452,6 +457,7 @@ class UniversalLivingGraph:
             return target
 
     def load(self, path: str | Path | None = None) -> "UniversalLivingGraph":
+        # Note: add_node() re-acquires self._lock; safe because _lock is an RLock
         with self._lock:
             if self._sqlite_backend and path is None:
                 return self._load_from_sqlite()
@@ -553,114 +559,34 @@ class UniversalLivingGraph:
         return export_json_ld(nodes_copy, edges_copy, path)
 
     def start_background_wave(self) -> threading.Thread:
-        if self._wave_thread and self._wave_thread.is_alive():
-            return self._wave_thread
+        if self._wave_runner is not None and self._wave_runner.is_alive:
+            return self._wave_runner._thread
 
-        self._wave_stop_event.clear()
-        interval = float(self._wave_settings.get("interval_seconds", 30))
-        log_each_cycle = bool(self._wave_settings.get("log_each_cycle", True))
-        save_interval = int(self._wave_settings.get("incremental_save_interval", 5))
-
-        def _wave_loop() -> None:
-            while not self._wave_stop_event.is_set():
-                if self._wave_stop_event.wait(interval):
-                    break
-
-                guardrail = self._check_guardrails()
-                if guardrail:
-                    logger.warning("Wave cycle skipped: %s", guardrail)
-                    continue
-
-                strongest = self.elect_strongest()
-                self.propagate()
-                self.relax()
-                pruned_count = self.prune()
-
-                graph_nodes = {
-                    node_id: self._to_graph_node(node)
-                    for node_id, node in self.nodes.items()
-                    if not node.collapsed
-                }
-                edge_tuples = [(edge.src, edge.dst, edge.weight) for edge in self.edges]
-                tensions = detect_tension(graph_nodes)
-                emergent_ids = spawn_emergence(
-                    graph_nodes,
-                    tensions,
-                    edge_tuples,
-                    evolve_fn=self._evolve_fn,
-                )
-                self._apply_graph_node_updates(graph_nodes)
-                self._sync_edges_from_tuples(edge_tuples)
-                self._last_tension = max(tensions.values()) if tensions else 0.0
-
-                self._wave_cycle_count += 1
-                self._cycles_this_hour += 1
-
-                if log_each_cycle:
-                    strongest_label = (
-                        strongest.topics[0]
-                        if strongest and strongest.topics
-                        else (strongest.id if strongest else "none")
-                    )
-                    tension_score = max(tensions.values()) if tensions else 0.0
-                    logger.info(
-                        (
-                            "Wave cycle #%d | Tension: %.2f | Nodes: %d | "
-                            "Strongest: %s | Pruned: %d | Emergence: %d"
-                        ),
-                        self._wave_cycle_count,
-                        tension_score,
-                        len(self.nodes),
-                        strongest_label,
-                        pruned_count,
-                        len(emergent_ids),
-                    )
-
-                bus.emit(
-                    "wave_cycle",
-                    cycle=self._wave_cycle_count,
-                    tension=self._last_tension,
-                    nodes=len(self.nodes),
-                    pruned=pruned_count,
-                    emergent=len(emergent_ids),
-                )
-
-                if bool(self._wave_settings.get("auto_save", True)):
-                    if (
-                        save_interval > 0
-                        and self._wave_cycle_count % save_interval == 0
-                    ):
-                        self.save_incremental()
-                    elif save_interval <= 0:
-                        self.save_incremental()
-
-        self._wave_thread = threading.Thread(
-            target=_wave_loop,
-            name="TS-OS-Wave-Engine",
-            daemon=True,
+        config = WaveConfig(
+            interval_seconds=float(self._wave_settings.get("interval_seconds", 30)),
+            log_each_cycle=bool(self._wave_settings.get("log_each_cycle", True)),
+            auto_save=bool(self._wave_settings.get("auto_save", True)),
+            incremental_save_interval=int(
+                self._wave_settings.get("incremental_save_interval", 5)
+            ),
         )
-        self._wave_thread.start()
-        return self._wave_thread
+        self._wave_runner = WaveCycleRunner(self, config)
+        self._wave_runner.start()
+        return self._wave_runner._thread
 
     def stop_background_wave(self) -> None:
-        self._wave_stop_event.set()
-        if self._wave_thread and self._wave_thread.is_alive():
-            self._wave_thread.join(timeout=2.0)
+        if self._wave_runner is not None:
+            self._wave_runner.stop()
 
     def get_wave_status(self) -> dict:
+        runner = self._wave_runner
         return {
-            "cycle_count": self._wave_cycle_count,
-            "thread_alive": (
-                self._wave_thread.is_alive() if self._wave_thread else False
-            ),
+            "cycle_count": runner.cycle_count if runner else 0,
+            "thread_alive": runner.is_alive if runner else False,
             "nodes": len(self.nodes),
             "edges": len(self.edges),
             "tension": float(self._last_tension),
-            "last_cycle": (
-                "running"
-                if self._wave_thread and self._wave_thread.is_alive()
-                else "stopped"
-            ),
+            "last_cycle": "running" if runner and runner.is_alive else "stopped",
             "cycles_this_hour": self._cycles_this_hour,
             "backend": "sqlite" if self._sqlite_backend else "json",
         }
@@ -754,6 +680,11 @@ class UniversalLivingGraph:
             self._strongest_cache_valid = False
             for topic in existing.topics:
                 self._topic_index.setdefault(topic, set()).add(node_id)
+
+    @property
+    def _wave_cycle_count(self) -> int:
+        runner = self._wave_runner
+        return runner.cycle_count if runner else 0
 
     def __repr__(self) -> str:
         return (

@@ -19,8 +19,12 @@ def test_relax_produces_tensions_on_overflow():
     graph = UniversalLivingGraph(auto_load=False)
     graph.add_node("hot", "Hot", topics=["x"], activation=1.5, stability=0.1)
     propagate(graph)
-    tensions = relax(graph, [graph.get_node("hot")])
-    assert len(tensions) >= 0
+    hot = graph.get_node("hot")
+    cap = float(graph._wave_settings.get("activation_cap", 1.0))
+    pre = hot.activation
+    assert pre > cap
+    tensions = relax(graph, [hot])
+    assert len(tensions) > 0 or hot.activation <= cap
 
 
 def test_break_weakest_collapses_node():

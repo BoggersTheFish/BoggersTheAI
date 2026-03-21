@@ -7,8 +7,11 @@ from ..core.metrics import metrics
 from .base import ToolRegistry
 from .calc import CalcTool
 from .code_run import CodeRunTool
+from .datetime_tool import DateTimeTool
 from .file_read import FileReadTool
 from .search import SearchTool
+from .unit_convert import UnitConvertTool
+from .web_search import WebSearchTool
 
 logger = logging.getLogger("boggers.tools")
 
@@ -25,7 +28,13 @@ class ToolExecutor:
         registry.register("calc", CalcTool())
         registry.register("code_run", CodeRunTool(timeout_seconds=timeout_seconds))
         registry.register("file_read", FileReadTool())
-        return cls(registry=registry, timeout_seconds=timeout_seconds)
+        registry.register("web_search", WebSearchTool())
+        registry.register("datetime", DateTimeTool())
+        registry.register("unit_convert", UnitConvertTool())
+        return cls(
+            registry=registry,
+            timeout_seconds=timeout_seconds,
+        )
 
     def execute(self, tool_name: str, args: dict) -> str:
         logger.info("Tool execute: %s args=%s", tool_name, args)

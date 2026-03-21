@@ -10,6 +10,8 @@ class CalcTool:
         ast.Sub: operator.sub,
         ast.Mult: operator.mul,
         ast.Div: operator.truediv,
+        ast.Mod: operator.mod,
+        ast.FloorDiv: operator.floordiv,
         ast.Pow: operator.pow,
         ast.USub: operator.neg,
     }

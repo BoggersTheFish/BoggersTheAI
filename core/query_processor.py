@@ -396,7 +396,7 @@ class QueryProcessor:
 
         if self.adapters.inference:
             answer = self.adapters.inference.synthesize(context_text, query)
-            return answer, [], 0.5, "inference_router_fallback"
+            return (answer, [], 0.0, "inference_router_fallback")
         if not context:
             return (
                 "No strong graph context yet; additional research may be required.",

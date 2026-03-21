@@ -4,14 +4,25 @@ import hashlib
 from pathlib import Path
 from typing import List
 
+from ..core.logger import get_logger
+from ..core.path_sandbox import validate_path
 from ..core.types import Node
+
+logger = get_logger(__name__)
 
 
 class MarkdownAdapter:
     poll_interval = 0
 
+    def __init__(self, base_dir: str = ".") -> None:
+        self._base_dir = base_dir
+
     def ingest(self, source: str) -> List[Node]:
-        path = Path(source)
+        try:
+            path = validate_path(source, self._base_dir)
+        except ValueError as e:
+            logger.warning("%s", e)
+            return []
         if not path.exists():
             return []
 

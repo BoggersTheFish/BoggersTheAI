@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -24,31 +24,32 @@ except ImportError:
 class TestDashboardEndpoints:
     @pytest.fixture(autouse=True)
     def setup_client(self):
-        with patch("BoggersTheAI.dashboard.app.runtime") as mock_rt:
-            mock_rt.get_status.return_value = {
-                "cycle_count": 5,
-                "thread_alive": True,
-                "nodes": 10,
-                "edges": 5,
-                "tension": 0.3,
-                "last_cycle": "running",
-                "cycles_this_hour": 5,
-                "backend": "json",
-            }
-            mock_rt.graph.nodes = {}
-            mock_rt.graph.edges = []
-            mock_rt.graph.get_metrics.return_value = {
-                "total_nodes": 0,
-                "active_nodes": 0,
-                "collapsed_nodes": 0,
-                "edges": 0,
-                "avg_activation": 0.0,
-                "avg_stability": 0.0,
-                "topics": {},
-                "edge_density": 0.0,
-                "embedded_nodes": 0,
-            }
-            mock_rt.graph.graph_path = Path("test.json")
+        mock_rt = MagicMock()
+        mock_rt.get_status.return_value = {
+            "cycle_count": 5,
+            "thread_alive": True,
+            "nodes": 10,
+            "edges": 5,
+            "tension": 0.3,
+            "last_cycle": "running",
+            "cycles_this_hour": 5,
+            "backend": "json",
+        }
+        mock_rt.graph.nodes = {}
+        mock_rt.graph.edges = []
+        mock_rt.graph.get_metrics.return_value = {
+            "total_nodes": 0,
+            "active_nodes": 0,
+            "collapsed_nodes": 0,
+            "edges": 0,
+            "avg_activation": 0.0,
+            "avg_stability": 0.0,
+            "topics": {},
+            "edge_density": 0.0,
+            "embedded_nodes": 0,
+        }
+        mock_rt.graph.graph_path = Path("test.json")
+        with patch("BoggersTheAI.dashboard.app.get_runtime", return_value=mock_rt):
             from BoggersTheAI.dashboard.app import app
 
             self.client = TestClient(app)

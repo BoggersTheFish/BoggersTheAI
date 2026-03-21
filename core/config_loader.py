@@ -81,6 +81,9 @@ def apply_yaml_to_config(config: object, yaml_data: Dict[str, Any]) -> None:
             "insight_vault_path",
             "max_hypotheses_per_cycle",
             "session_id",
+            "graph_backend",
+            "sqlite_path",
+            "snapshot_dir",
         ):
             if attr in runtime_section and attr in field_names:
                 setattr(config, attr, runtime_section[attr])

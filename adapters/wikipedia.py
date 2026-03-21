@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 from typing import List
 from urllib.parse import urlencode
-from urllib.request import urlopen
 
 from ..core.types import Node
+from .http_client import fetch_json
 
 logger = logging.getLogger("boggers.adapters.wikipedia")
 
@@ -31,10 +30,13 @@ class WikipediaAdapter:
         url = f"https://en.wikipedia.org/w/api.php?{params}"
 
         try:
-            with urlopen(url, timeout=10) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            payload = fetch_json(url)
         except Exception as exc:
-            logger.warning("Wikipedia fetch failed for '%s': %s", topic, exc)
+            logger.warning(
+                "Wikipedia fetch failed for '%s': %s",
+                topic,
+                exc,
+            )
             return []
 
         pages = payload.get("query", {}).get("pages", {})

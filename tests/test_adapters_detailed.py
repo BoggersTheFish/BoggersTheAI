@@ -20,7 +20,7 @@ from BoggersTheAI.adapters.x_api import XApiAdapter  # noqa: E402
 
 
 class TestWikipediaAdapter:
-    @patch("BoggersTheAI.adapters.wikipedia.urlopen")
+    @patch("BoggersTheAI.adapters.http_client.urlopen")
     def test_success(self, mock_urlopen):
         body = json.dumps(
             {
@@ -44,7 +44,10 @@ class TestWikipediaAdapter:
         assert len(nodes) >= 1
         assert "python" in nodes[0].topics[0].lower() or "wiki" in nodes[0].id
 
-    @patch("BoggersTheAI.adapters.wikipedia.urlopen", side_effect=Exception("timeout"))
+    @patch(
+        "BoggersTheAI.adapters.http_client.urlopen",
+        side_effect=Exception("timeout"),
+    )
     def test_timeout(self, mock_urlopen):
         adapter = WikipediaAdapter()
         nodes = adapter.ingest("python")
@@ -57,7 +60,10 @@ class TestRSSAdapter:
         nodes = adapter.ingest("http://example.com/feed")
         assert nodes == []
 
-    @patch("BoggersTheAI.adapters.rss.urlopen", side_effect=Exception("net error"))
+    @patch(
+        "BoggersTheAI.adapters.http_client.urlopen",
+        side_effect=Exception("net error"),
+    )
     def test_network_error(self, mock_urlopen):
         adapter = RSSAdapter()
         nodes = adapter.ingest("https://example.com/feed")
@@ -65,10 +71,18 @@ class TestRSSAdapter:
 
 
 class TestHackerNewsAdapter:
-    @patch("BoggersTheAI.adapters.hacker_news.urlopen")
+    @patch("BoggersTheAI.adapters.http_client.urlopen")
     def test_success(self, mock_urlopen):
         body = json.dumps(
-            {"hits": [{"title": "HN Post", "url": "https://hn.com/1", "objectID": "1"}]}
+            {
+                "hits": [
+                    {
+                        "title": "HN Post",
+                        "url": "https://hn.com/1",
+                        "objectID": "1",
+                    }
+                ]
+            }
         ).encode()
         mock_resp = MagicMock()
         mock_resp.read.return_value = body
@@ -91,8 +105,8 @@ class TestMarkdownAdapter:
     def test_ingest_file(self, tmp_path):
         md_file = tmp_path / "test.md"
         md_file.write_text("# Hello\nWorld content", encoding="utf-8")
-        adapter = MarkdownAdapter()
-        nodes = adapter.ingest(str(md_file))
+        adapter = MarkdownAdapter(base_dir=str(tmp_path))
+        nodes = adapter.ingest("test.md")
         assert len(nodes) >= 1
         assert (
             "hello" in nodes[0].content.lower() or "world" in nodes[0].content.lower()
@@ -108,8 +122,8 @@ class TestVaultAdapter:
     def test_delegates_to_markdown(self, tmp_path):
         md_file = tmp_path / "note.md"
         md_file.write_text("# Note\nSome content", encoding="utf-8")
-        adapter = VaultAdapter()
-        nodes = adapter.ingest(str(md_file))
+        adapter = VaultAdapter({"runtime": {"insight_vault_path": str(tmp_path)}})
+        nodes = adapter.ingest("note.md")
         assert isinstance(nodes, list)
 
 

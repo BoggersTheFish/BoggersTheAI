@@ -13,6 +13,7 @@ inference:
   throttle_seconds: 60
   ollama:
     enabled: true
+    base_url: "http://localhost:11434"
     model: "llama3.2"
     temperature: 0.3
     max_tokens: 512
@@ -100,6 +101,7 @@ os_loop:
   idle_threshold_seconds: 120
   autonomous_modes: ["exploration", "consolidation", "insight"]
   nightly_hour_utc: 3
+  consolidation_on_shutdown: true
   multi_turn_enabled: true
 
 tui:

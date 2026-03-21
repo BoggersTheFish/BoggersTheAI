@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import atexit
-import json
 import logging
-import shutil
 import threading
 import time
 import uuid
@@ -29,8 +27,6 @@ from ..core import (
 )
 from ..core.events import bus
 from ..core.fine_tuner import UnslothFineTuner
-from ..core.graph.pruning import PruningPolicy, apply_pruning_policy
-from ..core.graph.rules_engine import spawn_emergence
 from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.health import health_checker
 from ..core.local_llm import LocalLLM
@@ -46,6 +42,8 @@ from ..entities import (
 )
 from ..multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
 from ..tools import ToolExecutor, ToolRouter
+from .autonomous_loop import AutonomousLoopMixin
+from .self_improvement import SelfImprovementMixin
 
 logger = logging.getLogger("boggers.runtime")
 
@@ -54,6 +52,9 @@ logger = logging.getLogger("boggers.runtime")
 class RuntimeConfig:
     insight_vault_path: str = "./vault"
     graph_path: str = "./graph.json"
+    graph_backend: str | None = None
+    sqlite_path: str | None = None
+    snapshot_dir: str | None = None
     inference: dict[str, object] = field(
         default_factory=lambda: {
             "synthesis": {
@@ -107,6 +108,7 @@ class RuntimeConfig:
             "idle_threshold_seconds": 120,
             "autonomous_modes": ["exploration", "consolidation", "insight"],
             "nightly_hour_utc": 3,
+            "consolidation_on_shutdown": True,
             "multi_turn_enabled": True,
         }
     )
@@ -135,7 +137,7 @@ class RuntimeConfig:
         return getattr(self, key, default)
 
 
-class BoggersRuntime:
+class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
     def __init__(self, config: RuntimeConfig | None = None) -> None:
         self.config = config or RuntimeConfig()
         from ..core.config_loader import load_and_apply
@@ -177,14 +179,14 @@ class BoggersRuntime:
             if adapter_flags.get("hacker_news", True):
                 adapter_registry.register("hacker_news", HackerNewsAdapter())
             if adapter_flags.get("vault", True):
-                adapter_registry.register("vault", VaultAdapter())
+                adapter_registry.register("vault", VaultAdapter(self.raw_config))
             if adapter_flags.get("x_api", False):
                 adapter_registry.register("x_api", XApiAdapter())
         else:
             adapter_registry.register("wikipedia", WikipediaAdapter())
             adapter_registry.register("rss", RSSAdapter())
             adapter_registry.register("hacker_news", HackerNewsAdapter())
-            adapter_registry.register("vault", VaultAdapter())
+            adapter_registry.register("vault", VaultAdapter(self.raw_config))
             adapter_registry.register("x_api", XApiAdapter())
         adapter_plugins.discover_entry_points("boggers.adapters")
         for name in adapter_plugins.names():
@@ -232,6 +234,7 @@ class BoggersRuntime:
                 model=str(ollama_cfg.get("model", "llama3.2")),
                 temperature=float(ollama_cfg.get("temperature", 0.3)),
                 max_tokens=int(ollama_cfg.get("max_tokens", 512)),
+                base_url=str(ollama_cfg.get("base_url", "http://localhost:11434")),
             )
         self._setup_evolve_fn()
         self.query_processor = QueryProcessor(
@@ -347,191 +350,16 @@ class BoggersRuntime:
     def get_status(self) -> dict:
         return self.graph.get_wave_status()
 
-    def build_training_dataset(self) -> dict:
-        return self.trace_processor.build_dataset()
-
-    def trigger_self_improvement(self) -> dict:
-        return self._auto_fine_tune_check(force=True)
-
-    def fine_tune_and_hotswap(self, epochs: int = 1) -> dict:
-        stats = self.fine_tuner.fine_tune(epochs=epochs)
-        if not bool(stats.get("success", False)):
-            stats["hotswapped"] = False
-            return stats
-
-        fine_cfg = self._fine_cfg
-        auto_hotswap = (
-            bool(fine_cfg.get("auto_hotswap", True))
-            if isinstance(fine_cfg, dict)
-            else True
-        )
-        validation_enabled = (
-            bool(fine_cfg.get("validation_enabled", True))
-            if isinstance(fine_cfg, dict)
-            else True
-        )
-        state = self._get_self_improvement_state()
-        previous_best_loss = state.get("best_val_loss")
-        new_val_loss = stats.get("val_loss")
-        if (
-            validation_enabled
-            and new_val_loss is not None
-            and previous_best_loss is not None
-        ):
-            if float(new_val_loss) >= float(previous_best_loss):
-                stats["hotswapped"] = False
-                stats["skipped"] = True
-                stats["reason"] = "validation_not_improved"
-                stats["previous_best_val_loss"] = float(previous_best_loss)
-                return stats
-
-        adapter_path = str(stats.get("adapter_path", ""))
-
-        if validation_enabled and adapter_path:
-            test_result = self._run_quality_gate(adapter_path, fine_cfg)
-            if not test_result.get("passed", False):
-                stats["hotswapped"] = False
-                stats["quality_gate"] = test_result
-                return stats
-
-        backup_path = None
-        if (
-            self.local_llm is not None
-            and getattr(self.local_llm, "adapter_path", None)
-            and Path(str(self.local_llm.adapter_path)).exists()
-        ):
-            backup_root = Path("models/backups")
-            backup_root.mkdir(parents=True, exist_ok=True)
-            backup_path = (
-                backup_root
-                / f"adapter_{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
-            )
-            try:
-                shutil.copytree(
-                    str(self.local_llm.adapter_path),
-                    str(backup_path),
-                    dirs_exist_ok=True,
-                )
-            except Exception as exc:
-                logger.warning("Backup copy failed: %s", exc)
-                backup_path = None
-
-        if auto_hotswap and adapter_path:
-            try:
-                if self.local_llm is None:
-                    ollama_cfg = (
-                        self.config.get("inference", {}).get("ollama", {})
-                        if isinstance(self.config.get("inference", {}), dict)
-                        else {}
-                    )
-                    self.local_llm = LocalLLM(
-                        model=str(ollama_cfg.get("model", "llama3.2")),
-                        temperature=float(ollama_cfg.get("temperature", 0.3)),
-                        max_tokens=int(ollama_cfg.get("max_tokens", 512)),
-                        adapter_path=adapter_path,
-                        base_model=(
-                            str(
-                                fine_cfg.get(
-                                    "base_model", "unsloth/llama-3.2-1b-instruct"
-                                )
-                            )
-                            if isinstance(fine_cfg, dict)
-                            else "unsloth/llama-3.2-1b-instruct"
-                        ),
-                    )
-                else:
-                    self.local_llm.load_adapter(
-                        adapter_path,
-                        base_model=(
-                            str(
-                                fine_cfg.get(
-                                    "base_model", "unsloth/llama-3.2-1b-instruct"
-                                )
-                            )
-                            if isinstance(fine_cfg, dict)
-                            else "unsloth/llama-3.2-1b-instruct"
-                        ),
-                    )
-                self.query_processor.local_llm = self.local_llm
-                stats["hotswapped"] = True
-                lineage_id = (
-                    f"finetune:{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
-                )
-                finetune_content = (
-                    f"Fine-tuned adapter from {stats.get('epochs', 1)} epochs, "
-                    f"loss={stats.get('loss', 0):.4f}"
-                )
-                self.graph.add_node(
-                    node_id=lineage_id,
-                    content=finetune_content,
-                    topics=["finetune", "self_improvement", "lineage"],
-                    activation=0.1,
-                    stability=0.9,
-                    base_strength=0.8,
-                    attributes={
-                        "type": "finetune_lineage",
-                        "adapter_path": adapter_path,
-                        "epochs": stats.get("epochs", 1),
-                        "loss": stats.get("loss", 0.0),
-                        "val_loss": stats.get("val_loss"),
-                        "wave_cycle": self.graph.get_wave_status().get(
-                            "cycle_count", 0
-                        ),
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                    },
-                )
-            except Exception as exc:
-                rolled_back = False
-                if self.local_llm is not None:
-                    rolled_back = self.local_llm.load_previous_adapter()
-                if not rolled_back and backup_path and self.local_llm is not None:
-                    self.local_llm.load_adapter(
-                        str(backup_path),
-                        base_model=(
-                            str(
-                                fine_cfg.get(
-                                    "base_model", "unsloth/llama-3.2-1b-instruct"
-                                )
-                            )
-                            if isinstance(fine_cfg, dict)
-                            else "unsloth/llama-3.2-1b-instruct"
-                        ),
-                    )
-                    rolled_back = True
-                stats["hotswapped"] = False
-                stats["rollback_applied"] = rolled_back
-                stats["error"] = str(exc)
-                return stats
-        else:
-            stats["hotswapped"] = False
-
-        current_trace_count = self._count_traces()
-        self._last_fine_tune_time = time.time()
-        self._last_tuned_trace_count = current_trace_count
-        state_update = {
-            "last_fine_tune_time": self._last_fine_tune_time,
-            "last_tuned_trace_count": self._last_tuned_trace_count,
-        }
-        if validation_enabled and new_val_loss is not None:
-            if previous_best_loss is None or float(new_val_loss) < float(
-                previous_best_loss
-            ):
-                state_update["best_val_loss"] = float(new_val_loss)
-        self._update_self_improvement_state(state_update)
-        stats["previous_best_val_loss"] = (
-            float(previous_best_loss) if previous_best_loss is not None else None
-        )
-        stats["best_val_loss"] = self._get_self_improvement_state().get("best_val_loss")
-        return stats
-
     def shutdown(self) -> None:
         self._stop_os_loop()
         self._stop_tui_thread()
-        if datetime.now(timezone.utc).hour == int(
-            self.config.get("os_loop", {}).get("nightly_hour_utc", 3)
-        ):
-            self.run_nightly_consolidation()
+        os_cfg = self.config.get("os_loop", {})
+        if bool(os_cfg.get("consolidation_on_shutdown", True)):
+            self.run_nightly_consolidation(force=True)
         self.graph.save()
+        if bool(os_cfg.get("consolidation_on_shutdown", True)):
+            if getattr(self.graph, "_snapshot_manager", None) is not None:
+                self.graph.save_graph_snapshot(label="shutdown")
         self.graph.stop_background_wave()
 
     def __del__(self) -> None:
@@ -539,274 +367,6 @@ class BoggersRuntime:
             self.shutdown()
         except Exception:
             pass
-
-    def _start_os_loop(self) -> None:
-        if self._os_loop_thread and self._os_loop_thread.is_alive():
-            return
-        self._os_stop_event.clear()
-        self._os_loop_thread = threading.Thread(
-            target=self._os_loop,
-            name="TS-OS-Main-Loop",
-            daemon=True,
-        )
-        self._os_loop_thread.start()
-
-    def _stop_os_loop(self) -> None:
-        self._os_stop_event.set()
-        if self._os_loop_thread and self._os_loop_thread.is_alive():
-            self._os_loop_thread.join(timeout=2.0)
-
-    def _os_loop(self) -> None:
-        os_cfg = self.config.get("os_loop", {})
-        interval_seconds = float(os_cfg.get("interval_seconds", 60))
-        idle_threshold_seconds = float(os_cfg.get("idle_threshold_seconds", 120))
-        autonomous_modes = list(
-            os_cfg.get("autonomous_modes", ["exploration", "consolidation", "insight"])
-        )
-        if not autonomous_modes:
-            autonomous_modes = ["exploration", "consolidation", "insight"]
-
-        while not self._os_stop_event.is_set():
-            if self._os_stop_event.wait(interval_seconds):
-                break
-            self._auto_fine_tune_check(force=False)
-            with self._state_lock:
-                idle_seconds = time.time() - self._last_query_time
-            if idle_seconds < idle_threshold_seconds:
-                continue
-
-            mode_name = autonomous_modes[
-                self._autonomous_mode_index % len(autonomous_modes)
-            ]
-            self._autonomous_mode_index += 1
-            if mode_name == "exploration":
-                self._autonomous_exploration()
-            elif mode_name == "consolidation":
-                self._autonomous_consolidation()
-            elif mode_name == "insight":
-                self._autonomous_insight_generation()
-
-    def _autonomous_exploration(self) -> None:
-        if not self._is_user_idle():
-            return
-        strength = float(
-            self.config.get("autonomous", {}).get("exploration_strength", 0.3)
-        )
-        candidates = sorted(
-            [node for node in self.graph.nodes.values() if not node.collapsed],
-            key=lambda node: (node.activation * node.stability, node.base_strength),
-        )
-        for node in candidates[:2]:
-            self.graph.update_activation(node.id, strength)
-        self.graph.elect_strongest()
-        self.graph.propagate()
-        self.graph.relax()
-
-        strongest = self.graph.strongest_node()
-        strongest_topic = (
-            strongest.topics[0]
-            if strongest and strongest.topics
-            else (strongest.id if strongest else "exploration")
-        )
-        created = 0
-        explore_ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-        for idx in range(2):
-            node_id = f"auto:explore:{explore_ts}:{idx}"
-            if node_id in self.graph.nodes:
-                continue
-            self.graph.add_node(
-                node_id=node_id,
-                content=f"Autonomous exploration spawned around {strongest_topic}",
-                topics=[str(strongest_topic), "autonomous", "exploration"],
-                activation=0.2 + (0.05 * idx),
-                stability=0.65,
-                base_strength=0.55,
-            )
-            if strongest is not None:
-                self.graph.add_edge(strongest.id, node_id, weight=0.3)
-            created += 1
-        wave_status = self.graph.get_wave_status()
-        logger.info(
-            "OS Loop: exploration | tension: %.2f | spawned: %d",
-            float(wave_status.get("tension", 0.0)),
-            created,
-        )
-
-    def _autonomous_consolidation(self) -> None:
-        if not self._is_user_idle():
-            return
-        nightly_hour = int(self.config.get("os_loop", {}).get("nightly_hour_utc", 3))
-        if datetime.now(timezone.utc).hour == nightly_hour:
-            self.run_nightly_consolidation()
-            return
-        prune_threshold = float(
-            self.config.get("autonomous", {}).get("consolidation_prune_threshold", 0.2)
-        )
-        collapsed_count = 0
-        for node in self.graph.nodes.values():
-            if node.collapsed:
-                continue
-            if node.stability < prune_threshold:
-                node.collapsed = True
-                node.activation = 0.0
-                collapsed_count += 1
-
-        topic_map: dict[str, list[str]] = {}
-        for node in self.graph.nodes.values():
-            if node.collapsed or not node.topics:
-                continue
-            topic_map.setdefault(node.topics[0].lower(), []).append(node.id)
-
-        merged_count = 0
-        for topic, ids in topic_map.items():
-            if len(ids) < 2:
-                continue
-            keeper_id = ids[0]
-            keeper = self.graph.get_node(keeper_id)
-            if keeper is None:
-                continue
-            for other_id in ids[1:]:
-                other = self.graph.get_node(other_id)
-                if other is None or other.collapsed:
-                    continue
-                keeper.content = f"{keeper.content}\n\n{other.content}"
-                keeper.activation = max(keeper.activation, other.activation)
-                keeper.stability = max(keeper.stability, other.stability)
-                other.collapsed = True
-                other.activation = 0.0
-                merged_count += 1
-            keeper.attributes["merged_topic"] = topic
-
-        policy = PruningPolicy(min_stability=prune_threshold)
-        policy_pruned = apply_pruning_policy(
-            self.graph.nodes, policy, current_wave=self.graph._wave_cycle_count
-        )
-        self.graph.prune(threshold=prune_threshold)
-        self.graph.save()
-        wave_status = self.graph.get_wave_status()
-        logger.info(
-            (
-                "OS Loop: consolidation | tension: %.2f | pruned: %d | "
-                "merged: %d | policy_pruned: %d"
-            ),
-            float(wave_status.get("tension", 0.0)),
-            collapsed_count,
-            merged_count,
-            len(policy_pruned),
-        )
-
-    def run_nightly_consolidation(self) -> None:
-        prune_threshold = 0.15
-        collapsed_count = 0
-        for node in self.graph.nodes.values():
-            if node.collapsed:
-                continue
-            if node.stability < prune_threshold:
-                node.collapsed = True
-                node.activation = 0.0
-                collapsed_count += 1
-
-        topic_map: dict[str, list[str]] = {}
-        for node in self.graph.nodes.values():
-            if node.collapsed:
-                continue
-            for topic in node.topics:
-                topic_map.setdefault(topic.lower(), []).append(node.id)
-
-        merged_count = 0
-        for topic, ids in topic_map.items():
-            if len(ids) < 2:
-                continue
-            keeper = self.graph.get_node(ids[0])
-            if keeper is None:
-                continue
-            for other_id in ids[1:]:
-                other = self.graph.get_node(other_id)
-                if other is None or other.collapsed:
-                    continue
-                keeper.content = f"{keeper.content}\n\n{other.content}"
-                keeper.activation = max(keeper.activation, other.activation)
-                keeper.stability = max(keeper.stability, other.stability)
-                other.collapsed = True
-                other.activation = 0.0
-                merged_count += 1
-            keeper.attributes["nightly_merged_topic"] = topic
-
-        nightly_policy = PruningPolicy(min_stability=prune_threshold, max_age_waves=300)
-        apply_pruning_policy(
-            self.graph.nodes, nightly_policy, current_wave=self.graph._wave_cycle_count
-        )
-        self.graph.prune(threshold=prune_threshold)
-
-        graph_nodes = {
-            node_id: self.graph._to_graph_node(node)  # noqa: SLF001
-            for node_id, node in self.graph.nodes.items()
-            if not node.collapsed
-        }
-        edge_tuples = [(edge.src, edge.dst, edge.weight) for edge in self.graph.edges]
-        tensions = self.graph.detect_tensions()
-        emergent_ids = spawn_emergence(graph_nodes, tensions, edge_tuples)
-        self.graph._apply_graph_node_updates(graph_nodes)  # noqa: SLF001
-        self.graph._sync_edges_from_tuples(edge_tuples)  # noqa: SLF001
-        self.graph.save()
-        wave_status = self.graph.get_wave_status()
-        logger.info(
-            (
-                "OS Loop: nightly_consolidation | tension: %.2f | pruned: %d | "
-                "merged: %d | emergence: %d"
-            ),
-            float(wave_status.get("tension", 0.0)),
-            collapsed_count,
-            merged_count,
-            len(emergent_ids),
-        )
-
-    def _autonomous_insight_generation(self) -> None:
-        if not self._is_user_idle():
-            return
-        min_tension = float(
-            self.config.get("autonomous", {}).get("insight_min_tension", 0.8)
-        )
-        tensions = self.graph.detect_tensions()
-        if not tensions:
-            wave_status = self.graph.get_wave_status()
-            logger.info(
-                "OS Loop: insight | tension: %.2f | skipped: no_tension",
-                float(wave_status.get("tension", 0.0)),
-            )
-            return
-        strongest_tension = max(tensions.values())
-        if strongest_tension < min_tension:
-            wave_status = self.graph.get_wave_status()
-            logger.info(
-                "OS Loop: insight | tension: %.2f | skipped: below_threshold",
-                float(wave_status.get("tension", 0.0)),
-            )
-            return
-
-        highest_tension_node_id = max(tensions, key=tensions.get)
-        node = self.graph.get_node(highest_tension_node_id)
-        topic = node.topics[0] if node and node.topics else highest_tension_node_id
-        query = f"Autonomous insight synthesis for {topic}"
-        response = self.query_processor.process_query(query)
-        traces_dir = Path("traces")
-        traces_dir.mkdir(parents=True, exist_ok=True)
-        insight_trace = traces_dir / (
-            f"autonomous_insight_{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S-%f')}.jsonl"
-        )
-        payload = {
-            "query": query,
-            "answer": response.answer,
-            "topic": topic,
-            "tension": float(strongest_tension),
-        }
-        insight_trace.write_text(json.dumps(payload) + "\n", encoding="utf-8")
-        wave_status = self.graph.get_wave_status()
-        logger.info(
-            "OS Loop: insight | tension: %.2f | topic: %s",
-            float(wave_status.get("tension", 0.0)),
-            topic,
-        )
 
     def run_tui(self) -> None:
         if self.config.get("tui", {}).get("enabled", False):
@@ -834,75 +394,8 @@ class BoggersRuntime:
         if self._tui_thread and self._tui_thread.is_alive():
             self._tui_thread.join(timeout=2.0)
 
-    def _is_user_idle(self) -> bool:
-        idle_threshold = float(
-            self.config.get("os_loop", {}).get("idle_threshold_seconds", 120)
-        )
-        with self._state_lock:
-            return (time.time() - self._last_query_time) >= idle_threshold
-
     def get_conversation_history(self, last_n: int = 8) -> list[dict]:
         return self.graph.get_conversation_history(last_n=last_n)
-
-    def _auto_fine_tune_check(self, force: bool = False) -> dict:
-        inference_cfg = self.config.get("inference", {})
-        (
-            inference_cfg.get("self_improvement", {})
-            if isinstance(inference_cfg, dict)
-            else {}
-        )
-        fine_cfg = self._fine_cfg
-        if not isinstance(fine_cfg, dict) or not bool(fine_cfg.get("enabled", False)):
-            return {"triggered": False, "reason": "fine_tuning_disabled"}
-        if not force and not bool(fine_cfg.get("auto_schedule", True)):
-            return {"triggered": False, "reason": "auto_schedule_disabled"}
-
-        current_trace_count = self._count_traces()
-        new_traces = max(0, current_trace_count - int(self._last_tuned_trace_count))
-        nightly_hour = int(self.config.get("os_loop", {}).get("nightly_hour_utc", 3))
-        should_run_nightly = datetime.now(timezone.utc).hour == nightly_hour
-        should_run_threshold = new_traces >= int(self.min_traces_for_tune)
-
-        if not force and not (should_run_nightly or should_run_threshold):
-            return {
-                "triggered": False,
-                "reason": "conditions_not_met",
-                "new_traces": new_traces,
-            }
-
-        epochs = int(fine_cfg.get("epochs", 1))
-        stats = self.fine_tune_and_hotswap(epochs=epochs)
-        stats["triggered"] = True
-        stats["new_traces"] = new_traces
-        return stats
-
-    def _count_traces(self) -> int:
-        now = time.time()
-        if now - self._trace_count_cache_time < 60.0:
-            return self._trace_count_cache
-        inference_cfg = self.config.get("inference", {})
-        self_improvement_cfg = (
-            inference_cfg.get("self_improvement", {})
-            if isinstance(inference_cfg, dict)
-            else {}
-        )
-        traces_dir = (
-            str(self_improvement_cfg.get("traces_dir", "traces"))
-            if isinstance(self_improvement_cfg, dict)
-            else "traces"
-        )
-        traces_path = Path(traces_dir)
-        if not traces_path.exists():
-            return 0
-        total = 0
-        for file_path in traces_path.glob("*.jsonl"):
-            try:
-                total += len(file_path.read_text(encoding="utf-8").splitlines())
-            except Exception:
-                continue
-        self._trace_count_cache = total
-        self._trace_count_cache_time = now
-        return total
 
     def _ensure_self_improvement_node(self) -> None:
         node_id = "runtime:self_improvement"
@@ -921,48 +414,6 @@ class BoggersRuntime:
                 },
             )
             self.graph.save()
-
-    def _get_self_improvement_state(self) -> dict:
-        node = self.graph.get_node("runtime:self_improvement")
-        if node is None:
-            return {}
-        attrs = getattr(node, "attributes", {})
-        return attrs if isinstance(attrs, dict) else {}
-
-    def _update_self_improvement_state(self, updates: dict) -> None:
-        node = self.graph.get_node("runtime:self_improvement")
-        if node is None:
-            self._ensure_self_improvement_node()
-            node = self.graph.get_node("runtime:self_improvement")
-        if node is None:
-            return
-        attributes = getattr(node, "attributes", {})
-        if not isinstance(attributes, dict):
-            attributes = {}
-        attributes.update(updates)
-        node.attributes = attributes
-        self.graph.save()
-
-    def _run_quality_gate(self, adapter_path: str, fine_cfg: dict) -> dict:
-        try:
-            if self.local_llm is None:
-                return {"passed": True, "reason": "no_llm_to_test"}
-            with self._llm_lock:
-                result = self.local_llm.summarize_and_hypothesize(
-                    "Test context about TS-OS graph wave architecture.",
-                    "What is the core TS-OS loop?",
-                )
-            confidence = float(result.get("confidence", 0.0))
-            has_answer = bool(str(result.get("answer", "")).strip())
-            passed = has_answer and confidence > 0.3
-            return {
-                "passed": passed,
-                "confidence": confidence,
-                "has_answer": has_answer,
-            }
-        except Exception as exc:
-            logger.warning("Quality gate failed: %s", exc)
-            return {"passed": False, "error": str(exc)}
 
     def _resolve_session_id(self) -> str:
         runtime_cfg = self.config.get("runtime", {})
@@ -1050,21 +501,6 @@ class BoggersRuntime:
             wave_cfg.update(updated)
             logger.info("Applied cognitive temperament: %s", name)
 
-    def _warn_self_improvement(self) -> None:
-        inference_cfg = self.config.get("inference", {})
-        if not isinstance(inference_cfg, dict):
-            return
-        si_cfg = inference_cfg.get("self_improvement", {})
-        if not isinstance(si_cfg, dict):
-            return
-        ft_cfg = si_cfg.get("fine_tuning", {})
-        if isinstance(ft_cfg, dict) and bool(ft_cfg.get("enabled", False)):
-            logger.warning(
-                "Self-improvement (fine-tuning) is EXPERIMENTAL and can "
-                "degrade model quality. Ensure validation_enabled=true and "
-                "safety_dry_run=true for safe testing."
-            )
-
     def _setup_embedder(self) -> None:
         embed_cfg = self.raw_config.get("embeddings", {})
         if not isinstance(embed_cfg, dict) or not bool(embed_cfg.get("enabled", False)):
@@ -1081,15 +517,6 @@ class BoggersRuntime:
                 logger.info("Embedder not available (model %s not pulled?)", model)
         except Exception as exc:
             logger.debug("Embedder setup failed: %s", exc)
-
-    def _resolve_fine_cfg(self) -> dict:
-        inference_cfg = self.config.get("inference", {})
-        si_cfg = (
-            inference_cfg.get("self_improvement", {})
-            if isinstance(inference_cfg, dict)
-            else {}
-        )
-        return si_cfg.get("fine_tuning", {}) if isinstance(si_cfg, dict) else {}
 
     def _register_health_checks(self) -> None:
         def _graph_health() -> dict:

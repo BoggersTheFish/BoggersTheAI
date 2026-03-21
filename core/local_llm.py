@@ -17,12 +17,15 @@ class LocalLLM:
         max_tokens: int = 512,
         adapter_path: str | None = None,
         base_model: str | None = None,
+        base_url: str = "http://localhost:11434",
     ) -> None:
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.adapter_path = adapter_path
         self.base_model = base_model or model
+        self._base_url = base_url
+        self._client = ollama.Client(host=self._base_url)
         self.previous_adapter_path: str | None = None
         self._unsloth_model = None
         self._unsloth_tokenizer = None
@@ -128,7 +131,7 @@ class LocalLLM:
                     "Unsloth generation failed, falling back to Ollama: %s", exc
                 )
 
-        response = ollama.chat(
+        response = self._client.chat(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             options={
@@ -182,7 +185,7 @@ class LocalLLM:
 
     def embed_text(self, text: str) -> List[float]:
         try:
-            response = ollama.embeddings(model="nomic-embed-text", prompt=text)
+            response = self._client.embeddings(model="nomic-embed-text", prompt=text)
             vec = response.get("embedding", [])
             if isinstance(vec, list) and len(vec) > 0:
                 return vec

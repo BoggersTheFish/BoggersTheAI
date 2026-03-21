@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Protocol, Tuple
@@ -14,6 +15,8 @@ _CACHE_TTL = 300.0  # 5 minutes
 
 _adapter_call_counts: dict[str, int] = {}
 _MAX_CALLS_PER_MINUTE = 30
+
+_cache_lock = threading.Lock()
 
 
 class IngestProtocol(Protocol):
@@ -37,20 +40,22 @@ class AdapterRegistry:
     def ingest(self, name: str, source: str) -> List[Node]:
         cache_key = f"{name}:{source}"
         now = time.time()
-        cached = _adapter_cache.get(cache_key)
-        if cached and (now - cached[0]) < _CACHE_TTL:
-            return cached[1]
+        with _cache_lock:
+            cached = _adapter_cache.get(cache_key)
+            if cached and (now - cached[0]) < _CACHE_TTL:
+                return cached[1]
 
-        _call_key = f"{name}:{int(time.time() // 60)}"
-        _adapter_call_counts[_call_key] = _adapter_call_counts.get(_call_key, 0) + 1
-        if _adapter_call_counts[_call_key] > _MAX_CALLS_PER_MINUTE:
-            logger.warning("Rate limit hit for adapter %s", name)
-            return cached[1] if cached else []
-        adapter = self._adapters.get(name)
-        if adapter is None:
-            return []
+            _call_key = f"{name}:{int(time.time() // 60)}"
+            _adapter_call_counts[_call_key] = _adapter_call_counts.get(_call_key, 0) + 1
+            if _adapter_call_counts[_call_key] > _MAX_CALLS_PER_MINUTE:
+                logger.warning("Rate limit hit for adapter %s", name)
+                return cached[1] if cached else []
+            adapter = self._adapters.get(name)
+            if adapter is None:
+                return []
         result = adapter.ingest(source)
-        _adapter_cache[cache_key] = (now, result)
+        with _cache_lock:
+            _adapter_cache[cache_key] = (now, result)
         return result
 
     def names(self) -> List[str]:

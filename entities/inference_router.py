@@ -13,7 +13,7 @@ class SynthesisProtocol(Protocol):
 
 @dataclass(slots=True)
 class ThrottlePolicy:
-    min_interval_seconds: int = 60
+    min_interval_seconds: float = 60.0
 
 
 class InferenceRouter:

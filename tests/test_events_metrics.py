@@ -34,6 +34,11 @@ class TestEventBus:
         bus = EventBus()
         bus.on("err", lambda **kw: 1 / 0)
         bus.emit("err")
+        after = []
+        bus.on("after_err", lambda **kw: after.append(kw))
+        bus.emit("after_err", recovered=True)
+        assert len(after) == 1
+        assert after[0]["recovered"] is True
 
     def test_clear(self):
         bus = EventBus()

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger("boggers.config.schema")
@@ -10,15 +11,23 @@ _RANGE_CHECKS: List[Tuple[str, str, float, float]] = [
     ("wave.activation_cap", "wave", 0.01, 10.0),
     ("wave.semantic_weight", "wave", 0.0, 1.0),
     ("wave.spread_factor", "wave", 0.0, 1.0),
+    ("wave.relax_decay", "wave", 0.0, 1.0),
     ("wave.interval_seconds", "wave", 1.0, 3600.0),
     ("guardrails.max_nodes", "guardrails", 1.0, 1000000.0),
     ("guardrails.max_cycles_per_hour", "guardrails", 1.0, 100000.0),
+    ("guardrails.high_tension_pause", "guardrails", 0.0, 1.0),
 ]
 
-_REQUIRED_SECTIONS = ["wave", "runtime"]
+_REQUIRED_SECTIONS = ["wave", "runtime", "os_loop", "autonomous", "embeddings"]
 
 
-def validate_config(raw: Dict[str, Any]) -> List[str]:
+def validate_config(raw: Dict[str, Any], strict: bool = False) -> List[str]:
+    env_strict = os.environ.get("BOGGERS_CONFIG_STRICT", "").strip().lower() in (
+        "1",
+        "true",
+    )
+    effective_strict = strict or env_strict
+
     warnings: List[str] = []
 
     for section in _REQUIRED_SECTIONS:
@@ -47,5 +56,8 @@ def validate_config(raw: Dict[str, Any]) -> List[str]:
 
     for w in warnings:
         logger.warning("Config validation: %s", w)
+
+    if effective_strict and warnings:
+        raise ValueError("\n".join(warnings))
 
     return warnings

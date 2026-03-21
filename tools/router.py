@@ -46,10 +46,40 @@ class ToolRouter:
                 logger.info("Routing to calc: expression=%s", expression)
                 return ToolCall(tool_name="calc", args={"expression": expression})
 
+        if self._is_web_search_query(q):
+            logger.info(
+                "Routing to web_search: query=%s",
+                raw_query[:80],
+            )
+            return ToolCall(
+                tool_name="web_search",
+                args={"query": raw_query},
+            )
+
+        if self._is_datetime_query(q):
+            logger.info("Routing to datetime")
+            return ToolCall(
+                tool_name="datetime",
+                args={"action": "now"},
+            )
+
+        if self._is_unit_convert_query(q):
+            logger.info("Routing to unit_convert")
+            return ToolCall(
+                tool_name="unit_convert",
+                args=self._extract_convert_args(q),
+            )
+
         if "search for" in q or "look up" in q or q.startswith("search "):
             search_query = query.strip()
-            logger.info("Routing to search (explicit): query=%s", search_query[:80])
-            return ToolCall(tool_name="search", args={"query": search_query})
+            logger.info(
+                "Routing to search (explicit): query=%s",
+                search_query[:80],
+            )
+            return ToolCall(
+                tool_name="search",
+                args={"query": search_query},
+            )
 
         if sufficiency_score < self.sufficiency_threshold:
             fallback = " ".join(topics) if topics else query.strip()
@@ -96,3 +126,53 @@ class ToolRouter:
         if re.fullmatch(r"[-+*/().\d\s]+", expression):
             return expression
         return None
+
+    def _is_web_search_query(self, q: str) -> bool:
+        triggers = [
+            "search the web",
+            "look up online",
+            "duckduckgo",
+        ]
+        return any(t in q for t in triggers)
+
+    def _is_datetime_query(self, q: str) -> bool:
+        triggers = [
+            "what time",
+            "current date",
+            "parse date",
+        ]
+        return any(t in q for t in triggers)
+
+    _UNIT_KEYWORDS = [
+        "km",
+        "miles",
+        "kg",
+        "lbs",
+        "celsius",
+        "fahrenheit",
+        "meters",
+        "feet",
+    ]
+
+    def _is_unit_convert_query(self, q: str) -> bool:
+        has_trigger = "convert" in q or "how many" in q
+        has_unit = any(u in q for u in self._UNIT_KEYWORDS)
+        return has_trigger and has_unit
+
+    def _extract_convert_args(self, q: str) -> dict:
+        nums = re.findall(r"[\d.]+", q)
+        value = float(nums[0]) if nums else 0.0
+        from_u = ""
+        to_u = ""
+        for kw in self._UNIT_KEYWORDS:
+            if kw in q:
+                if not from_u:
+                    from_u = kw
+                else:
+                    to_u = kw
+                    break
+        return {
+            "value": value,
+            "from": from_u,
+            "to": to_u,
+        }

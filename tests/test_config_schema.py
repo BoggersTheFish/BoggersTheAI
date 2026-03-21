@@ -8,6 +8,7 @@ WORKSPACE_ROOT = PROJECT_ROOT.parent
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
+import pytest  # noqa: E402
 from BoggersTheAI.core.config_resolver import resolve_nested  # noqa: E402
 from BoggersTheAI.core.config_schema import validate_config  # noqa: E402
 
@@ -17,14 +18,17 @@ class TestValidateConfig:
         cfg = {
             "wave": {"damping": 0.95, "activation_cap": 1.0, "semantic_weight": 0.3},
             "runtime": {"graph_backend": "sqlite"},
+            "os_loop": {},
+            "autonomous": {},
+            "embeddings": {},
         }
         warnings = validate_config(cfg)
         assert len(warnings) == 0
 
     def test_missing_sections(self):
         warnings = validate_config({})
-        assert any("wave" in w for w in warnings)
-        assert any("runtime" in w for w in warnings)
+        for section in ("wave", "runtime", "os_loop", "autonomous", "embeddings"):
+            assert any(section in w for w in warnings)
 
     def test_out_of_range(self):
         cfg = {
@@ -41,6 +45,25 @@ class TestValidateConfig:
         }
         warnings = validate_config(cfg)
         assert any("numeric" in w for w in warnings)
+
+    def test_strict_raises_value_error(self):
+        cfg = {
+            "wave": {"damping": 5.0},
+            "runtime": {},
+        }
+        with pytest.raises(ValueError) as exc_info:
+            validate_config(cfg, strict=True)
+        assert "damping" in str(exc_info.value)
+
+    def test_env_boggers_config_strict(self, monkeypatch):
+        monkeypatch.setenv("BOGGERS_CONFIG_STRICT", "1")
+        cfg = {
+            "wave": {"damping": 5.0},
+            "runtime": {},
+        }
+        with pytest.raises(ValueError):
+            validate_config(cfg)
+        monkeypatch.delenv("BOGGERS_CONFIG_STRICT", raising=False)
 
 
 class TestResolveNested:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import threading
 from pathlib import Path
@@ -12,11 +13,25 @@ from BoggersTheAI import BoggersRuntime
 from BoggersTheAI.core.metrics import metrics as metrics_collector
 
 app = FastAPI(title="BoggersTheAI Dashboard", version="0.3.0")
-runtime = BoggersRuntime()
+
+_runtime: BoggersRuntime | None = None
+_runtime_lock = threading.Lock()
+
+
+def get_runtime() -> BoggersRuntime:
+    global _runtime
+    if _runtime is None:
+        with _runtime_lock:
+            if _runtime is None:
+                _runtime = BoggersRuntime()
+    return _runtime
+
+
 _tension_history: list[dict[str, Any]] = []
 _history_lock = threading.Lock()
 
 _AUTH_TOKEN = os.environ.get("BOGGERS_DASHBOARD_TOKEN", "")
+_logger = logging.getLogger("boggers.dashboard")
 
 
 def _check_auth(authorization: str = Header(default="")) -> None:
@@ -25,7 +40,7 @@ def _check_auth(authorization: str = Header(default="")) -> None:
 
 
 def _collect_status() -> dict[str, Any]:
-    status = runtime.get_status()
+    status = get_runtime().get_status()
     with _history_lock:
         _tension_history.append(
             {
@@ -38,14 +53,29 @@ def _collect_status() -> dict[str, Any]:
     return status
 
 
+@app.get("/health/live")
+def health_live() -> dict[str, str]:
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+def health_ready(
+    _: None = Depends(_check_auth),
+) -> dict[str, Any]:
+    checks = get_runtime().run_health_checks()
+    return {"status": "ready", "checks": checks}
+
+
 @app.get("/status")
-def status(_: None = Depends(_check_auth)) -> dict[str, Any]:
+def status(
+    _: None = Depends(_check_auth),
+) -> dict[str, Any]:
     return {
         "status": _collect_status(),
         "graph": {
-            "nodes": len(runtime.graph.nodes),
-            "edges": len(runtime.graph.edges),
-            "path": str(runtime.graph.graph_path),
+            "nodes": len(get_runtime().graph.nodes),
+            "edges": len(get_runtime().graph.edges),
+            "path": str(get_runtime().graph.graph_path),
         },
     }
 
@@ -121,10 +151,11 @@ def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
             "stability": n.stability,
             "collapsed": n.collapsed,
         }
-        for n in runtime.graph.nodes.values()
+        for n in get_runtime().graph.nodes.values()
     ]
     edges = [
-        {"src": e.src, "dst": e.dst, "weight": e.weight} for e in runtime.graph.edges
+        {"src": e.src, "dst": e.dst, "weight": e.weight}
+        for e in get_runtime().graph.edges
     ]
     return {"nodes": nodes, "edges": edges}
 
@@ -244,8 +275,8 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
 
 @app.get("/metrics")
 def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
-    graph_metrics = runtime.graph.get_metrics()
-    wave_status = runtime.get_status()
+    graph_metrics = get_runtime().graph.get_metrics()
+    wave_status = get_runtime().get_status()
 
     stability_trend: list[float] = []
     with _history_lock:
@@ -281,6 +312,10 @@ def traces(_: None = Depends(_check_auth), limit: int = 20) -> dict[str, Any]:
 def main() -> None:
     import uvicorn
 
-    host = os.environ.get("BOGGERS_DASHBOARD_HOST", "0.0.0.0")
+    # Default localhost-only; use BOGGERS_DASHBOARD_HOST=0.0.0.0 in production
+    # behind a reverse proxy so the app listens on all interfaces explicitly.
+    host = os.environ.get("BOGGERS_DASHBOARD_HOST", "127.0.0.1")
     port = int(os.environ.get("BOGGERS_DASHBOARD_PORT", "8000"))
+    if not os.environ.get("BOGGERS_DASHBOARD_TOKEN"):
+        _logger.warning("Dashboard running without authentication token")
     uvicorn.run("BoggersTheAI.dashboard.app:app", host=host, port=port, reload=False)

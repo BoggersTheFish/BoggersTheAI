@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Iterable, List, Tuple
 
@@ -28,41 +29,74 @@ class ConsolidationEngine:
         result = ConsolidationResult(candidates_count=len(candidates))
         processed: set[str] = set()
 
-        for left_index in range(len(candidates)):
-            left = candidates[left_index]
-            if left.id in processed or left.collapsed:
-                continue
-            for right_index in range(left_index + 1, len(candidates)):
-                right = candidates[right_index]
-                if right.id in processed or right.collapsed:
-                    continue
-                if not self._share_topic(left, right):
-                    continue
-                if (
-                    self._jaccard(left.content, right.content)
-                    <= self.similarity_threshold
-                ):
-                    continue
+        topic_buckets: dict[str, list[Node]] = defaultdict(list)
+        for node in candidates:
+            for topic in node.topics:
+                topic_buckets[topic].append(node)
 
-                survivor, absorbed = self._pick_survivor(left, right)
-                self._absorb(graph, survivor, absorbed)
-                processed.add(absorbed.id)
-                result.merged_count += 1
-                result.merged_pairs.append((survivor.id, absorbed.id))
+        idx = {n.id: i for i, n in enumerate(candidates)}
+        pair_order: list[tuple[int, int]] = []
+        seen_pairs: set[tuple[str, str]] = set()
+        for topic in sorted(topic_buckets.keys()):
+            bucket = topic_buckets[topic]
+            for bi in range(len(bucket)):
+                for bj in range(bi + 1, len(bucket)):
+                    left_n, right_n = bucket[bi], bucket[bj]
+                    if left_n.id == right_n.id:
+                        continue
+                    pair_key = (
+                        (left_n.id, right_n.id)
+                        if left_n.id < right_n.id
+                        else (right_n.id, left_n.id)
+                    )
+                    if pair_key in seen_pairs:
+                        continue
+                    seen_pairs.add(pair_key)
+                    ia, ib = idx[left_n.id], idx[right_n.id]
+                    if ia > ib:
+                        ia, ib = ib, ia
+                    pair_order.append((ia, ib))
+        pair_order.sort()
+
+        for ia, ib in pair_order:
+            left = candidates[ia]
+            right = candidates[ib]
+            skip = (
+                left.id in processed
+                or right.id in processed
+                or left.collapsed
+                or right.collapsed
+            )
+            if skip:
+                continue
+            if self._jaccard(left.content, right.content) <= self.similarity_threshold:
+                continue
+
+            survivor, absorbed = self._pick_survivor(left, right)
+            self._absorb(graph, survivor, absorbed)
+            processed.add(absorbed.id)
+            result.merged_count += 1
+            result.merged_pairs.append((survivor.id, absorbed.id))
 
         return result
-
-    def _share_topic(self, left: Node, right: Node) -> bool:
-        return bool(set(left.topics) & set(right.topics))
 
     def _jaccard(self, left: str, right: str) -> float:
         left_tokens = {token for token in left.lower().split() if token}
         right_tokens = {token for token in right.lower().split() if token}
         if not left_tokens or not right_tokens:
             return 0.0
-        intersection = len(left_tokens & right_tokens)
-        union = len(left_tokens | right_tokens)
-        return intersection / union if union else 0.0
+        if len(left_tokens) > len(right_tokens):
+            left_tokens, right_tokens = right_tokens, left_tokens
+        intersection = 0
+        for token in left_tokens:
+            if token in right_tokens:
+                intersection += 1
+        if intersection == 0:
+            return 0.0
+        union = len(left_tokens) + len(right_tokens) - intersection
+        if not union:
+            return 0.0
+        return intersection / union
 
     def _pick_survivor(self, left: Node, right: Node) -> tuple[Node, Node]:
         if (left.activation, left.stability) >= (right.activation, right.stability):

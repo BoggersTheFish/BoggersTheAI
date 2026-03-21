@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import threading
 from collections import deque
 from dataclasses import dataclass, field
@@ -10,6 +11,8 @@ from .mode_manager import ModeManager
 from .protocols import ImageInProtocol, VoiceInProtocol
 from .query_processor import QueryProcessor, QueryResponse
 from .wave import run_wave
+
+logger = logging.getLogger(__name__)
 
 
 class AdapterRegistryProtocol(Protocol):
@@ -91,7 +94,25 @@ class QueryRouter:
         self._queue_lock = threading.Lock()
 
     def process_text(self, query: str) -> QueryResponse:
-        self.mode_manager.request_user_mode()
+        if not self.mode_manager.request_user_mode():
+            logger.warning("request_user_mode timed out; autonomous cycle still active")
+            return QueryResponse(
+                query=query,
+                topics=[],
+                context=[],
+                sufficiency_score=0.0,
+                used_research=False,
+                used_tool=False,
+                tool_name=None,
+                context_nodes=[],
+                activation_scores=[],
+                consolidated_merges=0,
+                insight_path=None,
+                hypotheses=[],
+                confidence=0.0,
+                reasoning_trace="",
+                answer="System busy, please try again",
+            )
         try:
             response = self.query_processor.process_query(query)
             self._enqueue_hypotheses(response.hypotheses)
