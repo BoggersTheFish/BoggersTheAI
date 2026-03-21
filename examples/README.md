@@ -120,4 +120,4 @@ Nothing in this folder is a “mock” of the product stack—it's either the re
 | [graph_evolution_demo.py](graph_evolution_demo.py) | `python examples/graph_evolution_demo.py` | `run_wave()` cycles on a toy graph |
 | [TS-OS_Living_Demo.ipynb](TS-OS_Living_Demo.ipynb) | Jupyter | Interactive end-to-end tour |
 
-For architecture depth, see [../README.md](../README.md) and [../ARCHITECTURE.md](../ARCHITECTURE.md).
+For architecture depth, see [../README.md](../README.md) and [../ARCHITECTURE.md](../ARCHITECTURE.md). Release **v0.5.0+** adds a modular runtime (wave runner + mixins), shared HTTP client with retries, path sandboxing, extra tools (web search, datetime, unit convert), dashboard lazy loading, and `/health/live` / `/health/ready` — all documented in the main README.

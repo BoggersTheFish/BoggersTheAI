@@ -1,9 +1,10 @@
 # BoggersTheAI
 
-![Tests](https://img.shields.io/github/actions/workflow/status/BoggersTheFish/BoggersTheAI/ci.yml?label=tests)
+![Tests](https://img.shields.io/github/actions/workflow/status/BoggersTheFish/BoggersTheAI/test.yml?label=tests)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Coverage](https://img.shields.io/badge/coverage-74%25-yellowgreen)
+![Coverage](https://img.shields.io/badge/coverage-~70%25-yellowgreen)
+![Version](https://img.shields.io/badge/release-v0.5.0-blue)
 
 **BoggersTheAI** is a local-first **TS-OS (Thinking System Operating System)** — a living graph and wave-propagation reasoning engine that treats truth as the most stable configuration its constraints allow. Instead of scaling a single monolithic language model, BoggersTheAI maintains a persistent knowledge graph of nodes (concepts) and edges (relations), each carrying activation, stability, and base-strength values that evolve continuously through a wave cycle of propagation, relaxation, pruning, tension detection, emergence, and contradiction resolution. The result is an AI runtime that learns, adapts, and reasons locally — with optional LLM synthesis, self-improvement via QLoRA fine-tuning, multimodal input/output, and a full observability stack.
 
@@ -34,6 +35,8 @@
 18. [Testing](#testing)
 19. [Contributing](#contributing)
 20. [License](#license)
+
+**Release:** Living OS **v0.5.0** — modular runtime (wave runner + mixins), shared HTTP client with retries, path sandboxing, graph operation helpers, extended tools, stricter config validation, and expanded test/CI.
 
 ---
 
@@ -90,6 +93,7 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 ## Complete Feature List
 
 ### Graph Engine
+- **WaveCycleRunner** (`core/graph/wave_runner.py`) — owns background wave thread lifecycle and step order; graph holds data, runner executes elect → propagate → relax → … → save
 - **UniversalLivingGraph** with thread-safe concurrent access (RLock)
 - Dual persistence: **SQLite** (WAL mode, default) or **JSON**
 - Topic index for O(1) topic-based lookups
@@ -102,6 +106,7 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 - Strongest-node caching with invalidation on mutation
 - Snapshot versioning: save, list, restore, delete full graph states (max 50 with auto-pruning)
 - GraphML and JSON-LD export for interoperability
+- **Pure graph helpers** (`core/graph/operations.py`): neighborhood BFS (`get_subgraph_around`), bulk insert (`batch_add_nodes`), connected components, activation-range filtering — usable without loading the full runtime
 
 ### Query Pipeline
 - Topic extraction (regex tokenizer, stopword removal)
@@ -150,9 +155,20 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 
 ### Extensibility
 - Plugin registry with entry-point discovery (adapter and tool plugins)
-- AdapterRegistry with TTL caching and rate limiting
+- AdapterRegistry with TTL caching and rate limiting (cache access is thread-safe)
 - ToolRegistry with rule-based routing
 - ContextMind: named subgraph views with per-context temperament
+- **HTTP resilience** (`adapters/http_client.py`): `fetch_url` / `fetch_json` with exponential backoff — used by Wikipedia, RSS, Hacker News
+- **Path sandbox** (`core/path_sandbox.py`): `validate_path` for markdown/vault/file reads under a fixed base directory
+
+### Runtime composition (v0.5.0)
+- **`BoggersRuntime`** inherits **`AutonomousLoopMixin`** (`interface/autonomous_loop.py`) and **`SelfImprovementMixin`** (`interface/self_improvement.py`) — OS loop, nightly consolidation, and self-improvement logic live in dedicated modules; `runtime.py` remains the public composition root
+- **Dashboard** uses **`get_runtime()`** (lazy singleton) so importing `dashboard.app` does not construct the full runtime at import time
+
+### Additional tools (beyond calc / search / code / file_read)
+- **WebSearchTool** — DuckDuckGo instant-answer API (no API key)
+- **DateTimeTool** — current UTC time, parse/format helpers
+- **UnitConvertTool** — common unit pairs (km/miles, kg/lbs, °C/°F, m/ft)
 
 ---
 
@@ -206,8 +222,13 @@ pip install -e ".[all]"
 |-------|-------------|
 | `llm` | `ollama` Python client for LLM synthesis and embedding generation |
 | `gpu` | `unsloth`, `torch`, `trl`, `datasets` for QLoRA fine-tuning |
-| `dev` | `pytest`, `pytest-cov`, `black`, `ruff`, `isort`, `mypy`, `fastapi`, `uvicorn`, `httpx` |
-| `all` | Union of all the above |
+| `dev` | `pytest`, `pytest-cov`, `black`, `ruff`, `isort`, `mypy`, `fastapi`, `uvicorn`, `ollama` |
+| `multimodal` | `faster-whisper`, `transformers`, `pillow`, `piper-tts` |
+| `adapters` | `feedparser` (RSS and related ingestion) |
+| `all` | Broader union (see `pyproject.toml` — includes rich, feedparser, etc.) |
+| `security` | `defusedxml` — safer XML parsing for RSS when installed |
+
+**Developer workflow:** a **`Makefile`** at the project root provides `make test`, `make lint`, `make format`, `make run`, `make dashboard`. **`.pre-commit-config.yaml`** hooks ruff, black, and isort (optional local install: `pre-commit install`).
 
 ---
 
@@ -266,7 +287,7 @@ Open `http://localhost:8000/wave` for the live tension chart, or `http://localho
 
 ## Complete Configuration Reference
 
-All behavior is driven by **`config.yaml`** in the working directory, deep-merged over `RuntimeConfig` defaults by `core/config_loader.py`. The `core/config_schema.py` validator checks required sections and numeric ranges on startup.
+All behavior is driven by **`config.yaml`** in the working directory, deep-merged over `RuntimeConfig` defaults by `core/config_loader.py`. The `core/config_schema.py` validator checks required sections and numeric ranges on startup. Set **`BOGGERS_CONFIG_STRICT=1`** (or pass `strict=True` to `validate_config`) to **raise** on validation warnings instead of only logging them.
 
 ### `modules` — Feature Toggles
 
@@ -293,6 +314,7 @@ All behavior is driven by **`config.yaml`** in the working directory, deep-merge
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `inference.ollama.enabled` | bool | `true` | Use Ollama for LLM synthesis. When `false`, the system uses extractive fallback only. |
+| `inference.ollama.base_url` | str | `"http://localhost:11434"` | Ollama HTTP API base URL (passed to `ollama.Client(host=...)`). |
 | `inference.ollama.model` | str | `"llama3.2"` | Ollama model name. Must be pulled locally via `ollama pull <model>`. |
 | `inference.ollama.temperature` | float | `0.3` | Sampling temperature. Lower = more deterministic. Range: 0.0–2.0. |
 | `inference.ollama.max_tokens` | int | `512` | Maximum tokens in LLM response. |
@@ -422,6 +444,7 @@ All adapters share the AdapterRegistry's rate limiting (30 calls/minute per adap
 | `os_loop.idle_threshold_seconds` | int | `120` | Seconds since last user query before the system considers itself "idle" and begins autonomous exploration. |
 | `os_loop.autonomous_modes` | list | `["exploration", "consolidation", "insight"]` | Which autonomous behaviors are active. Remove items to disable specific modes. |
 | `os_loop.nightly_hour_utc` | int | `3` | UTC hour to run nightly deep consolidation (prune, merge, emergence). Range: 0–23. |
+| `os_loop.consolidation_on_shutdown` | bool | `true` | When `true`, `shutdown()` runs `run_nightly_consolidation(force=True)` so the graph is consolidated on exit, not only at `nightly_hour_utc`. |
 | `os_loop.multi_turn_enabled` | bool | `true` | Maintain conversation context across queries via session nodes in the graph. |
 
 ### `tui` — Rich Terminal UI
@@ -470,9 +493,10 @@ These are informational hints, not enforced constraints. They document recommend
 | Variable | Purpose |
 |----------|---------|
 | `X_BEARER_TOKEN` | Bearer token for X/Twitter API adapter |
-| `BOGGERS_DASHBOARD_TOKEN` | Protects dashboard endpoints (`/status`, `/graph`, `/metrics`, `/traces`) with `Authorization: Bearer <token>` |
-| `BOGGERS_DASHBOARD_HOST` | Dashboard bind host (default: `0.0.0.0`) |
+| `BOGGERS_DASHBOARD_TOKEN` | Protects dashboard endpoints with `Authorization: Bearer <token>`. If unset, a **warning** is logged at startup (bind still works). |
+| `BOGGERS_DASHBOARD_HOST` | Dashboard bind host (default: **`127.0.0.1`** — loopback only; set `0.0.0.0` explicitly for LAN exposure behind a reverse proxy) |
 | `BOGGERS_DASHBOARD_PORT` | Dashboard bind port (default: `8000`) |
+| `BOGGERS_CONFIG_STRICT` | If `1` or `true`, `validate_config` raises `ValueError` on any config warning |
 
 ---
 
@@ -559,7 +583,7 @@ Performs deep pruning, merging of similar nodes, and emergence spawning. Automat
 
 #### `shutdown()`
 
-Stops the wave thread and OS loop, runs nightly consolidation, saves the graph, cleans up resources. Registered via `atexit` so it runs even on unclean exits.
+Stops the OS loop and TUI thread, optionally runs **`run_nightly_consolidation(force=True)`** when `os_loop.consolidation_on_shutdown` is `true`, saves the graph, stops the wave thread. Registered via `atexit`. If the mode manager cannot grant user mode in time, `ask()` may return a **busy** response (see router).
 
 ### Response Object: `QueryResponse`
 
@@ -611,8 +635,12 @@ Override host/port with `BOGGERS_DASHBOARD_HOST` and `BOGGERS_DASHBOARD_PORT` en
 | `/graph/viz` | GET | Public | `text/html` | Cytoscape.js interactive graph visualization (fetches from `/graph`) |
 | `/metrics` | GET | Bearer (if token set) | `application/json` | Graph metrics (density, mean activation, stability distribution) + system metrics (counters, gauges) |
 | `/traces` | GET | Bearer (if token set) | `application/json` | Recent trace files from the traces directory |
+| `/health/live` | GET | Public | `application/json` | Liveness probe: `{"status": "alive"}` — no auth |
+| `/health/ready` | GET | Bearer (if token set) | `application/json` | Readiness: runs `run_health_checks()` on the lazy runtime |
 
 **Authentication:** When `BOGGERS_DASHBOARD_TOKEN` is set, protected endpoints require `Authorization: Bearer <token>` header. The bundled HTML pages (`/wave`, `/graph/viz`) include auth headers in fetch calls when a token cookie is present. For local development, leave the token unset.
+
+**Lazy runtime:** The dashboard module does **not** construct `BoggersRuntime` at import time; it calls **`get_runtime()`** on first request (thread-safe singleton).
 
 ---
 
@@ -941,9 +969,10 @@ All multimodal adapters implement protocols defined in `core/protocols.py` (`Voi
 
 ### File Read Restrictions (`tools/file_read.py`)
 
-- **Base directory restriction:** File reads are confined to the project directory
-- **Extension allowlist:** Only permitted file extensions can be read (`.txt`, `.md`, `.json`, `.yaml`, `.py`, etc.)
-- **Path traversal prevention:** `..` and absolute paths outside the base directory are rejected
+- **Base directory restriction:** Base path is **pinned at tool construction** (resolved `Path`), not the current working directory at call time
+- **Max size:** Reads reject files larger than a configurable **max bytes** (default 1 MiB)
+- **Extension allowlist:** Only permitted file extensions can be read (includes `.toml`, `.cfg`, `.ini`, plus code and data extensions)
+- **Path traversal prevention:** Paths must resolve under the base directory; `core/path_sandbox.validate_path` is used where applicable
 
 ### Network Security
 
@@ -973,7 +1002,10 @@ BoggersTheAI/
 │   │   ├── snapshots.py               # Full-graph snapshot save/restore/prune
 │   │   ├── export.py                  # GraphML and JSON-LD export
 │   │   ├── pruning.py                 # PruningPolicy (min_stability, max_age, max_nodes)
+│   │   ├── wave_runner.py             # WaveCycleRunner — wave thread + step sequence
+│   │   ├── operations.py              # Pure graph helpers (subgraph, batch, components)
 │   │   └── migrate.py                 # JSON schema migration
+│   ├── path_sandbox.py                # validate_path — safe paths under a base directory
 │   ├── query_processor.py             # Full query pipeline orchestration
 │   ├── router.py                      # QueryRouter + ModeManager coordination
 │   ├── wave.py                        # Simplified wave API (propagate/relax/break/evolve)
@@ -997,7 +1029,8 @@ BoggersTheAI/
 │   └── logger.py                      # boggers.* logging namespace configuration
 │
 ├── adapters/                          # External data ingestion
-│   ├── base.py                        # AdapterRegistry (TTL cache, rate limiting)
+│   ├── base.py                        # AdapterRegistry (TTL cache, rate limiting, lock)
+│   ├── http_client.py                 # fetch_url / fetch_json + retries
 │   ├── wikipedia.py                   # Wikipedia API adapter
 │   ├── rss.py                         # RSS feed adapter (HTTPS-only)
 │   ├── hacker_news.py                 # Hacker News Algolia API adapter
@@ -1018,7 +1051,10 @@ BoggersTheAI/
 │   ├── calc.py                        # CalcTool (AST-safe arithmetic)
 │   ├── code_run.py                    # CodeRunTool (sandboxed Python execution)
 │   ├── search.py                      # SearchTool (HN Algolia API)
-│   └── file_read.py                   # FileReadTool (base-dir restricted, extension allowlist)
+│   ├── file_read.py                   # FileReadTool (base-dir restricted, extension allowlist)
+│   ├── web_search.py                  # WebSearchTool (DuckDuckGo instant answers)
+│   ├── datetime_tool.py               # DateTimeTool (UTC now / parse / format)
+│   └── unit_convert.py                # UnitConvertTool (common conversions)
 │
 ├── multimodal/                        # Voice and image processing
 │   ├── base.py                        # Re-exports protocols from core/protocols.py
@@ -1029,7 +1065,9 @@ BoggersTheAI/
 │   └── clip_embed.py                  # CLIP embedding utilities
 │
 ├── interface/                         # User-facing entry points
-│   ├── runtime.py                     # BoggersRuntime (composition root)
+│   ├── runtime.py                     # BoggersRuntime (composition root + mixins)
+│   ├── autonomous_loop.py           # AutonomousLoopMixin — OS loop, nightly, exploration
+│   ├── self_improvement.py            # SelfImprovementMixin — traces, fine-tune, hot-swap
 │   ├── chat.py                        # CLI: run_chat() with command parsing
 │   └── api.py                         # handle_query() library helper
 │
@@ -1037,9 +1075,9 @@ BoggersTheAI/
 │   └── tui.py                         # Rich-based TUI (live graph stats, wave events)
 │
 ├── dashboard/                         # Web dashboard
-│   └── app.py                         # FastAPI app (/status, /wave, /graph, /metrics, /traces)
+│   └── app.py                         # FastAPI: status, wave, graph, metrics, traces, health
 │
-├── tests/                             # Test suite (147 tests, 74% coverage)
+├── tests/                             # Test suite (200+ tests; CI enforces --cov-fail-under=60)
 │   ├── test_graph.py                  # Graph creation, mutation, persistence
 │   ├── test_wave.py                   # Wave propagation, relaxation, breaking
 │   ├── test_synthesis.py              # Extractive and LLM synthesis
@@ -1075,7 +1113,9 @@ BoggersTheAI/
 ├── graph.db                           # SQLite graph persistence (gitignored)
 │
 ├── config.yaml                        # Main configuration file
-├── pyproject.toml                     # Project metadata, dependencies, extras
+├── pyproject.toml                     # Project metadata, deps, extras, pytest/ruff/black
+├── Makefile                           # make test / lint / format / run / dashboard
+├── .pre-commit-config.yaml            # Optional ruff, black, isort hooks
 ├── .env.example                       # Environment variable template
 ├── .gitignore                         # Excludes data files from version control
 ├── CONTRIBUTING.md                    # Contribution guidelines
@@ -1095,24 +1135,25 @@ pytest -q
 # Verbose with coverage
 pytest --cov=BoggersTheAI -v
 
-# With coverage enforcement (CI uses --cov-fail-under=50)
-pytest --cov=BoggersTheAI --cov-fail-under=50
+# With coverage enforcement (CI uses --cov-fail-under=60)
+pytest --cov=BoggersTheAI --cov-fail-under=60
 ```
 
 ### Test Stats
 
-- **147 tests** across 15+ test modules
-- **74% code coverage**
-- Tests cover: graph operations, wave cycles, synthesis, routing, runtime lifecycle, tool execution, adapter behavior, multimodal fallbacks, concurrency, dashboard endpoints, config validation, protocol compliance, events, metrics, and health checks
+- **200+ tests** across many modules (graph, wave, http client, rules engine, sqlite, config loader, plugins, tools, adapters, dashboard, concurrency, etc.)
+- **~70%** line coverage typical locally; CI fails if total coverage drops below **60%**
+- Tests cover: graph operations, wave runner, synthesis, routing, runtime lifecycle, tool execution (including web search / datetime / unit convert), adapter behavior (mocked HTTP via `http_client`), multimodal fallbacks, concurrency, dashboard endpoints, config validation, protocols, events, metrics, health checks
 
 ### CI Pipeline
 
 GitHub Actions runs on every push and PR:
 
 - **Matrix:** Python 3.10, 3.11, 3.12
+- **Caching:** pip dependencies cached via `actions/cache`
 - **Linting:** `ruff check`, `black --check`, `isort --check`
-- **Type checking:** `mypy` (non-blocking — warnings only)
-- **Tests:** `pytest --cov-fail-under=50`
+- **Type checking:** `mypy` (blocking — must pass)
+- **Tests:** `pytest --cov=BoggersTheAI --cov-fail-under=60`
 
 ---
 

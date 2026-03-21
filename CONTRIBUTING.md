@@ -69,7 +69,10 @@ pytest -q
 | `gpu`          | `pip install -e ".[gpu]"`          | ollama, unsloth, torch                              |
 | `multimodal`   | `pip install -e ".[multimodal]"`   | faster-whisper, transformers, pillow, piper-tts      |
 | `adapters`     | `pip install -e ".[adapters]"`     | feedparser                                          |
-| `all`          | `pip install -e ".[all]"`          | Everything above                                    |
+| `security`     | `pip install -e ".[security]"`      | defusedxml (safer RSS XML parsing)                  |
+| `all`          | `pip install -e ".[all]"`          | Broader union — see `pyproject.toml`                |
+
+**Repo automation:** From the project root, **`make test`**, **`make lint`**, **`make format`** wrap pytest / ruff / black / isort (see **`Makefile`**). Optional **`pre-commit install`** uses **`.pre-commit-config.yaml`**. Pytest defaults live in **`[tool.pytest.ini_options]`** in `pyproject.toml`.
 
 ---
 

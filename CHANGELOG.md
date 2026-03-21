@@ -5,6 +5,48 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.5.0] - 2026-03-22
+
+Seven-tier modular roadmap: correctness, security, architecture splits,
+performance, config/DX, tests/CI, and plugin-shaped features. See README and
+ARCHITECTURE.md for full detail.
+
+### Added
+- **`core/graph/wave_runner.py`** — `WaveCycleRunner` + `WaveConfig`; background wave thread and cycle step order live here; `UniversalLivingGraph` delegates to it.
+- **`interface/autonomous_loop.py`** / **`interface/self_improvement.py`** — `AutonomousLoopMixin` and `SelfImprovementMixin`; `BoggersRuntime` composes both.
+- **`core/path_sandbox.py`** — `validate_path` for safe reads under a base directory.
+- **`adapters/http_client.py`** — `fetch_url` / `fetch_json` with exponential backoff and retries; Wikipedia, RSS, Hacker News use it.
+- **`core/graph/operations.py`** — Pure helpers: `get_subgraph_around`, `batch_add_nodes`, `find_connected_components`, `get_nodes_by_activation_range`.
+- **Tools:** `web_search.py` (DuckDuckGo instant answers), `datetime_tool.py`, `unit_convert.py`; registered in `ToolExecutor.with_defaults` and routed in `ToolRouter`.
+- **Dashboard:** `get_runtime()` lazy singleton; **`GET /health/live`**, **`GET /health/ready`**.
+- **`Makefile`**, **`.pre-commit-config.yaml`**, **`[tool.pytest.ini_options]`** in `pyproject.toml`.
+- **`[project.optional-dependencies].security`** — `defusedxml` for safer RSS XML when installed.
+- **Config:** `inference.ollama.base_url`, `os_loop.consolidation_on_shutdown`, strict validation via **`BOGGERS_CONFIG_STRICT`** / `validate_config(..., strict=True)`.
+- **Tests:** New modules covered (`test_config_loader`, `test_plugins`, `test_sqlite_backend`, `test_rules_engine`, `test_inference_router`, `test_path_sandbox`, `test_wave_runner`, `test_http_client`, `test_graph_operations`, `test_new_tools`); **200+** tests total.
+
+### Changed
+- **ConsolidationEngine** — topic-bucketed candidate pairs + Jaccard early exit (was full O(n²) over all pairs).
+- **`get_activated_subgraph`** — `heapq.nlargest` for global fill instead of full sort.
+- **AdapterRegistry** — thread-safe cache under `Lock`.
+- **`_check_guardrails`** — reads node count and cycle counters under graph `RLock`.
+- **CI:** pip cache, **`--cov-fail-under=60`**, **mypy blocking**, adapter tests mock **`http_client.urlopen`**.
+- **Dashboard:** default bind **`127.0.0.1`**, startup warning if no **`BOGGERS_DASHBOARD_TOKEN`**.
+
+### Fixed
+- **ModeManager.request_user_mode** — monotonic deadline; total wait cannot exceed `timeout` after spurious wakeups.
+- **QueryRouter** — honors failed `request_user_mode()` with a busy response.
+- **CalcTool** — `%` and `//` operators.
+- **VaultAdapter** — resolves paths under `runtime.insight_vault_path`.
+- **Inference fallback** — consistent tuple shape with main synthesis path.
+- **`shutdown`** — optional forced nightly consolidation (configurable).
+
+### Security
+- Markdown/vault ingestion uses path sandbox; RSS XML size cap + optional **defusedxml**.
+- **FileReadTool** max file size and pinned base directory.
+- **LocalLLM** uses configurable Ollama **base_url** (no hardcoded host only).
+
+---
+
 ## [0.4.0] - 2026-03-21
 
 Comprehensive hardening pass across Phases 1–6: protocol centralization, config

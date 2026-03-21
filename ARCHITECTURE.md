@@ -1,6 +1,6 @@
 # BoggersTheAI — Exhaustive Architecture Reference
 
-> **Version**: 2.0 — generated 2026-03-21
+> **Version**: 2.1 — aligned with v0.5.0 (2026-03-22)
 > **Canonical source**: `BoggersTheAI/ARCHITECTURE.md`
 > **Runtime**: Python 3.11+, local-first, graph-native cognitive engine
 
@@ -44,6 +44,7 @@ BoggersTheAI/
 ├── core/                        # Core TS-OS engine
 │   ├── graph/                   # Graph data structure + algorithms
 │   │   ├── universal_living_graph.py   # Main graph class (thread-safe, dual backend)
+│   │   ├── wave_runner.py              # WaveCycleRunner — wave thread + cycle step order
 │   │   ├── wave_propagation.py         # Low-level propagate / relax / normalise
 │   │   ├── rules_engine.py             # Prune / merge / split / emerge / reward
 │   │   ├── node.py                     # GraphNode internal dataclass
@@ -51,7 +52,9 @@ BoggersTheAI/
 │   │   ├── snapshots.py                # Timestamped full-graph snapshots
 │   │   ├── export.py                   # GraphML + JSON-LD export
 │   │   ├── pruning.py                  # Configurable pruning policies
+│   │   ├── operations.py               # Pure BFS / batch / components / range helpers
 │   │   └── migrate.py                  # Forward-compatible schema migration
+│   ├── path_sandbox.py          # validate_path — paths confined to base directory
 │   ├── query_processor.py      # Query pipeline orchestrator
 │   ├── router.py               # Mode-aware query routing + hypothesis queue
 │   ├── wave.py                 # Simplified wave API (propagate/relax/break/evolve)
@@ -74,7 +77,8 @@ BoggersTheAI/
 │   ├── metrics.py              # Thread-safe counters / gauges / timers
 │   └── logger.py               # Structured logging namespace
 ├── adapters/                   # External data ingestion
-│   ├── base.py                 # AdapterRegistry + caching + rate limiting
+│   ├── base.py                 # AdapterRegistry + caching + rate limiting + cache lock
+│   ├── http_client.py          # fetch_url / fetch_json + retries + backoff
 │   ├── wikipedia.py            # Wikipedia MediaWiki API
 │   ├── rss.py                  # RSS/Atom feeds (HTTPS-only)
 │   ├── hacker_news.py          # Hacker News Algolia API
@@ -88,7 +92,10 @@ BoggersTheAI/
 │   ├── calc.py                 # Safe arithmetic (AST-based)
 │   ├── code_run.py             # Sandboxed Python execution
 │   ├── search.py               # HN Algolia search
-│   └── file_read.py            # Path-restricted file reading
+│   ├── file_read.py            # Path-restricted file reading + max bytes
+│   ├── web_search.py           # DuckDuckGo instant answers
+│   ├── datetime_tool.py        # UTC now / parse / format
+│   └── unit_convert.py         # Common unit conversions
 ├── entities/                   # Domain services
 │   ├── consolidation.py        # Jaccard-based node merging
 │   ├── insight.py              # Markdown insight generation + hypothesis extraction
@@ -102,13 +109,15 @@ BoggersTheAI/
 │   ├── whisper.py              # Whisper backend alias
 │   └── clip_embed.py           # CLIP backend alias
 ├── interface/                  # User-facing entry points
-│   ├── runtime.py              # BoggersRuntime — composition root
+│   ├── runtime.py              # BoggersRuntime — composition root (+ mixins)
+│   ├── autonomous_loop.py      # AutonomousLoopMixin — OS loop, nightly, exploration
+│   ├── self_improvement.py     # SelfImprovementMixin — traces, fine-tune, hot-swap
 │   ├── chat.py                 # CLI REPL interface
 │   └── api.py                  # HTTP API handler
 ├── mind/                       # Terminal UI
 │   └── tui.py                  # Rich-based live TUI
 ├── dashboard/                  # Web dashboard
-│   └── app.py                  # FastAPI + Cytoscape.js + Chart.js
+│   └── app.py                  # FastAPI; get_runtime() lazy init; /health/live|ready
 ├── tests/                      # pytest test suite
 ├── config.yaml                 # Central configuration
 └── ARCHITECTURE.md             # This document

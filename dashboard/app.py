@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse
 from BoggersTheAI import BoggersRuntime
 from BoggersTheAI.core.metrics import metrics as metrics_collector
 
-app = FastAPI(title="BoggersTheAI Dashboard", version="0.3.0")
+app = FastAPI(title="BoggersTheAI Dashboard", version="0.5.0")
 
 _runtime: BoggersRuntime | None = None
 _runtime_lock = threading.Lock()
