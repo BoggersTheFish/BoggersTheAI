@@ -8,6 +8,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Callable
 
 from ..adapters import (
     AdapterRegistry,
@@ -64,6 +65,11 @@ class RuntimeConfig:
                 "graph_native_primary": True,
                 "llm_fallback": True,
                 "source_stability_edges": True,
+                "graph_only": {
+                    "pure_graph": True,
+                    "max_excerpt_chars": 420,
+                    "max_bullets": 5,
+                },
             },
             "ollama": {
                 "enabled": True,
@@ -76,6 +82,7 @@ class RuntimeConfig:
                 "min_confidence_for_log": 0.7,
                 "traces_dir": "traces",
                 "meta_critique_self_ingest": False,
+                "meta_critique_wave_bus": False,
                 "meta_critique_traces_dir": "traces/meta_critique",
                 "dataset_build": {
                     "min_confidence": 0.75,
@@ -167,6 +174,7 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         if self.config.get("wave", {}).get("enabled", True):
             self.graph.start_background_wave()
         self._last_query_time = time.time()
+        self._wave_cycle_meta_handler: Callable[..., None] | None = None
         self._state_lock = threading.Lock()
         self._os_loop_thread: threading.Thread | None = None
         self._os_stop_event = threading.Event()
@@ -289,6 +297,7 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         self._last_fine_tune_time = float(state.get("last_fine_tune_time", 0.0))
         self._last_tuned_trace_count = int(state.get("last_tuned_trace_count", 0))
 
+        self._register_meta_critique_wave_bus()
         self._meta_critique_self_ingest_if_enabled()
 
         self.voice_in = VoiceInAdapter()
@@ -370,6 +379,12 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         return self.graph.get_wave_status()
 
     def shutdown(self) -> None:
+        if self._wave_cycle_meta_handler is not None:
+            try:
+                bus.off("wave_cycle", self._wave_cycle_meta_handler)
+            except Exception:
+                pass
+            self._wave_cycle_meta_handler = None
         self._stop_os_loop()
         self._stop_tui_thread()
         os_cfg = self.config.get("os_loop", {})
@@ -433,6 +448,21 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
                 },
             )
             self.graph.save()
+
+    def _register_meta_critique_wave_bus(self) -> None:
+        inf = self.config.get("inference", {})
+        si = inf.get("self_improvement", {}) if isinstance(inf, dict) else {}
+        if not isinstance(si, dict) or not si.get("meta_critique_wave_bus", False):
+            return
+
+        def _handler(**kwargs: Any) -> None:
+            try:
+                self.meta_critique.ingest_wave_cycle_event(dict(kwargs))
+            except Exception as exc:
+                logger.warning("meta_critique wave_cycle bus: %s", exc)
+
+        self._wave_cycle_meta_handler = _handler
+        bus.on("wave_cycle", _handler)
 
     def _meta_critique_self_ingest_if_enabled(self) -> None:
         inf = self.config.get("inference", {})

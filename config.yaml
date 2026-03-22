@@ -22,6 +22,7 @@ inference:
     min_confidence_for_log: 0.7
     traces_dir: "traces"
     meta_critique_self_ingest: true
+    meta_critique_wave_bus: true
     meta_critique_traces_dir: "traces/meta_critique"
     dataset_build:
       min_confidence: 0.75
@@ -54,6 +55,10 @@ inference:
     graph_native_primary: true
     llm_fallback: true
     source_stability_edges: true
+    graph_only:
+      pure_graph: true
+      max_excerpt_chars: 420
+      max_bullets: 5
 
 adapters:
   enabled:

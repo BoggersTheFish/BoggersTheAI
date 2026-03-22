@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, List, Protocol
 
-from ..entities.synthesis_engine import BoggersSynthesisConfig
 from .graph.graph_only_synthesizer import GraphOnlySynthesizer
 from .graph.universal_living_graph import UniversalLivingGraph
 from .metrics import metrics
@@ -125,15 +124,10 @@ class QueryProcessor:
 
     def _get_graph_synthesizer(self) -> GraphOnlySynthesizer:
         if self._graph_synth is None:
-            raw = self.synthesis_config.get("graph_only")
-            if isinstance(raw, dict):
-                cfg = BoggersSynthesisConfig(
-                    max_context_chars=int(raw.get("max_context_chars", 8000)),
-                    max_sentences=int(raw.get("max_sentences", 4)),
-                )
-                self._graph_synth = GraphOnlySynthesizer.with_config(cfg)
-            else:
-                self._graph_synth = GraphOnlySynthesizer()
+            go = self.synthesis_config.get("graph_only")
+            self._graph_synth = GraphOnlySynthesizer.from_synthesis_options(
+                go if isinstance(go, dict) else {}
+            )
         return self._graph_synth
 
     @staticmethod
