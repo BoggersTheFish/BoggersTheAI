@@ -21,6 +21,8 @@ inference:
     trace_logging_enabled: true
     min_confidence_for_log: 0.7
     traces_dir: "traces"
+    meta_critique_self_ingest: true
+    meta_critique_traces_dir: "traces/meta_critique"
     dataset_build:
       min_confidence: 0.75
       max_samples: 5000
@@ -28,6 +30,7 @@ inference:
       split_ratio: 0.8
     fine_tuning:
       enabled: false
+      track: "gpu_qlora"
       base_model: "unsloth/llama-3.2-1b-instruct"
       max_seq_length: 2048
       learning_rate: 2e-4
@@ -84,7 +87,7 @@ runtime:
   snapshot_dir: "snapshots"
 
 wave:
-  mode: "interval"
+  mode: "tension"
   interval_seconds: 30
   tension_fire_threshold: 0.7
   idle_heartbeat_seconds: null

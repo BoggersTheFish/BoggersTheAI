@@ -20,7 +20,7 @@ _LONG_IDLE_WAIT_S = 86400.0
 class WaveConfig:
     """Wave engine config (``mode='tension'`` = EventBus-driven, not fixed cron)."""
 
-    mode: str = "interval"  # "interval" | "tension"
+    mode: str = "tension"  # "interval" | "tension"
     interval_seconds: float = 30.0
     tension_fire_threshold: float = 0.7
     idle_heartbeat_seconds: float | None = None

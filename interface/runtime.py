@@ -75,6 +75,8 @@ class RuntimeConfig:
                 "trace_logging_enabled": True,
                 "min_confidence_for_log": 0.7,
                 "traces_dir": "traces",
+                "meta_critique_self_ingest": False,
+                "meta_critique_traces_dir": "traces/meta_critique",
                 "dataset_build": {
                     "min_confidence": 0.75,
                     "max_samples": 5000,
@@ -101,7 +103,7 @@ class RuntimeConfig:
     )
     wave: dict[str, object] = field(
         default_factory=lambda: {
-            "mode": "interval",
+            "mode": "tension",
             "interval_seconds": 30,
             "tension_fire_threshold": 0.7,
             "idle_heartbeat_seconds": None,
@@ -262,7 +264,12 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
             ),
         )
         self.trace_processor = TraceProcessor(config=self.config)
-        self.meta_critique = MetaCritiqueNode()
+        mc_dir = "traces/meta_critique"
+        if isinstance(inference_cfg, dict):
+            si_mc = inference_cfg.get("self_improvement", {})
+            if isinstance(si_mc, dict):
+                mc_dir = str(si_mc.get("meta_critique_traces_dir", mc_dir))
+        self.meta_critique = MetaCritiqueNode(traces_dir=Path(mc_dir))
         self.fine_tuner = UnslothFineTuner(config=self.config)
         self._fine_cfg = self._resolve_fine_cfg()
         fine_cfg = self._fine_cfg
@@ -281,6 +288,8 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         state = self._get_self_improvement_state()
         self._last_fine_tune_time = float(state.get("last_fine_tune_time", 0.0))
         self._last_tuned_trace_count = int(state.get("last_tuned_trace_count", 0))
+
+        self._meta_critique_self_ingest_if_enabled()
 
         self.voice_in = VoiceInAdapter()
         self.voice_out = VoiceOutAdapter()
@@ -424,6 +433,37 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
                 },
             )
             self.graph.save()
+
+    def _meta_critique_self_ingest_if_enabled(self) -> None:
+        inf = self.config.get("inference", {})
+        si = inf.get("self_improvement", {}) if isinstance(inf, dict) else {}
+        if not isinstance(si, dict) or not si.get("meta_critique_self_ingest", False):
+            return
+        try:
+            wave_cfg = self.config.get("wave", {})
+            mode = (
+                wave_cfg.get("mode", "tension")
+                if isinstance(wave_cfg, dict)
+                else "tension"
+            )
+            syn = inf.get("synthesis", {}) if isinstance(inf, dict) else {}
+            if isinstance(syn, dict):
+                gnp = bool(syn.get("graph_native_primary", True))
+            else:
+                gnp = True
+            self.meta_critique.ingest(
+                prompt="TS-OS Meta-Critique: session bootstrap",
+                traces=[
+                    {
+                        "session_id": self.session_id,
+                        "wave_mode": str(mode),
+                        "graph_native_primary": gnp,
+                    }
+                ],
+                extra={"source": "BoggersRuntime", "event": "self_ingest"},
+            )
+        except Exception as exc:
+            logger.warning("Meta critique self-ingest failed: %s", exc)
 
     def _resolve_session_id(self) -> str:
         runtime_cfg = self.config.get("runtime", {})

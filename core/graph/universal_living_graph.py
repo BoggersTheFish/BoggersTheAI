@@ -80,7 +80,7 @@ class UniversalLivingGraph:
 
     def _resolve_wave_settings(self, config: object | None) -> Dict[str, object]:
         defaults: Dict[str, object] = {
-            "mode": "interval",
+            "mode": "tension",
             "interval_seconds": 30,
             "tension_fire_threshold": 0.7,
             "idle_heartbeat_seconds": None,
@@ -563,7 +563,7 @@ class UniversalLivingGraph:
         return export_json_ld(nodes_copy, edges_copy, path)
 
     def emit_global_tension_signal(self) -> None:
-        """Publish max node tension so TensionTriggeredWave can react without waiting on cron."""
+        """Publish max tension for TensionTriggeredWave (not cron-only)."""
         tensions = self.detect_tensions()
         t = max(tensions.values()) if tensions else 0.0
         self._last_tension = max(float(self._last_tension), float(t))
