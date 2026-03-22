@@ -18,7 +18,10 @@ from BoggersTheAI.core.graph.wave_runner import (  # noqa: E402
 
 def test_wave_config_defaults():
     cfg = WaveConfig()
+    assert cfg.mode == "interval"
     assert cfg.interval_seconds == 30.0
+    assert cfg.tension_fire_threshold == 0.7
+    assert cfg.idle_heartbeat_seconds is None
     assert cfg.log_each_cycle is True
     assert cfg.auto_save is True
     assert cfg.incremental_save_interval == 5

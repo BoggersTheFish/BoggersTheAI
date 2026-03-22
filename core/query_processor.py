@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, List, Protocol
 
+from ..entities.synthesis_engine import BoggersSynthesisConfig
+from .graph.graph_only_synthesizer import GraphOnlySynthesizer
 from .graph.universal_living_graph import UniversalLivingGraph
 from .metrics import metrics
 from .types import Node
@@ -119,6 +121,29 @@ class QueryProcessor:
         self.inference_config = inference_config or {}
         self.local_llm = local_llm
         self.self_improvement_config = self.inference_config.get("self_improvement", {})
+        self._graph_synth: GraphOnlySynthesizer | None = None
+
+    def _get_graph_synthesizer(self) -> GraphOnlySynthesizer:
+        if self._graph_synth is None:
+            raw = self.synthesis_config.get("graph_only")
+            if isinstance(raw, dict):
+                cfg = BoggersSynthesisConfig(
+                    max_context_chars=int(raw.get("max_context_chars", 8000)),
+                    max_sentences=int(raw.get("max_sentences", 4)),
+                )
+                self._graph_synth = GraphOnlySynthesizer.with_config(cfg)
+            else:
+                self._graph_synth = GraphOnlySynthesizer()
+        return self._graph_synth
+
+    @staticmethod
+    def _graph_synth_sufficient(answer: str, context: List[Node]) -> bool:
+        if not answer or not answer.strip() or not context:
+            return False
+        low = answer.lower()
+        if "do not have enough retrieved context" in low:
+            return False
+        return len(answer.strip()) >= 12
 
     def process_query(self, query: str) -> QueryResponse:
         metrics.increment("queries_total")
@@ -139,6 +164,14 @@ class QueryProcessor:
         reasoning_trace = ""
 
         if sufficiency < self.min_sufficiency and self.adapters.ingest:
+            track_sources = bool(
+                self.synthesis_config.get("source_stability_edges", True)
+            )
+            tracker = None
+            if track_sources:
+                from .graph.source_stability import SourceStabilityTracker
+
+                tracker = SourceStabilityTracker(self.graph)
             for topic in topics:
                 ingested_nodes = self.adapters.ingest.ingest(topic)
                 for node in ingested_nodes:
@@ -148,8 +181,14 @@ class QueryProcessor:
                         topics=node.topics,
                         activation=node.activation,
                         stability=node.stability,
+                        base_strength=node.base_strength,
                         last_wave=node.last_wave,
+                        attributes=node.attributes,
                     )
+                    if tracker is not None:
+                        src = node.attributes.get("ingest_source", "unknown")
+                        if isinstance(src, str):
+                            tracker.link_ingestion(src, node.id)
             context = self._retrieve_context(topics)
             sufficiency = self._score_sufficiency(context)
             used_research = True
@@ -204,6 +243,12 @@ class QueryProcessor:
                         "supporting_nodes": [node.id for node in context[:3]],
                     }
                 )
+        emit_gt = getattr(self.graph, "emit_global_tension_signal", None)
+        if callable(emit_gt):
+            try:
+                emit_gt()
+            except Exception:
+                logger.debug("emit_global_tension_signal failed", exc_info=True)
         return QueryResponse(
             query=query,
             topics=topics,
@@ -360,11 +405,25 @@ class QueryProcessor:
         self, query: str, context: List[Node]
     ) -> tuple[str, List[dict], float, str]:
         context_text = self._render_context_text(context)
+        graph_primary = bool(self.synthesis_config.get("graph_native_primary", True))
+        llm_fallback = bool(self.synthesis_config.get("llm_fallback", True))
+
+        if graph_primary:
+            graph_answer = self._get_graph_synthesizer().synthesize(context_text, query)
+            if self._graph_synth_sufficient(graph_answer, context):
+                return (
+                    graph_answer,
+                    [],
+                    0.62,
+                    "graph_native_primary",
+                )
+
         ollama_cfg = self.inference_config.get("ollama", {})
         if (
             isinstance(ollama_cfg, dict)
             and bool(ollama_cfg.get("enabled", False))
             and self.local_llm is not None
+            and llm_fallback
         ):
             max_retries = int(self.synthesis_config.get("max_retries", 2))
             for attempt in range(max_retries):

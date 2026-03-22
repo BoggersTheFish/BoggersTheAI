@@ -38,6 +38,7 @@ from ..entities import (
     ConsolidationEngine,
     InferenceRouter,
     InsightEngine,
+    MetaCritiqueNode,
     ThrottlePolicy,
 )
 from ..multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
@@ -60,6 +61,9 @@ class RuntimeConfig:
             "synthesis": {
                 "use_graph_subgraph": True,
                 "top_k_nodes": 5,
+                "graph_native_primary": True,
+                "llm_fallback": True,
+                "source_stability_edges": True,
             },
             "ollama": {
                 "enabled": True,
@@ -79,6 +83,7 @@ class RuntimeConfig:
                 },
                 "fine_tuning": {
                     "enabled": False,
+                    "track": "gpu_qlora",
                     "base_model": "unsloth/llama-3.2-1b-instruct",
                     "max_seq_length": 2048,
                     "learning_rate": 2e-4,
@@ -96,7 +101,10 @@ class RuntimeConfig:
     )
     wave: dict[str, object] = field(
         default_factory=lambda: {
+            "mode": "interval",
             "interval_seconds": 30,
+            "tension_fire_threshold": 0.7,
+            "idle_heartbeat_seconds": None,
             "enabled": True,
             "log_each_cycle": True,
         }
@@ -110,6 +118,7 @@ class RuntimeConfig:
             "nightly_hour_utc": 3,
             "consolidation_on_shutdown": True,
             "multi_turn_enabled": True,
+            "reconciliation_wave": True,
         }
     )
     autonomous: dict[str, object] = field(
@@ -253,6 +262,7 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
             ),
         )
         self.trace_processor = TraceProcessor(config=self.config)
+        self.meta_critique = MetaCritiqueNode()
         self.fine_tuner = UnslothFineTuner(config=self.config)
         self._fine_cfg = self._resolve_fine_cfg()
         fine_cfg = self._fine_cfg

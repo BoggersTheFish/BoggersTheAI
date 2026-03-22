@@ -60,12 +60,18 @@ class RegistryIngestAdapter:
             if sources:
                 for source in sources:
                     try:
-                        nodes.extend(self.registry.ingest(name, source))
+                        batch = self.registry.ingest(name, source)
+                        for n in batch:
+                            n.attributes.setdefault("ingest_source", name)
+                        nodes.extend(batch)
                     except Exception:
                         continue
             else:
                 try:
-                    nodes.extend(self.registry.ingest(name, topic))
+                    batch = self.registry.ingest(name, topic)
+                    for n in batch:
+                        n.attributes.setdefault("ingest_source", name)
+                    nodes.extend(batch)
                 except Exception:
                     continue
         if nodes:

@@ -237,16 +237,22 @@ class AutonomousLoopMixin:
         self.graph._apply_graph_node_updates(graph_nodes)  # noqa: SLF001
         self.graph._sync_edges_from_tuples(edge_tuples)  # noqa: SLF001
         self.graph.save()
+        recon: dict[str, int] = {}
+        if bool(self.config.get("os_loop", {}).get("reconciliation_wave", True)):
+            from ..core.graph.source_stability import SourceStabilityTracker
+
+            recon = SourceStabilityTracker(self.graph).reconcile_nightly()
         wave_status = self.graph.get_wave_status()
         logger.info(
             (
                 "OS Loop: nightly_consolidation | tension: %.2f | pruned: %d | "
-                "merged: %d | emergence: %d"
+                "merged: %d | emergence: %d | reconciliation: %s"
             ),
             float(wave_status.get("tension", 0.0)),
             collapsed_count,
             merged_count,
             len(emergent_ids),
+            recon,
         )
 
     def _autonomous_insight_generation(self) -> None:

@@ -11,7 +11,10 @@ logger = logging.getLogger("boggers.finetune")
 
 @dataclass(slots=True)
 class FineTuningConfig:
+    """``track`` selects GPU QLoRA vs CPU graph-first DistilLoRA-style path."""
+
     enabled: bool = True
+    track: str = "gpu_qlora"  # gpu_qlora | cpu_distillora
     base_model: str = "unsloth/llama-3.2-1b-instruct"
     max_seq_length: int = 2048
     learning_rate: float = 2e-4
@@ -45,6 +48,18 @@ class UnslothFineTuner:
                 "adapter_path": str(self.adapter_save_path),
             }
 
+        if self.config.track == "cpu_distillora":
+            return {
+                "success": False,
+                "skipped": True,
+                "reason": "cpu_distillora_track",
+                "adapter_path": str(self.adapter_save_path),
+                "message": (
+                    "CPU track: prefer graph consolidation + MetaCritique traces; "
+                    "no GPU QLoRA session started."
+                ),
+            }
+
         train_path = Path(self.config.train_path)
         val_path = Path(self.config.val_path)
         if not train_path.exists():
@@ -63,6 +78,23 @@ class UnslothFineTuner:
                 "epochs": max(1, int(epochs or self.config.epochs)),
                 "validation_enabled": bool(self.config.validation_enabled),
             }
+
+        try:
+            import torch
+
+            if self.config.track == "gpu_qlora" and not torch.cuda.is_available():
+                return {
+                    "success": False,
+                    "skipped": True,
+                    "reason": "gpu_qlora_requires_cuda",
+                    "adapter_path": str(self.adapter_save_path),
+                    "message": (
+                        "Set inference.self_improvement.fine_tuning.track to "
+                        "cpu_distillora on CPU-only hosts."
+                    ),
+                }
+        except Exception:
+            pass
 
         start = time.time()
         requested_epochs = max(1, int(epochs or self.config.epochs))
@@ -218,6 +250,7 @@ class UnslothFineTuner:
 
         return FineTuningConfig(
             enabled=bool(fine_cfg.get("enabled", True)),
+            track=str(fine_cfg.get("track", "gpu_qlora")),
             base_model=str(fine_cfg.get("base_model", "unsloth/llama-3.2-1b-instruct")),
             max_seq_length=int(fine_cfg.get("max_seq_length", 2048)),
             learning_rate=float(fine_cfg.get("learning_rate", 2e-4)),

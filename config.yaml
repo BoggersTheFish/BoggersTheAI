@@ -48,6 +48,9 @@ inference:
     use_graph_subgraph: true
     top_k_nodes: 5
     max_retries: 2
+    graph_native_primary: true
+    llm_fallback: true
+    source_stability_edges: true
 
 adapters:
   enabled:
@@ -81,7 +84,10 @@ runtime:
   snapshot_dir: "snapshots"
 
 wave:
+  mode: "interval"
   interval_seconds: 30
+  tension_fire_threshold: 0.7
+  idle_heartbeat_seconds: null
   enabled: true
   log_each_cycle: true
   auto_save: true
@@ -97,6 +103,7 @@ wave:
 
 os_loop:
   enabled: true
+  reconciliation_wave: true
   interval_seconds: 60
   idle_threshold_seconds: 120
   autonomous_modes: ["exploration", "consolidation", "insight"]

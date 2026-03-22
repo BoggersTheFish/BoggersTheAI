@@ -15,6 +15,20 @@ def test_fine_tuner_disabled():
     assert result.get("reason") == "fine_tuning_disabled"
 
 
+def test_fine_tuner_cpu_distillora_track():
+    class FakeConfig:
+        inference = {
+            "self_improvement": {
+                "fine_tuning": {"enabled": True, "track": "cpu_distillora"},
+            }
+        }
+
+    tuner = UnslothFineTuner(config=FakeConfig())
+    result = tuner.fine_tune()
+    assert result.get("reason") == "cpu_distillora_track"
+    assert result.get("skipped") is True
+
+
 def test_fine_tuner_missing_dataset():
     FineTuningConfig(enabled=True, safety_dry_run=False, train_path="nonexistent.jsonl")
 

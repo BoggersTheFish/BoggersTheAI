@@ -10,6 +10,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
+from ..events import bus
 from ..types import Edge, Node
 from .migrate import migrate_graph_data
 from .rules_engine import (
@@ -79,7 +80,10 @@ class UniversalLivingGraph:
 
     def _resolve_wave_settings(self, config: object | None) -> Dict[str, object]:
         defaults: Dict[str, object] = {
+            "mode": "interval",
             "interval_seconds": 30,
+            "tension_fire_threshold": 0.7,
+            "idle_heartbeat_seconds": None,
             "enabled": True,
             "log_each_cycle": True,
             "auto_save": True,
@@ -558,12 +562,27 @@ class UniversalLivingGraph:
         nodes_copy, edges_copy = self.snapshot_read()
         return export_json_ld(nodes_copy, edges_copy, path)
 
+    def emit_global_tension_signal(self) -> None:
+        """Publish max node tension so TensionTriggeredWave can react without waiting on cron."""
+        tensions = self.detect_tensions()
+        t = max(tensions.values()) if tensions else 0.0
+        self._last_tension = max(float(self._last_tension), float(t))
+        bus.emit("global_tension", tension=float(t))
+
     def start_background_wave(self) -> threading.Thread:
         if self._wave_runner is not None and self._wave_runner.is_alive:
             return self._wave_runner._thread
 
+        idle_hb = self._wave_settings.get("idle_heartbeat_seconds")
         config = WaveConfig(
+            mode=str(self._wave_settings.get("mode", "interval")),
             interval_seconds=float(self._wave_settings.get("interval_seconds", 30)),
+            tension_fire_threshold=float(
+                self._wave_settings.get("tension_fire_threshold", 0.7)
+            ),
+            idle_heartbeat_seconds=(
+                float(idle_hb) if idle_hb is not None else None
+            ),
             log_each_cycle=bool(self._wave_settings.get("log_each_cycle", True)),
             auto_save=bool(self._wave_settings.get("auto_save", True)),
             incremental_save_interval=int(
