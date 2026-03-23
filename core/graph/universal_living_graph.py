@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import heapq
 import json
 import logging
@@ -568,6 +569,77 @@ class UniversalLivingGraph:
         t = max(tensions.values()) if tensions else 0.0
         self._last_tension = max(float(self._last_tension), float(t))
         bus.emit("global_tension", tension=float(t))
+
+    def ingest_waves_jsonl(
+        self,
+        path: str | Path | None = None,
+        *,
+        max_nodes: int = 500,
+    ) -> dict[str, object]:
+        """Fold ``waves.jsonl`` into graph nodes (skips next_grok_prompt)."""
+        p = Path(path) if path else Path("traces/meta_critique/waves.jsonl")
+        if not p.exists():
+            return {"ingested": 0, "skipped": True, "reason": "file_missing"}
+
+        ingested = 0
+        seen_hashes: set[str] = set()
+        with self._lock:
+            if "runtime:meta_critique_anchor" not in self.nodes:
+                self.add_node(
+                    node_id="runtime:meta_critique_anchor",
+                    content="Meta-critique wave anchor (waves.jsonl fold)",
+                    topics=["runtime", "meta_critique"],
+                    activation=0.05,
+                    stability=0.95,
+                    base_strength=0.75,
+                    attributes={"kind": "anchor"},
+                )
+            for raw_line in p.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if obj.get("kind") == "next_grok_prompt":
+                    continue
+                h = hashlib.sha256(line.encode("utf-8")).hexdigest()[:20]
+                if h in seen_hashes:
+                    continue
+                seen_hashes.add(h)
+                nid = f"meta:{h}"
+                if nid in self.nodes:
+                    continue
+                if ingested >= max_nodes:
+                    break
+                kind = str(obj.get("kind", "wave"))
+                content = json.dumps(obj, ensure_ascii=False)[:4000]
+                self.add_node(
+                    node_id=nid,
+                    content=content,
+                    topics=["meta_critique", "waves_jsonl", kind],
+                    activation=0.12,
+                    stability=0.88,
+                    base_strength=0.55,
+                    attributes={
+                        "source": "waves.jsonl",
+                        "kind": kind,
+                        "timestamp": str(obj.get("timestamp", "")),
+                    },
+                )
+                try:
+                    self.add_edge(
+                        "runtime:meta_critique_anchor",
+                        nid,
+                        weight=0.35,
+                        relation="meta_wave",
+                    )
+                except KeyError:
+                    pass
+                ingested += 1
+            self.save_incremental()
+        return {"ingested": ingested, "skipped": False}
 
     def start_background_wave(self) -> threading.Thread:
         if self._wave_runner is not None and self._wave_runner.is_alive:

@@ -62,3 +62,5 @@ def test_meta_critique_wave_cycle_and_ts_wave(tmp_path) -> None:
     log = tmp_path / "waves.jsonl"
     assert log.exists()
     assert log.read_text(encoding="utf-8").count("\n") >= 2
+    assert (tmp_path / "NEXT_GROK_PROMPT.txt").exists()
+    assert "Run Wave" in (tmp_path / "NEXT_GROK_PROMPT.txt").read_text(encoding="utf-8")

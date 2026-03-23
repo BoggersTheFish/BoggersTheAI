@@ -146,6 +146,7 @@ class RuntimeConfig:
     runtime: dict[str, object] = field(
         default_factory=lambda: {
             "session_id": "auto",
+            "fold_waves_jsonl_on_startup": False,
         }
     )
     throttle_seconds: int = 60
@@ -278,7 +279,7 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
             if isinstance(si_mc, dict):
                 mc_dir = str(si_mc.get("meta_critique_traces_dir", mc_dir))
         self.meta_critique = MetaCritiqueNode(traces_dir=Path(mc_dir))
-        self.fine_tuner = UnslothFineTuner(config=self.config)
+        self.fine_tuner = UnslothFineTuner(config=self.config, graph=self.graph)
         self._fine_cfg = self._resolve_fine_cfg()
         fine_cfg = self._fine_cfg
         adapter_save_path = str(
@@ -299,6 +300,19 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
 
         self._register_meta_critique_wave_bus()
         self._meta_critique_self_ingest_if_enabled()
+
+        rt_cfg = self.config.get("runtime", {})
+        _fold = (
+            rt_cfg.get("fold_waves_jsonl_on_startup", False)
+            if isinstance(rt_cfg, dict)
+            else False
+        )
+        fold_waves = bool(_fold)
+        if fold_waves:
+            try:
+                self.graph.ingest_waves_jsonl(Path(mc_dir) / "waves.jsonl")
+            except Exception as exc:
+                logger.warning("ingest_waves_jsonl: %s", exc)
 
         self.voice_in = VoiceInAdapter()
         self.voice_out = VoiceOutAdapter()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import time
 from dataclasses import dataclass
@@ -35,9 +36,14 @@ class FineTuningConfig:
 
 
 class UnslothFineTuner:
-    def __init__(self, config: object | None = None) -> None:
+    def __init__(
+        self,
+        config: object | None = None,
+        graph: object | None = None,
+    ) -> None:
         self.config = self._resolve_config(config)
         self.adapter_save_path = Path(self.config.adapter_save_path)
+        self.graph = graph
 
     def fine_tune(self, epochs: int = 1) -> dict:
         if not self.config.enabled:
@@ -49,16 +55,7 @@ class UnslothFineTuner:
             }
 
         if self.config.track == "cpu_distillora":
-            return {
-                "success": False,
-                "skipped": True,
-                "reason": "cpu_distillora_track",
-                "adapter_path": str(self.adapter_save_path),
-                "message": (
-                    "CPU track: prefer graph consolidation + MetaCritique traces; "
-                    "no GPU QLoRA session started."
-                ),
-            }
+            return self._cpu_distillora_run(epochs=epochs)
 
         train_path = Path(self.config.train_path)
         val_path = Path(self.config.val_path)
@@ -216,6 +213,62 @@ class UnslothFineTuner:
                 "error": str(exc),
                 "duration_seconds": round(duration, 2),
             }
+
+    def _cpu_distillora_run(self, epochs: int = 1) -> dict:
+        """
+        CPU-only DistilLoRA-style path: graph consolidation + trace stats.
+        """
+        start = time.time()
+        self.adapter_save_path.mkdir(parents=True, exist_ok=True)
+        stats_path = self.adapter_save_path / "cpu_distillora_stats.json"
+        train_path = Path(self.config.train_path)
+        n_samples = 0
+        if train_path.exists():
+            with train_path.open(encoding="utf-8") as fh:
+                n_samples = sum(1 for _ in fh)
+
+        graph_info: Dict[str, Any] = {}
+        if self.graph is not None:
+            pruned = 0
+            try:
+                pr_fn = getattr(self.graph, "prune", None)
+                if callable(pr_fn):
+                    pruned = int(pr_fn(threshold=0.15))
+                sv = getattr(self.graph, "save", None)
+                if callable(sv):
+                    sv()
+            except Exception as exc:
+                logger.warning("cpu_distillora graph pass: %s", exc)
+                pruned = 0
+            graph_info = {
+                "graph_pruned": pruned,
+                "graph_nodes": len(getattr(self.graph, "nodes", {}) or {}),
+            }
+
+        payload = {
+            "track": "cpu_distillora",
+            "epochs": max(1, int(epochs)),
+            "train_samples_seen": n_samples,
+            **graph_info,
+        }
+        stats_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        duration = time.time() - start
+        return {
+            "success": True,
+            "skipped": False,
+            "reason": "cpu_distillora_completed",
+            "adapter_path": str(self.adapter_save_path),
+            "track": "cpu_distillora",
+            "message": (
+                "CPU DistilLoRA: graph consolidation + dataset stats; "
+                "no GPU session."
+            ),
+            "duration_seconds": round(duration, 3),
+            "stats_path": str(stats_path),
+            "train_samples_seen": n_samples,
+            "epochs": max(1, int(epochs)),
+            **graph_info,
+        }
 
     def _resolve_config(self, config: object | None) -> FineTuningConfig:
         if config is None:

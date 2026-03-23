@@ -25,8 +25,9 @@ def test_fine_tuner_cpu_distillora_track():
 
     tuner = UnslothFineTuner(config=FakeConfig())
     result = tuner.fine_tune()
-    assert result.get("reason") == "cpu_distillora_track"
-    assert result.get("skipped") is True
+    assert result.get("track") == "cpu_distillora"
+    assert result.get("reason") == "cpu_distillora_completed"
+    assert result.get("success") is True
 
 
 def test_fine_tuner_missing_dataset():

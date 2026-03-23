@@ -30,6 +30,9 @@ class SelfImprovementMixin:
 
     def fine_tune_and_hotswap(self, epochs: int = 1) -> dict:
         stats = self.fine_tuner.fine_tune(epochs=epochs)
+        if stats.get("track") == "cpu_distillora":
+            stats["hotswapped"] = False
+            return stats
         if not bool(stats.get("success", False)):
             stats["hotswapped"] = False
             return stats

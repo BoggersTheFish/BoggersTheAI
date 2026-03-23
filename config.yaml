@@ -30,6 +30,7 @@ inference:
       output_dir: "dataset"
       split_ratio: 0.8
     fine_tuning:
+      # gpu_qlora: CUDA QLoRA (Unsloth). cpu_distillora: graph consolidation + CPU stats (no GPU).
       enabled: false
       track: "gpu_qlora"
       base_model: "unsloth/llama-3.2-1b-instruct"
@@ -90,6 +91,7 @@ runtime:
   max_hypotheses_per_cycle: 2
   session_id: "auto"
   snapshot_dir: "snapshots"
+  fold_waves_jsonl_on_startup: false
 
 wave:
   mode: "tension"
