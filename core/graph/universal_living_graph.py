@@ -641,6 +641,26 @@ class UniversalLivingGraph:
             self.save_incremental()
         return {"ingested": ingested, "skipped": False}
 
+    def folded_wave_nodes(self) -> list[dict[str, object]]:
+        """Inspectable nodes originating from folded ``waves.jsonl`` (dashboard/TUI)."""
+        with self._lock:
+            out: list[dict[str, object]] = []
+            for n in self.nodes.values():
+                if n.collapsed:
+                    continue
+                if n.id.startswith("meta:") or "waves_jsonl" in n.topics:
+                    out.append(
+                        {
+                            "id": n.id,
+                            "kind": n.attributes.get("kind", ""),
+                            "topics": n.topics[:],
+                            "activation": n.activation,
+                            "stability": n.stability,
+                            "preview": (n.content or "")[:400],
+                        }
+                    )
+            return out
+
     def start_background_wave(self) -> threading.Thread:
         if self._wave_runner is not None and self._wave_runner.is_alive:
             return self._wave_runner._thread

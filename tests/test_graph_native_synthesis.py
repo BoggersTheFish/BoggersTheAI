@@ -30,6 +30,15 @@ def test_node_synthesizer_protocol() -> None:
     assert isinstance(GraphOnlySynthesizer(), NodeSynthesizer)
 
 
+def test_folded_wave_nodes_api() -> None:
+    g = UniversalLivingGraph(auto_load=False)
+    g.add_node("meta:w1", "folded body", topics=["waves_jsonl"], activation=0.6)
+    g.add_node("plain", "other", topics=["x"], activation=0.5)
+    folded = g.folded_wave_nodes()
+    assert len(folded) == 1
+    assert folded[0]["id"] == "meta:w1"
+
+
 def test_source_stability_tracker_links() -> None:
     from BoggersTheAI.core.graph.source_stability import SourceStabilityTracker
 
@@ -63,4 +72,7 @@ def test_meta_critique_wave_cycle_and_ts_wave(tmp_path) -> None:
     assert log.exists()
     assert log.read_text(encoding="utf-8").count("\n") >= 2
     assert (tmp_path / "NEXT_GROK_PROMPT.txt").exists()
-    assert "Run Wave" in (tmp_path / "NEXT_GROK_PROMPT.txt").read_text(encoding="utf-8")
+    ngp = (tmp_path / "NEXT_GROK_PROMPT.txt").read_text(encoding="utf-8")
+    assert "Run Wave" in ngp
+    assert "git add" in ngp
+    assert "full_cursor_prompt" not in ngp  # full paste bundle, not raw JSON key

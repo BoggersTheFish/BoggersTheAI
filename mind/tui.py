@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from collections import deque
 from dataclasses import dataclass
+from pathlib import Path
 from threading import Event
 from typing import TYPE_CHECKING
 
@@ -55,6 +57,11 @@ def _render(runtime: "BoggersRuntime", state: TUIState) -> Panel:
     table.add_row("Avg Activation", f"{metrics.get('avg_activation', 0):.4f}")
     table.add_row("Avg Stability", f"{metrics.get('avg_stability', 0):.4f}")
     table.add_row("Edge Density", f"{metrics.get('edge_density', 0):.4f}")
+    table.add_row("CPU DistilLoRA", _cpu_distillora_summary(runtime))
+    table.add_row(
+        "Folded wave nodes",
+        str(len(runtime.graph.folded_wave_nodes())),
+    )
 
     top_nodes = sorted(
         [n for n in runtime.graph.nodes.values() if not n.collapsed],
@@ -88,3 +95,19 @@ def _render(runtime: "BoggersRuntime", state: TUIState) -> Panel:
         title=f"[bold]BoggersTheAI TUI[/bold] [{state.theme}]",
         border_style="blue",
     )
+
+
+def _cpu_distillora_summary(runtime: "BoggersRuntime") -> str:
+    try:
+        base = Path(runtime.fine_tuner.config.adapter_save_path)
+        p = base / "cpu_distillora_stats.json"
+        if not p.exists():
+            return "n/a (no stats file)"
+        data = json.loads(p.read_text(encoding="utf-8"))
+        sr = data.get("sample_run") or {}
+        return (
+            f"samples={data.get('train_samples_seen', '?')} "
+            f"loss={sr.get('simulated_training_loss', '?')}"
+        )
+    except Exception:
+        return "n/a"

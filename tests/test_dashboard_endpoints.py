@@ -49,6 +49,10 @@ class TestDashboardEndpoints:
             "embedded_nodes": 0,
         }
         mock_rt.graph.graph_path = Path("test.json")
+        mock_rt.graph.folded_wave_nodes = MagicMock(return_value=[])
+        mock_ft = MagicMock()
+        mock_ft.config.adapter_save_path = str(Path("/tmp/boggers_adapter_mock"))
+        mock_rt.fine_tuner = mock_ft
         with patch("BoggersTheAI.dashboard.app.get_runtime", return_value=mock_rt):
             from BoggersTheAI.dashboard.app import app
 
@@ -78,6 +82,9 @@ class TestDashboardEndpoints:
         data = response.json()
         assert "graph" in data
         assert "wave" in data
+        assert "cpu_distillora" in data
+        assert "folded_wave_nodes" in data
+        assert data["folded_wave_count"] == 0
 
     def test_traces_endpoint(self):
         response = self.client.get("/traces")

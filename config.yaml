@@ -21,6 +21,7 @@ inference:
     trace_logging_enabled: true
     min_confidence_for_log: 0.7
     traces_dir: "traces"
+    # Meta-critique: append-only JSONL + NEXT_GROK_PROMPT.txt (full Cursor paste bundle).
     meta_critique_self_ingest: true
     meta_critique_wave_bus: true
     meta_critique_traces_dir: "traces/meta_critique"
@@ -91,6 +92,7 @@ runtime:
   max_hypotheses_per_cycle: 2
   session_id: "auto"
   snapshot_dir: "snapshots"
+  # When true, ingest traces/meta_critique/waves.jsonl into the graph as meta:* nodes.
   fold_waves_jsonl_on_startup: false
 
 wave:

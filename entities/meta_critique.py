@@ -9,7 +9,6 @@ from typing import Any
 
 
 def _default_next_prompt_template() -> str:
-    # Long-form Grok handoff; line length relaxed for copy-paste fidelity.
     return (
         "You are now the living Meta-Critique Node + full TS-OS Agent inside "
         "BoggersTheAI.\n\n"
@@ -37,11 +36,59 @@ def _default_next_prompt_template() -> str:
     )
 
 
+def build_full_cursor_grok_bundle(
+    completed_seq: int,
+    next_wave: int,
+    next_after: int,
+    *,
+    stability_hint: str = "+0.XX",
+) -> str:
+    """
+    Ready-to-paste block: TS doctrine + bash + Wave skeleton + closing Grok loop.
+    Written to NEXT_GROK_PROMPT.txt and JSONL ``full_cursor_prompt``.
+    """
+    core = _default_next_prompt_template().format(
+        next_wave=next_wave,
+        next_wave_after=next_after,
+    )
+    bash = (
+        "```bash\n"
+        "git add .\n"
+        f'git commit -m "Wave {next_wave} — ts-os-agent | '
+        f'... | stability {stability_hint}"\n'
+        "git push origin main\n"
+        "```\n"
+    )
+    skeleton = (
+        f"Wave {next_wave} — wave-{next_wave}-slug\n\n"
+        "**Propagate**\n"
+        "[activation spread]\n\n"
+        "**Relax / Tension detected**\n"
+        "[tensions 0.00–1.00]\n\n"
+        "**Break**\n"
+        "[weakest pattern]\n\n"
+        "**Evolve**\n"
+        "[structures]\n\n"
+        "**Final stable configuration / Answer**\n"
+        "[converged answer + file paths]\n"
+    )
+    closing = (
+        "```text\n"
+        f"Wave {completed_seq} complete — stability {stability_hint} — "
+        "changes pushed to GitHub.\n\n"
+        "**Next Cycle Prompt for Grok**\n"
+        f"Paste the entire wave output above (including this block) back to Grok "
+        f"for Wave {next_after}.\n"
+        "```\n"
+    )
+    return "\n\n".join([core, bash, skeleton, closing])
+
+
 @dataclass(slots=True)
 class MetaCritiqueNode:
     """
     Append-only JSONL + unified wave log for TS meta-critique.
-    Writes NEXT_GROK_PROMPT.txt after each waves.jsonl append.
+    Writes full Cursor/Grok paste bundle to NEXT_GROK_PROMPT.txt after each wave row.
     """
 
     traces_dir: Path = field(default_factory=lambda: Path("traces/meta_critique"))
@@ -132,9 +179,14 @@ class MetaCritiqueNode:
         completed = int(last_payload.get("wave_seq", 1))
         next_w = completed + 1
         next_after = next_w + 1
-        block = self.next_prompt_template.format(
+        short_block = self.next_prompt_template.format(
             next_wave=next_w,
             next_wave_after=next_after,
+        )
+        full_bundle = build_full_cursor_grok_bundle(
+            completed_seq=completed,
+            next_wave=next_w,
+            next_after=next_after,
         )
         prompt_payload: dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -142,13 +194,18 @@ class MetaCritiqueNode:
             "confidence": 0.92,
             "completed_wave_seq": completed,
             "next_wave_seq": next_w,
-            "prompt_text": block,
+            "prompt_text": short_block,
+            "full_cursor_prompt": full_bundle,
             "_suppress_next_prompt": True,
         }
         log_path = self.traces_dir / self.wave_log_name
         with log_path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(prompt_payload, ensure_ascii=False) + "\n")
-        (self.traces_dir / "NEXT_GROK_PROMPT.txt").write_text(block, encoding="utf-8")
+        ngp = self.traces_dir / "NEXT_GROK_PROMPT.txt"
+        ngp.write_text(full_bundle, encoding="utf-8")
+        (self.traces_dir / "NEXT_GROK_PROMPT_SHORT.txt").write_text(
+            short_block, encoding="utf-8"
+        )
 
     def _write_jsonl(self, path: Path, payload: dict[str, Any]) -> None:
         path.write_text(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import threading
@@ -37,6 +38,17 @@ _logger = logging.getLogger("boggers.dashboard")
 def _check_auth(authorization: str = Header(default="")) -> None:
     if _AUTH_TOKEN and authorization != f"Bearer {_AUTH_TOKEN}":
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+def _read_cpu_distillora_stats() -> dict[str, Any] | None:
+    try:
+        ft = get_runtime().fine_tuner
+        p = Path(ft.config.adapter_save_path) / "cpu_distillora_stats.json"
+        if not p.exists():
+            return None
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return None
 
 
 def _collect_status() -> dict[str, Any]:
@@ -150,6 +162,11 @@ def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
             "activation": n.activation,
             "stability": n.stability,
             "collapsed": n.collapsed,
+            "folded_wave": (
+                1
+                if (n.id.startswith("meta:") or "waves_jsonl" in n.topics)
+                else 0
+            ),
         }
         for n in get_runtime().graph.nodes.values()
     ]
@@ -212,6 +229,7 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
             stability: n.stability || 0,
             collapsed: n.collapsed || false,
             topics: (n.topics || []).join(", "),
+            folded_wave: n.folded_wave || 0,
           }
         });
       });
@@ -237,6 +255,14 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
             selector: "node[?collapsed]",
             style: { "background-color": "#555", "opacity": 0.4 },
           },
+          {
+            selector: "node[folded_wave = 1]",
+            style: {
+              "background-color": "#a855f7",
+              "border-width": 3,
+              "border-color": "#e9d5ff",
+            },
+          },
           { selector: "edge", style: {
             "width": "mapData(weight, 0, 1, 0.5, 4)",
             "line-color": "#334", "curve-style": "bezier",
@@ -259,7 +285,10 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
           + "Topics: " + d.topics + "<br>"
           + "Activation: " + (d.activation).toFixed(3) + "<br>"
           + "Stability: " + (d.stability).toFixed(3) + "<br>"
-          + "Collapsed: " + d.collapsed;
+          + "Collapsed: " + d.collapsed + "<br>"
+          + (d.folded_wave
+            ? "<i>Folded waves.jsonl node — inspect graph DB</i>"
+            : "");
       });
       cy.on("tap", function(evt) {
         if (evt.target === cy) {
@@ -283,12 +312,17 @@ def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
         for entry in _tension_history[-50:]:
             stability_trend.append(1.0 - entry.get("tension", 0.0))
 
+    rt = get_runtime()
+    folded = rt.graph.folded_wave_nodes()
     return {
         "graph": graph_metrics,
         "wave": wave_status,
         "stability_trend": stability_trend,
         "tension_history_length": len(_tension_history),
         "system": metrics_collector.snapshot(),
+        "cpu_distillora": _read_cpu_distillora_stats(),
+        "folded_wave_nodes": folded[:80],
+        "folded_wave_count": len(folded),
     }
 
 

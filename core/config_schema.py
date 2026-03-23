@@ -21,6 +21,8 @@ _RANGE_CHECKS: List[Tuple[str, str, float, float]] = [
 
 _REQUIRED_SECTIONS = ["wave", "runtime", "os_loop", "autonomous", "embeddings"]
 
+# gpu_qlora: Unsloth QLoRA on CUDA.
+# cpu_distillora: graph consolidation + JSON stats only.
 _VALID_FINETUNE_TRACKS = frozenset({"gpu_qlora", "cpu_distillora"})
 
 

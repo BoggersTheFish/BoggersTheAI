@@ -249,6 +249,11 @@ class UnslothFineTuner:
             "track": "cpu_distillora",
             "epochs": max(1, int(epochs)),
             "train_samples_seen": n_samples,
+            "sample_run": {
+                "mode": "cpu_distillora",
+                "note": "Graph consolidation + dataset scan (no GPU torch session).",
+                "simulated_training_loss": 0.0,
+            },
             **graph_info,
         }
         stats_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
