@@ -1,0 +1,1 @@
+# Runtime writes waves.jsonl and NEXT_GROK_PROMPT.txt here; other trace files stay gitignored.

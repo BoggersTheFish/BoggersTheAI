@@ -41,6 +41,12 @@ def _get_fine_tuning_track(raw: Dict[str, Any]) -> str | None:
 
 
 def validate_config(raw: Dict[str, Any], strict: bool = False) -> List[str]:
+    """
+    Validate ``config.yaml`` numeric ranges and required sections.
+
+    Live UI timing (TUI refresh, dashboard Cytoscape poll) is implemented in
+    ``mind/tui.py`` and ``dashboard/app.py``, not as config keys.
+    """
     env_strict = os.environ.get("BOGGERS_CONFIG_STRICT", "").strip().lower() in (
         "1",
         "true",

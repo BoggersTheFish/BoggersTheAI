@@ -22,7 +22,12 @@ htmlcov/
 
 # Local runtime outputs
 vault/
-traces/
+# traces/: dynamic JSONL logs (not committed). Fold folded waves into the graph with
+# runtime.fold_waves_jsonl_on_startup (see README). Keep only meta_critique/.gitkeep.
+traces/*
+!traces/meta_critique/
+traces/meta_critique/*
+!traces/meta_critique/.gitkeep
 dataset/
 models/
 snapshots/

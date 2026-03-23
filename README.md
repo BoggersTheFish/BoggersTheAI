@@ -632,7 +632,7 @@ Override host/port with `BOGGERS_DASHBOARD_HOST` and `BOGGERS_DASHBOARD_PORT` en
 | `/status` | GET | Bearer (if token set) | `application/json` | Wave status, node/edge counts, tension, cycle count |
 | `/wave` | GET | Public | `text/html` | Chart.js page with live tension chart (polls `/status` every few seconds) |
 | `/graph` | GET | Bearer (if token set) | `application/json` | Full node and edge data as JSON |
-| `/graph/viz` | GET | Public | `text/html` | Cytoscape.js interactive graph visualization (fetches from `/graph`) |
+| `/graph/viz` | GET | Public | `text/html` | Cytoscape.js interactive graph visualization — **polls `/graph` every ~2.5s** for live updates |
 | `/metrics` | GET | Bearer (if token set) | `application/json` | Graph metrics (density, mean activation, stability distribution) + system metrics (counters, gauges) |
 | `/traces` | GET | Bearer (if token set) | `application/json` | Recent trace files from the traces directory |
 | `/health/live` | GET | Public | `application/json` | Liveness probe: `{"status": "alive"}` — no auth |
@@ -641,6 +641,13 @@ Override host/port with `BOGGERS_DASHBOARD_HOST` and `BOGGERS_DASHBOARD_PORT` en
 **Authentication:** When `BOGGERS_DASHBOARD_TOKEN` is set, protected endpoints require `Authorization: Bearer <token>` header. The bundled HTML pages (`/wave`, `/graph/viz`) include auth headers in fetch calls when a token cookie is present. For local development, leave the token unset.
 
 **Lazy runtime:** The dashboard module does **not** construct `BoggersRuntime` at import time; it calls **`get_runtime()`** on first request (thread-safe singleton).
+
+### Meta-critique traces & Grok loop
+
+- **`traces/` is gitignored** (dynamic JSONL). The repo includes **`traces/meta_critique/.gitkeep`** so the path exists; your local `waves.jsonl` and `NEXT_GROK_PROMPT.txt` are still ignored.
+- **Fold waves into the living graph:** set `runtime.fold_waves_jsonl_on_startup: true` in `config.yaml` to ingest `traces/meta_critique/waves.jsonl` as `meta:*` nodes on startup (inspectable in the dashboard Cytoscape view and `/metrics`).
+- **One-shot loop continuation:** copy the **`embedded_full_cursor_prompt`** field from any row in local `waves.jsonl` and paste into Grok for instant TS-wave continuation (same content as `NEXT_GROK_PROMPT.txt` after each wave).
+- **TUI:** when `tui.enabled` is true, the Rich Live dashboard refreshes at **~8 Hz** with live `folded_wave` counts (see `mind/tui.py`).
 
 ---
 
@@ -992,6 +999,7 @@ All multimodal adapters implement protocols defined in `core/protocols.py` (`Voi
 
 ```text
 BoggersTheAI/
+├── traces/meta_critique/.gitkeep  # Placeholder path; runtime JSONL under traces/ is gitignored
 ├── core/                          # Core engine
 │   ├── graph/
 │   │   ├── universal_living_graph.py  # Main graph: nodes, edges, persistence, embeddings, guardrails

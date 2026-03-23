@@ -125,9 +125,13 @@ os_loop:
   consolidation_on_shutdown: true
   multi_turn_enabled: true
 
+# TUI (mind/tui.py): Rich Live ~8 Hz when enabled; shows folded wave node count live.
 tui:
   enabled: false
   theme: "matrix"
+
+# Dashboard: start with `dashboard-start`. /graph/viz polls /graph every ~2.5s (see dashboard/app.py).
+# Env: BOGGERS_DASHBOARD_HOST, BOGGERS_DASHBOARD_PORT, BOGGERS_DASHBOARD_TOKEN.
 
 autonomous:
   exploration_strength: 0.3
