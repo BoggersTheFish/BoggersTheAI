@@ -88,7 +88,8 @@ def build_full_cursor_grok_bundle(
 class MetaCritiqueNode:
     """
     Append-only JSONL + unified wave log for TS meta-critique.
-    Writes full Cursor/Grok paste bundle to NEXT_GROK_PROMPT.txt after each wave row.
+    Each ``waves.jsonl`` row includes ``embedded_full_cursor_prompt`` (full paste).
+    NEXT_GROK_PROMPT.txt mirrors the same bundle after each wave row.
     """
 
     traces_dir: Path = field(default_factory=lambda: Path("traces/meta_critique"))
@@ -168,15 +169,7 @@ class MetaCritiqueNode:
             return
 
         self._wave_seq += 1
-        payload_out = {**payload, "wave_seq": self._wave_seq}
-        log_path = self.traces_dir / self.wave_log_name
-        line = json.dumps(payload_out, ensure_ascii=False) + "\n"
-        with log_path.open("a", encoding="utf-8") as fh:
-            fh.write(line)
-        self._emit_next_grok_prompt(payload_out)
-
-    def _emit_next_grok_prompt(self, last_payload: dict[str, Any]) -> None:
-        completed = int(last_payload.get("wave_seq", 1))
+        completed = self._wave_seq
         next_w = completed + 1
         next_after = next_w + 1
         short_block = self.next_prompt_template.format(
@@ -188,6 +181,43 @@ class MetaCritiqueNode:
             next_wave=next_w,
             next_after=next_after,
         )
+        payload_out = {
+            **payload,
+            "wave_seq": completed,
+            # One JSON line = full wave summary + ready-to-paste Grok/Cursor block.
+            "embedded_full_cursor_prompt": full_bundle,
+        }
+        log_path = self.traces_dir / self.wave_log_name
+        line = json.dumps(payload_out, ensure_ascii=False) + "\n"
+        with log_path.open("a", encoding="utf-8") as fh:
+            fh.write(line)
+        self._emit_next_grok_prompt(
+            payload_out,
+            full_bundle=full_bundle,
+            short_block=short_block,
+        )
+
+    def _emit_next_grok_prompt(
+        self,
+        last_payload: dict[str, Any],
+        *,
+        full_bundle: str | None = None,
+        short_block: str | None = None,
+    ) -> None:
+        completed = int(last_payload.get("wave_seq", 1))
+        next_w = completed + 1
+        next_after = next_w + 1
+        if short_block is None:
+            short_block = self.next_prompt_template.format(
+                next_wave=next_w,
+                next_wave_after=next_after,
+            )
+        if full_bundle is None:
+            full_bundle = build_full_cursor_grok_bundle(
+                completed_seq=completed,
+                next_wave=next_w,
+                next_after=next_after,
+            )
         prompt_payload: dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "kind": "next_grok_prompt",

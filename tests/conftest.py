@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import os
 import sys
 from pathlib import Path
 
@@ -9,6 +11,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = PROJECT_ROOT.parent
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
+
+# Set before any test module import (collection can instantiate BoggersRuntime).
+os.environ.setdefault("BOGGERS_SKIP_SHUTDOWN_CONSOLIDATION", "1")
 
 from BoggersTheAI.core.graph.universal_living_graph import (  # noqa: E402
     UniversalLivingGraph,
@@ -36,3 +41,12 @@ def query_processor(fresh_graph):
         synthesis_config={"use_graph_subgraph": True, "top_k_nodes": 3},
         inference_config={"ollama": {"enabled": False}},
     )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _pytest_logging_no_secondary_errors() -> None:
+    """Suppress secondary tracebacks from logging internals under pytest."""
+    prev_raise = logging.raiseExceptions
+    logging.raiseExceptions = False
+    yield
+    logging.raiseExceptions = prev_raise

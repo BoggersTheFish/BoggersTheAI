@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from BoggersTheAI.core.graph.graph_only_synthesizer import GraphOnlySynthesizer
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
 from BoggersTheAI.core.synthesis_protocols import NodeSynthesizer
@@ -76,3 +78,11 @@ def test_meta_critique_wave_cycle_and_ts_wave(tmp_path) -> None:
     assert "Run Wave" in ngp
     assert "git add" in ngp
     assert "full_cursor_prompt" not in ngp  # full paste bundle, not raw JSON key
+    for line in log.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        obj = json.loads(line)
+        if obj.get("kind") == "next_grok_prompt":
+            continue
+        assert "embedded_full_cursor_prompt" in obj
+        assert "git add" in obj["embedded_full_cursor_prompt"]

@@ -75,6 +75,7 @@ class TestDashboardEndpoints:
         response = self.client.get("/graph/viz")
         assert response.status_code == 200
         assert "cytoscape" in response.text.lower()
+        assert "setinterval" in response.text.lower()
 
     def test_metrics_endpoint(self):
         response = self.client.get("/metrics")

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
+import sys
 import threading
 import time
 import uuid
@@ -402,7 +404,12 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         self._stop_os_loop()
         self._stop_tui_thread()
         os_cfg = self.config.get("os_loop", {})
-        if bool(os_cfg.get("consolidation_on_shutdown", True)):
+        skip_consolidation = bool(os.environ.get("BOGGERS_SKIP_SHUTDOWN_CONSOLIDATION"))
+        if (
+            bool(os_cfg.get("consolidation_on_shutdown", True))
+            and not skip_consolidation
+            and not sys.is_finalizing()
+        ):
             self.run_nightly_consolidation(force=True)
         self.graph.save()
         if bool(os_cfg.get("consolidation_on_shutdown", True)):

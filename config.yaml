@@ -7,6 +7,7 @@ modules:
   interface: true
 
 inference:
+  # mode: local = boggers_synthesis + graph stack; remote_* uses API fallbacks if enabled.
   mode: "local"
   local_engine: "boggers_synthesis"
   remote_fallback: "disabled"
@@ -95,6 +96,7 @@ runtime:
   # When true, ingest traces/meta_critique/waves.jsonl into the graph as meta:* nodes.
   fold_waves_jsonl_on_startup: false
 
+# Wave engine: tension mode drives EventBus + graph cycles (see wave.tension_*).
 wave:
   mode: "tension"
   interval_seconds: 30

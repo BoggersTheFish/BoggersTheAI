@@ -211,14 +211,16 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
   <div id="cy"></div>
   <div id="details"></div>
   <script>
-    async function load() {
+    let cy = null;
+    const POLL_MS = 2500;
+    function graphAuthHeaders() {
       const _token = document.cookie.replace(
         /(?:(?:^|.*;\s*)boggers_token\s*=\s*([^;]*).*$)|^.*$/,
         "$1",
       );
-      const _hdrs = _token ? { "Authorization": "Bearer " + _token } : {};
-      const resp = await fetch("/graph", { headers: _hdrs });
-      const data = await resp.json();
+      return _token ? { "Authorization": "Bearer " + _token } : {};
+    }
+    function buildElements(data) {
       const elements = [];
       data.nodes.forEach(n => {
         elements.push({
@@ -235,10 +237,49 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
       });
       data.edges.forEach((e, i) => {
         elements.push({
-          data: { id: "e" + i, source: e.src, target: e.dst, weight: e.weight || 0.5 }
+          data: {
+            id: "e" + i + "_" + e.src + "_" + e.dst,
+            source: e.src,
+            target: e.dst,
+            weight: e.weight || 0.5,
+          }
         });
       });
-      const cy = cytoscape({
+      return elements;
+    }
+    function wireCyHandlers(instance) {
+      instance.on("tap", "node", function(evt) {
+        const d = evt.target.data();
+        const det = document.getElementById("details");
+        det.style.display = "block";
+        det.innerHTML = "<b>" + d.id + "</b><br>"
+          + "Topics: " + d.topics + "<br>"
+          + "Activation: " + (d.activation).toFixed(3) + "<br>"
+          + "Stability: " + (d.stability).toFixed(3) + "<br>"
+          + "Collapsed: " + d.collapsed + "<br>"
+          + (d.folded_wave
+            ? "<i>Folded waves.jsonl node — inspect graph DB</i>"
+            : "");
+      });
+      instance.on("tap", function(evt) {
+        if (evt.target === instance) {
+          document.getElementById("details").style.display = "none";
+        }
+      });
+    }
+    async function refreshGraph() {
+      const resp = await fetch("/graph", { headers: graphAuthHeaders() });
+      const data = await resp.json();
+      const elements = buildElements(data);
+      const info = document.getElementById("info");
+      info.textContent =
+        "BoggersTheAI Living Graph | nodes " + data.nodes.length
+        + " | edges " + data.edges.length + " | polling " + POLL_MS + "ms";
+      if (cy) {
+        cy.destroy();
+        cy = null;
+      }
+      cy = cytoscape({
         container: document.getElementById("cy"),
         elements: elements,
         style: [
@@ -277,26 +318,10 @@ def graph_viz(_: None = Depends(_check_auth)) -> str:
           idealEdgeLength: 80,
         },
       });
-      cy.on("tap", "node", function(evt) {
-        const d = evt.target.data();
-        const det = document.getElementById("details");
-        det.style.display = "block";
-        det.innerHTML = "<b>" + d.id + "</b><br>"
-          + "Topics: " + d.topics + "<br>"
-          + "Activation: " + (d.activation).toFixed(3) + "<br>"
-          + "Stability: " + (d.stability).toFixed(3) + "<br>"
-          + "Collapsed: " + d.collapsed + "<br>"
-          + (d.folded_wave
-            ? "<i>Folded waves.jsonl node — inspect graph DB</i>"
-            : "");
-      });
-      cy.on("tap", function(evt) {
-        if (evt.target === cy) {
-          document.getElementById("details").style.display = "none";
-        }
-      });
+      wireCyHandlers(cy);
     }
-    load();
+    refreshGraph();
+    setInterval(refreshGraph, POLL_MS);
   </script>
 </body>
 </html>"""

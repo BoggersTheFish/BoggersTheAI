@@ -29,15 +29,19 @@ def run_tui(
     state = TUIState(recent_events=deque(maxlen=20), theme=theme)
     stop_event = stop_event or Event()
 
-    with Live(_render(runtime, state), console=console, refresh_per_second=2) as live:
+    with Live(
+        _render(runtime, state), console=console, refresh_per_second=8
+    ) as live:
         while not stop_event.is_set():
             status = runtime.get_status()
+            folded_n = len(runtime.graph.folded_wave_nodes())
             state.recent_events.appendleft(
                 f"cycle={status.get('cycle_count')} "
-                f"tension={float(status.get('tension', 0.0)):.2f}"
+                f"tension={float(status.get('tension', 0.0)):.2f} "
+                f"folded={folded_n}"
             )
             live.update(_render(runtime, state))
-            stop_event.wait(1.0)
+            stop_event.wait(0.25)
 
 
 def _render(runtime: "BoggersRuntime", state: TUIState) -> Panel:
