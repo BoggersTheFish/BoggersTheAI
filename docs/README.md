@@ -1,27 +1,73 @@
-# TS-OS Documentation — Unified Cognitive Physics
+# TS-OS Documentation — The Trojan Horse
 
-All fragmented wikis and markdown files from the 52-repository claim boundary
-are consolidated here. **Read these before interacting with the system.**
+Developers come for the code. To use it, they must learn the epistemological
+rulebook. These documents are not supplementary. They are the interface to the
+physics.
 
-## Required Reading (in order)
+**Read in this order. Do not skip.**
 
-1. **[MANIFESTO.md](MANIFESTO.md)** — Ideological deployment surface and epistemological rules
-2. **[truth-graph.md](truth-graph.md)** — Truth Graph mechanics, wave cycle, GOAT-TS integration
-3. **[bogpk-pipeline.md](bogpk-pipeline.md)** — Unified `.bogpk` artifact serialization
-4. **[directory-structure.md](directory-structure.md)** — TS-OS logic map (`core-vm/`, `inference/`, `reasoner/`)
-5. **[anti-token-prediction.md](anti-token-prediction.md)** — Proofs against token prediction
+---
 
-## Layer-Specific Docs
+## The Ideological Stack
 
-| Layer | Source (archived) | Monorepo Path |
-|-------|-------------------|---------------|
-| BOGVM-0 | bogbin | `core-vm/bogvm/`, `core-vm/BOGPK_SPEC.md` |
-| TensionLM | bozo | `inference/tension_lm/` |
-| TensionForge | (new) | `inference/tension_forge/` |
-| GOAT-TS / Reasoner | TS-Reasoner-v0 | `reasoner/ts_reasoner/` |
-| Living Graph | BoggersTheMind | `core/`, `interface/` |
-| Language Substrate | BoggersTheLLM | `inference/` patterns |
+| # | Document | Role |
+|---|----------|------|
+| 1 | **[MANIFESTO.md](MANIFESTO.md)** | The front door — axioms of cognitive physics, rejection of the black box, open-source mandate |
+| 2 | **[anti-token-prediction.md](anti-token-prediction.md)** | The weapon — systematic deconstruction of softmax and next-token prediction |
+| 3 | **[truth-graph.md](truth-graph.md)** | The payload — exact mechanics of the living computing medium |
+| 4 | **[bogpk-pipeline.md](bogpk-pipeline.md)** | The receipt — how resolution paths are frozen, hashed, and exported |
+| 5 | **[directory-structure.md](directory-structure.md)** | The map — where each substrate lives in the monorepo |
 
-## Archive Redirect Template
+If you read only the API docs, you will build a wrapper around statistical
+fluency and call it reasoning. The stack above exists to make that impossible.
 
-Satellite repos use `docs/templates/ARCHIVE_README.md` as their frozen README.
+---
+
+## Infrastructure & Reference
+
+| Document | Contents |
+|----------|----------|
+| [bogpk-pipeline.md](bogpk-pipeline.md) | `.bogpk` serialization contract across all layers |
+| [directory-structure.md](directory-structure.md) | `core-vm/`, `inference/`, `reasoner/` logic map |
+| [METRICS_TODO.md](METRICS_TODO.md) | Benchmark artifacts before publishing performance claims |
+| [templates/ARCHIVE_README.md](templates/ARCHIVE_README.md) | Satellite repo redirect template |
+
+---
+
+## Layer → Code Map
+
+| Layer | Monorepo path | Archived from |
+|-------|---------------|---------------|
+| BOGVM-0 bedrock | `core-vm/bogvm/` | bogbin |
+| TensionLM | `inference/tension_lm/` | bozo |
+| TensionForge OpenCL | `inference/tension_forge/` | TensionForge |
+| GOAT-TS / Verse Engine | `reasoner/ts_reasoner/` | TS-Reasoner-v0 |
+| Living graph runtime | `core/`, `interface/` | BoggersTheMind |
+| Language substrate | `inference/` patterns | BoggersTheLLM |
+| Artifact pipeline | `shared/artifacts/` | unified (new) |
+| Wave bridge | `reasoner/wave_bridge.py` | unified (new) |
+
+---
+
+## Quick Verification
+
+After reading the ideological stack, prove you understood it:
+
+```bash
+# Full test suite (232 tests)
+pytest tests/
+
+# Wave virtualization demo
+python reasoner/hooks/run_reasoning_demo.py
+
+# TensionForge benchmark
+python inference/tension_lm/train.py --benchmark-forge
+```
+
+If the demo produces a `.bogpk` receipt with `all_gates_passed: true`, the
+graph settled. If it does not, that is also a valid result — abstention beats
+hallucination.
+
+---
+
+*You cannot use this code without changing how you define reasoning. That is the design.*
