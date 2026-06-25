@@ -22,6 +22,8 @@ classifiers = [
 ]
 dependencies = [
   "pyyaml",
+  "jsonschema",
+  "numpy",
 ]
 
 [project.optional-dependencies]

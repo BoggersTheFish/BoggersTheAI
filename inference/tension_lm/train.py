@@ -98,6 +98,11 @@ def get_args():
     p.add_argument("--max_seq_len", default=256,   type=int)
     p.add_argument("--dropout",     default=0.10,  type=float)
     p.add_argument("--grad_ckpt",   action="store_true")
+    p.add_argument(
+        "--benchmark-forge",
+        action="store_true",
+        help="Run TensionForge fused_tension OpenCL benchmark and exit.",
+    )
     # Training
     p.add_argument("--seq_len",       default=64,   type=int)
     p.add_argument("--batch_size",    default=32,   type=int)
@@ -671,5 +676,10 @@ def apply_preset(args):
 
 if __name__ == "__main__":
     args = get_args()
+    if args.benchmark_forge:
+        from benchmark_forge import main as benchmark_main
+
+        benchmark_main()
+        raise SystemExit(0)
     apply_preset(args)
     train(args)

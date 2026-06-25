@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from tensionforge.runtime import TensionForgeRuntime
-from tensionforge.tensor import DeviceTensor
+from ..runtime import TensionForgeRuntime
+from ..tensor import DeviceTensor
 
 
 WORKSPACE_OPS_SOURCE = r"""

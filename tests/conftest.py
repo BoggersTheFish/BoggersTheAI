@@ -9,8 +9,9 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = PROJECT_ROOT.parent
-if str(WORKSPACE_ROOT) not in sys.path:
-    sys.path.insert(0, str(WORKSPACE_ROOT))
+for path_entry in (str(PROJECT_ROOT), str(PROJECT_ROOT / "core-vm"), str(WORKSPACE_ROOT)):
+    if path_entry not in sys.path:
+        sys.path.insert(0, path_entry)
 
 # Set before any test module import (collection can instantiate BoggersRuntime).
 os.environ.setdefault("BOGGERS_SKIP_SHUTDOWN_CONSOLIDATION", "1")

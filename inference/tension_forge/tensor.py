@@ -7,7 +7,7 @@ import numpy as np
 import pyopencl as cl
 
 if TYPE_CHECKING:
-    from tensionforge.runtime import TensionForgeRuntime
+    from .runtime import TensionForgeRuntime
 
 
 @dataclass

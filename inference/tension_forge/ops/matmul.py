@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from tensionforge.runtime import TensionForgeRuntime
+from ..runtime import TensionForgeRuntime
 
 
 MATMUL_SOURCE = r"""

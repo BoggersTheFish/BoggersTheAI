@@ -4,9 +4,9 @@ from typing import Any
 
 import numpy as np
 
-from tensionforge.ops.linear import LINEAR_SOURCE
-from tensionforge.runtime import TensionForgeRuntime
-from tensionforge.tensor import DeviceTensor
+from .linear import LINEAR_SOURCE
+from ..runtime import TensionForgeRuntime
+from ..tensor import DeviceTensor
 
 
 def _validate_tensor_runtime(

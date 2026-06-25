@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from tensionforge.runtime import (
+from ..runtime import (
     TensionForgeRuntime,
 )
 

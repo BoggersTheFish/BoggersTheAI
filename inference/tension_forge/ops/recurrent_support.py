@@ -4,8 +4,8 @@ from typing import Any
 
 import numpy as np
 
-from tensionforge.runtime import TensionForgeRuntime
-from tensionforge.tensor import DeviceTensor
+from ..runtime import TensionForgeRuntime
+from ..tensor import DeviceTensor
 
 
 RECURRENT_SUPPORT_SOURCE = r"""
