@@ -1,0 +1,14 @@
+reasoning:
+  cache_backend: redis
+  cache_enabled: false
+  cache_ttl_s: 300
+  redis_host: "127.0.0.1"
+  redis_port: 6379
+  contradiction_top_k: 10
+  activation_depth: 2
+  response_timeout_s: 10
+  hypothesis_count: 10
+  web_fallback: false
+  # Subgraph retrieval limits (stronger retrieval when higher)
+  node_limit: 200
+  edge_limit: 1000

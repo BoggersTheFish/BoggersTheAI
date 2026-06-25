@@ -4,7 +4,10 @@ import json
 import logging
 from typing import Any, Dict, List
 
-import ollama
+try:
+    import ollama
+except ImportError:  # pragma: no cover - depends on optional extra
+    ollama = None
 
 logger = logging.getLogger("boggers.llm")
 
@@ -25,6 +28,12 @@ class LocalLLM:
         self.adapter_path = adapter_path
         self.base_model = base_model or model
         self._base_url = base_url
+        if ollama is None:
+            raise RuntimeError(
+                "Ollama support requires the optional 'ollama' dependency. "
+                "Install BoggersTheAI with the 'llm' extra or disable "
+                "inference.ollama.enabled."
+            )
         self._client = ollama.Client(host=self._base_url)
         self.previous_adapter_path: str | None = None
         self._unsloth_model = None

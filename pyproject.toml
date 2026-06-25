@@ -85,6 +85,9 @@ packages = [
   "BoggersTheAI.tools",
 ]
 
+[tool.setuptools.package-data]
+"BoggersTheAI" = ["core-vm/**/*", "inference/**/*", "reasoner/**/*", "shared/**/*", "docs/**/*"]
+
 [tool.setuptools.package-dir]
 BoggersTheAI = "."
 

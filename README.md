@@ -11,6 +11,21 @@
 **Website:** [boggersthefish.com](https://www.boggersthefish.com/)
 **GitHub:** [BoggersTheFish/BoggersTheAI](https://github.com/BoggersTheFish/BoggersTheAI)
 
+> **Claim Boundary:** This monorepo unifies 52 historic TS-OS repositories. Active satellites
+> (BoggersTheMind, BoggersTheLLM, bozo, TS-Reasoner-v0) are archived with redirect notices.
+> All development happens here. Read [`docs/MANIFESTO.md`](docs/MANIFESTO.md) first.
+
+### TS-OS Logic Map
+
+| Layer | Path | Role |
+|-------|------|------|
+| **Bedrock** | `core-vm/` | BOGVM-0 — 16-opcode deterministic wave-state VM |
+| **Inference** | `inference/` | TensionLM + TensionForge OpenCL runtime |
+| **Reasoner** | `reasoner/` | GOAT-TS constraint resolution, Verse Engine, graph hooks |
+| **Artifacts** | `shared/artifacts/` | Unified `.bogpk` binary container pipeline |
+
+Full documentation: [`docs/`](docs/)
+
 ---
 
 ## Table of Contents
@@ -33,8 +48,9 @@
 16. [Security Model](#security-model)
 17. [Repository Layout](#repository-layout)
 18. [Testing](#testing)
-19. [Contributing](#contributing)
-20. [License](#license)
+19. [Limitations](#limitations)
+20. [Contributing](#contributing)
+21. [License](#license)
 
 **Release:** Living OS **v0.5.0** — modular runtime (wave runner + mixins), shared HTTP client with retries, path sandboxing, graph operation helpers, extended tools, stricter config validation, and expanded test/CI.
 
@@ -258,6 +274,12 @@ boggers
 ```
 
 You will see the TS-OS banner and a `boggers>` prompt. The background wave thread is already running. Type `help` to see commands, or just ask a question.
+
+You can also launch the same CLI entry point through the package module:
+
+```bash
+python -m BoggersTheAI
+```
 
 ### 4. Minimal Python Usage
 
@@ -999,8 +1021,23 @@ All multimodal adapters implement protocols defined in `core/protocols.py` (`Voi
 
 ```text
 BoggersTheAI/
+├── core-vm/                       # BOGVM-0 bedrock (16-opcode wave-state VM)
+│   ├── bogvm/                     # VM, opcodes, .bogpk container, archive
+│   ├── spec/                      # BOGPK-0.1 specification
+│   └── artifact_log.py            # VM state → .bogpk logging
+├── inference/                     # Neural execution layer
+│   ├── tension_lm/                # TensionLM (from bozo)
+│   ├── tension_forge/             # OpenCL tension-field runtime
+│   └── artifact_export.py         # Tension field → .bogpk
+├── reasoner/                      # Constraint resolution layer
+│   ├── ts_reasoner/               # GOAT-TS, Verse Engine, verifier gates
+│   ├── ts_metacompute/            # Spectral metacompute substrates
+│   ├── hooks/                     # NebulaGraph, Redis, Spark connectors
+│   └── artifact_receipts.py       # Reasoner receipt → .bogpk
+├── shared/artifacts/              # Unified .bogpk serialization API
+├── docs/                          # Unified manifesto and cognitive physics
 ├── traces/meta_critique/.gitkeep  # Placeholder path; runtime JSONL under traces/ is gitignored
-├── core/                          # Core engine
+├── core/                          # Living graph runtime engine
 │   ├── graph/
 │   │   ├── universal_living_graph.py  # Main graph: nodes, edges, persistence, embeddings, guardrails
 │   │   ├── wave_propagation.py        # Low-level: elect, propagate, relax, normalize
@@ -1162,6 +1199,16 @@ GitHub Actions runs on every push and PR:
 - **Linting:** `ruff check`, `black --check`, `isort --check`
 - **Type checking:** `mypy` (blocking — must pass)
 - **Tests:** `pytest --cov=BoggersTheAI --cov-fail-under=60`
+
+---
+
+## Limitations
+
+- BoggersTheAI is an alpha local-first reasoning runtime. Graph evolution, autonomy, and self-improvement behavior should be inspected before relying on outputs for important decisions.
+- LLM synthesis and embeddings depend on a running Ollama service and locally pulled models. Without them, the system falls back to extractive or placeholder behavior where supported.
+- Multimodal, RSS, X/Twitter, dashboard, and fine-tuning features require optional dependencies or external services that are not installed by the core package.
+- QLoRA fine-tuning is disabled by default and requires suitable GPU resources when enabled. Validation gates are provided, but trained adapters still need manual review before use.
+- Runtime graph files, traces, generated datasets, snapshots, and fine-tuning outputs are local artifacts and are generally gitignored rather than distributed with the package.
 
 ---
 

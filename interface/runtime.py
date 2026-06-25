@@ -252,12 +252,17 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         )
         self.local_llm = None
         if isinstance(ollama_cfg, dict) and bool(ollama_cfg.get("enabled", False)):
-            self.local_llm = LocalLLM(
-                model=str(ollama_cfg.get("model", "llama3.2")),
-                temperature=float(ollama_cfg.get("temperature", 0.3)),
-                max_tokens=int(ollama_cfg.get("max_tokens", 512)),
-                base_url=str(ollama_cfg.get("base_url", "http://localhost:11434")),
-            )
+            try:
+                self.local_llm = LocalLLM(
+                    model=str(ollama_cfg.get("model", "llama3.2")),
+                    temperature=float(ollama_cfg.get("temperature", 0.3)),
+                    max_tokens=int(ollama_cfg.get("max_tokens", 512)),
+                    base_url=str(ollama_cfg.get("base_url", "http://localhost:11434")),
+                )
+            except RuntimeError as exc:
+                logger.warning(
+                    "Local LLM unavailable; using fallback synthesis: %s", exc
+                )
         self._setup_evolve_fn()
         self.query_processor = QueryProcessor(
             graph=self.graph,
