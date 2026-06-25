@@ -20,9 +20,9 @@ env/
 htmlcov/
 .ipynb_checkpoints/
 
-# Local runtime outputs
-artifacts/
-!artifacts/.gitkeep
+# Local runtime outputs (root only — do not ignore shared/artifacts/ package)
+/artifacts/
+!/artifacts/.gitkeep
 vault/
 # traces/: dynamic JSONL logs (not committed). Fold folded waves into the graph with
 # runtime.fold_waves_jsonl_on_startup (see README). Keep only meta_critique/.gitkeep.
