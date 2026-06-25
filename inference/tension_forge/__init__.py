@@ -1,5 +1,12 @@
-"""TensionForge — OpenCL runtime for tension-field neural execution."""
+from .device import DeviceInfo, find_opencl_device
+from .runtime import TensionForgeRuntime
+from .tensor import DeviceTensor
 
-from .runtime import TensionForgeRuntime, is_opencl_available
+__all__ = [
+    "DeviceInfo",
+    "DeviceTensor",
+    "TensionForgeRuntime",
+    "find_opencl_device",
+]
 
-__all__ = ["TensionForgeRuntime", "is_opencl_available"]
+__version__ = "0.2.0a0"
