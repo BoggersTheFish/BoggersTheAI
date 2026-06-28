@@ -1,5 +1,7 @@
 # Contributing to BoggersTheAI
 
+**Current focus (see README/ROADMAP)**: TS Engine (core/ts_engine etc.) for verifiable reasoning + self-data. Update docs, add tests for paths (fast factual, formal traces, injection), probes. See SERIOUS_GPT55_ROADMAP.md.
+
 Welcome, and thank you for considering a contribution to BoggersTheAI — a living, graph-wave reasoning system built on the **TS-OS** (Thinking System / Operating System) philosophy.
 
 TS-OS treats every piece of knowledge as a node in a constraint graph. Change propagates through waves of activation; truth emerges from the most stable configuration the constraints allow. Contributions that respect this mental model — protocol-driven, config-driven, wave-aware — merge fastest.
