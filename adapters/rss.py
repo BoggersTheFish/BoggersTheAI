@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from typing import List
 
 from ..core.types import Node
-from .http_client import fetch_url
+from ..shared.http import fetch_url
 
 try:
     from defusedxml import ElementTree as SafeET

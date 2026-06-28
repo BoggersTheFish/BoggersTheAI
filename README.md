@@ -10,11 +10,11 @@ Self-data loop: generate traces from formal tasks → inject verified conclusion
 
 Not a traditional transformer LLM. The intelligence is the TS mechanisms (graph as knowledge, waves for reasoning, verifier for authority, BOGVM for execution). Generator only for fluent output from verified context.
 
-Follows SERIOUS_GPT55_ROADMAP toward GPT-5.5+ level via verifiable long-horizon agency and frontier formal work with receipts. 
+Follows COGNITIVE_PHYSICS_ROADMAP toward GPT-5.5+ level via verifiable long-horizon agency and frontier formal work with receipts. 
 
 Current: Wave 0 foundation complete (unified engine, BOGVM first-class, self-data from real runs, light factual, proof synthesis). Self-data flywheel starting to turn. Factual fast/light; formal produces verifiable traces. 
 
-See [SERIOUS_GPT55_ROADMAP.md](experiments/frontier/SERIOUS_GPT55_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+See [COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 **Website:** [boggersthefish.com](https://www.boggersthefish.com/)
 **GitHub:** [BoggersTheFish/BoggersTheAI](https://github.com/BoggersTheFish/BoggersTheAI)
@@ -85,7 +85,7 @@ Full documentation: [`docs/`](docs/)
 
 See core/ts_engine.py, core/verifier/, core/language/tslc.py, core/intuition/tension_generator.py, experiments/frontier/ for traces and demos.
 
-**Progress**: Wave 0 foundation (unified engine, BOGVM, VerifierOS, TSLC, self-data, scale, hard tasks). Light factual. Self-data flywheel starting. Proof synthesis. See SERIOUS_GPT55_ROADMAP.md for full multi-wave plan to GPT-5.5+ (scale, deeper verifiers, agency, self-improvement). 
+**Progress**: Wave 0 foundation (unified engine, BOGVM, VerifierOS, TSLC, self-data, scale, hard tasks). Light factual. Self-data flywheel starting. Proof synthesis. See COGNITIVE_PHYSICS_ROADMAP.md for full multi-wave plan to GPT-5.5+ (scale, deeper verifiers, agency, self-improvement). 
 
 Not frontier yet — graph modest (~35 nodes), model 117M, synthesis context-driven. But verifiable formal + feedback loop active. Factual practical. Formal produces real traces. 
 
@@ -136,7 +136,7 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 - Strongest-node caching with invalidation on mutation
 - Snapshot versioning: save, list, restore, delete full graph states (max 50 with auto-pruning)
 - GraphML and JSON-LD export for interoperability
-- **Pure graph helpers** (`core/graph/operations.py`): neighborhood BFS (`get_subgraph_around`), bulk insert (`batch_add_nodes`), connected components, activation-range filtering — usable without loading the full runtime
+- **Pure graph helpers** (`core/graph/utils.py`): neighborhood BFS (`get_subgraph_around`), bulk insert (`batch_add_nodes`), connected components, activation-range filtering — usable without loading the full runtime
 
 ### Query Pipeline
 - Topic extraction (regex tokenizer, stopword removal)
@@ -188,7 +188,7 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 - AdapterRegistry with TTL caching and rate limiting (cache access is thread-safe)
 - ToolRegistry with rule-based routing
 - ContextMind: named subgraph views with per-context temperament
-- **HTTP resilience** (`adapters/http_client.py`): `fetch_url` / `fetch_json` with exponential backoff — used by Wikipedia, RSS, Hacker News
+- **HTTP resilience** (`shared/http.py`): `fetch_url` / `fetch_json` with exponential backoff — used by Wikipedia, RSS, Hacker News
 - **Path sandbox** (`core/path_sandbox.py`): `validate_path` for markdown/vault/file reads under a fixed base directory
 
 ### Runtime composition (v0.5.0)
@@ -1062,12 +1062,12 @@ BoggersTheAI/
 │   │   ├── export.py                  # GraphML and JSON-LD export
 │   │   ├── pruning.py                 # PruningPolicy (min_stability, max_age, max_nodes)
 │   │   ├── wave_runner.py             # WaveCycleRunner — wave thread + step sequence
-│   │   ├── operations.py              # Pure graph helpers (subgraph, batch, components)
+│   │   ├── utils.py                   # Pure graph helpers (subgraph, batch, components)
+│   │   ├── wave.py                    # Simplified wave API (propagate/relax/break/evolve)
 │   │   └── migrate.py                 # JSON schema migration
 │   ├── path_sandbox.py                # validate_path — safe paths under a base directory
 │   ├── query_processor.py             # Full query pipeline orchestration
 │   ├── router.py                      # QueryRouter + ModeManager coordination
-│   ├── wave.py                        # Simplified wave API (propagate/relax/break/evolve)
 │   ├── types.py                       # Node, Edge, Tension dataclasses
 │   ├── local_llm.py                   # Ollama wrapper (synthesis, embedding, health, hot-swap)
 │   ├── fine_tuner.py                  # Unsloth QLoRA training pipeline
@@ -1089,13 +1089,14 @@ BoggersTheAI/
 │
 ├── adapters/                          # External data ingestion
 │   ├── base.py                        # AdapterRegistry (TTL cache, rate limiting, lock)
-│   ├── http_client.py                 # fetch_url / fetch_json + retries
 │   ├── wikipedia.py                   # Wikipedia API adapter
 │   ├── rss.py                         # RSS feed adapter (HTTPS-only)
 │   ├── hacker_news.py                 # Hacker News Algolia API adapter
 │   ├── markdown.py                    # Markdown file ingestion adapter
-│   ├── vault.py                       # Vault directory markdown adapter
 │   └── x_api.py                       # X/Twitter API adapter (requires bearer token)
+│
+├── shared/                            # Shared utilities
+│   └── http.py                        # fetch_url / fetch_json + retries
 │
 ├── entities/                          # Higher-level engines
 │   ├── consolidation.py               # ConsolidationEngine (merge similar nodes)
@@ -1119,9 +1120,7 @@ BoggersTheAI/
 │   ├── base.py                        # Re-exports protocols from core/protocols.py
 │   ├── voice_in.py                    # VoiceInAdapter (faster-whisper)
 │   ├── voice_out.py                   # VoiceOutAdapter (piper-tts)
-│   ├── image_in.py                    # ImageInAdapter (BLIP2)
-│   ├── whisper.py                     # Whisper model wrapper
-│   └── clip_embed.py                  # CLIP embedding utilities
+│   └── image_in.py                    # ImageInAdapter (BLIP2)
 │
 ├── interface/                         # User-facing entry points
 │   ├── runtime.py                     # BoggersRuntime (composition root + mixins)
@@ -1202,7 +1201,7 @@ pytest --cov=BoggersTheAI --cov-fail-under=60
 
 - **200+ tests** across many modules (graph, wave, http client, rules engine, sqlite, config loader, plugins, tools, adapters, dashboard, concurrency, etc.)
 - **~70%** line coverage typical locally; CI fails if total coverage drops below **60%**
-- Tests cover: graph operations, wave runner, synthesis, routing, runtime lifecycle, tool execution (including web search / datetime / unit convert), adapter behavior (mocked HTTP via `http_client`), multimodal fallbacks, concurrency, dashboard endpoints, config validation, protocols, events, metrics, health checks
+- Tests cover: graph operations, wave runner, synthesis, routing, runtime lifecycle, tool execution (including web search / datetime / unit convert), adapter behavior (mocked HTTP via `shared.http`), multimodal fallbacks, concurrency, dashboard endpoints, config validation, protocols, events, metrics, health checks
 
 ### CI Pipeline
 

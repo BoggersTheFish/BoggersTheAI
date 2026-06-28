@@ -14,13 +14,12 @@ from BoggersTheAI.adapters.base import AdapterRegistry  # noqa: E402
 from BoggersTheAI.adapters.hacker_news import HackerNewsAdapter  # noqa: E402
 from BoggersTheAI.adapters.markdown import MarkdownAdapter  # noqa: E402
 from BoggersTheAI.adapters.rss import RSSAdapter  # noqa: E402
-from BoggersTheAI.adapters.vault import VaultAdapter  # noqa: E402
 from BoggersTheAI.adapters.wikipedia import WikipediaAdapter  # noqa: E402
 from BoggersTheAI.adapters.x_api import XApiAdapter  # noqa: E402
 
 
 class TestWikipediaAdapter:
-    @patch("BoggersTheAI.adapters.http_client.urlopen")
+    @patch("BoggersTheAI.shared.http.urlopen")
     def test_success(self, mock_urlopen):
         body = json.dumps(
             {
@@ -45,7 +44,7 @@ class TestWikipediaAdapter:
         assert "python" in nodes[0].topics[0].lower() or "wiki" in nodes[0].id
 
     @patch(
-        "BoggersTheAI.adapters.http_client.urlopen",
+        "BoggersTheAI.shared.http.urlopen",
         side_effect=Exception("timeout"),
     )
     def test_timeout(self, mock_urlopen):
@@ -61,7 +60,7 @@ class TestRSSAdapter:
         assert nodes == []
 
     @patch(
-        "BoggersTheAI.adapters.http_client.urlopen",
+        "BoggersTheAI.shared.http.urlopen",
         side_effect=Exception("net error"),
     )
     def test_network_error(self, mock_urlopen):
@@ -71,7 +70,7 @@ class TestRSSAdapter:
 
 
 class TestHackerNewsAdapter:
-    @patch("BoggersTheAI.adapters.http_client.urlopen")
+    @patch("BoggersTheAI.shared.http.urlopen")
     def test_success(self, mock_urlopen):
         body = json.dumps(
             {
@@ -118,13 +117,6 @@ class TestMarkdownAdapter:
         assert nodes == []
 
 
-class TestVaultAdapter:
-    def test_delegates_to_markdown(self, tmp_path):
-        md_file = tmp_path / "note.md"
-        md_file.write_text("# Note\nSome content", encoding="utf-8")
-        adapter = VaultAdapter({"runtime": {"insight_vault_path": str(tmp_path)}})
-        nodes = adapter.ingest("note.md")
-        assert isinstance(nodes, list)
 
 
 class TestAdapterRegistryAdvanced:

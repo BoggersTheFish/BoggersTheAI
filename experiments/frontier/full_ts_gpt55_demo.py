@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FULL TS GPT-5.5 Level Demo - Implementing the entire SERIOUS_GPT55_ROADMAP
+FULL TS GPT-5.5 Level Demo - Implementing the entire COGNITIVE_PHYSICS_ROADMAP
 
 This demonstrates the complete TS Engine:
 - Wave 0: Unified surface, BOGVM in graph, Verifier OS, Language, Self-data, Scale, Receipts
@@ -31,7 +31,7 @@ def main():
     print("=" * 80)
     print("FULL TS GPT-5.5 LEVEL DEMO")
     print("Deterministic | Glass-box | Verifier-first | Wave Physics | BOGVM Execution")
-    print("Following SERIOUS_GPT55_ROADMAP to completion")
+    print("Following COGNITIVE_PHYSICS_ROADMAP to completion")
     print("=" * 80)
 
     engine = TSEngine(auto_load=False)

@@ -5,7 +5,7 @@ Generates traces using the *unified* TSEngine (graph + waves + verifier + BOGVM 
 Filters aggressively to traces that have at least one verifier_passed or successful BOGVM exec.
 These become training signal for Tension proposers (curriculum on verified success).
 
-This closes the self-improvement loop per SERIOUS_GPT55_ROADMAP.
+This closes the self-improvement loop per COGNITIVE_PHYSICS_ROADMAP.
 """
 
 import sys

@@ -508,6 +508,8 @@ class UniversalLivingGraph:
                 self.propagate()
                 self.relax()
 
+            config_max_spawn = int(self._wave_settings.get("emergence_max_spawn", 5))
+            max_spawn = max(2, min(config_max_spawn, len(graph_nodes) // 200))
             result = run_rules_cycle(
                 graph_nodes,
                 adjacency,
@@ -517,6 +519,7 @@ class UniversalLivingGraph:
                 semantic_weight=float(self._wave_settings.get("semantic_weight", 0.3)),
                 evolve_fn=self._evolve_fn,
                 prefer_graph_native=self._prefer_graph_native,
+                max_spawn=max_spawn,
             )
             self._apply_graph_node_updates(graph_nodes)
             self._adjacency = adjacency

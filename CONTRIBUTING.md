@@ -1,6 +1,6 @@
 # Contributing to BoggersTheAI
 
-**Current focus (see README/ROADMAP)**: TS Engine (core/ts_engine etc.) for verifiable reasoning + self-data. Update docs, add tests for paths (fast factual, formal traces, injection), probes. See SERIOUS_GPT55_ROADMAP.md.
+**Current focus (see README/ROADMAP)**: TS Engine (core/ts_engine etc.) for verifiable reasoning + self-data. Update docs, add tests for paths (fast factual, formal traces, injection), probes. See COGNITIVE_PHYSICS_ROADMAP.md.
 
 Welcome, and thank you for considering a contribution to BoggersTheAI — a living, graph-wave reasoning system built on the **TS-OS** (Thinking System / Operating System) philosophy.
 
@@ -92,10 +92,11 @@ BoggersTheAI/
 │   │   ├── snapshots.py               # Graph versioning + rollback
 │   │   ├── export.py                  # GraphML / JSON-LD export
 │   │   ├── pruning.py                 # Configurable pruning policies
+│   │   ├── utils.py                   # Pure BFS / batch / components / range helpers
+│   │   ├── wave.py                    # Simplified wave API + background thread
 │   │   └── migrate.py                 # Schema migration helpers
 │   ├── query_processor.py       # Query pipeline orchestrator
 │   ├── router.py                # Query routing + hypothesis queue
-│   ├── wave.py                  # Simplified wave API + background thread
 │   ├── types.py                 # Node, Edge, Tension dataclasses
 │   ├── local_llm.py             # Ollama / Unsloth LLM wrapper
 │   ├── fine_tuner.py            # QLoRA fine-tuning pipeline
@@ -120,8 +121,9 @@ BoggersTheAI/
 │   ├── rss.py                   # RSS/Atom feeds (HTTPS-only enforcement)
 │   ├── hacker_news.py           # Hacker News Algolia API
 │   ├── markdown.py              # Local markdown file ingestion
-│   ├── vault.py                 # Knowledge vault (delegates to markdown)
 │   └── x_api.py                 # X (Twitter) API adapter
+├── shared/                      # Shared helper utilities
+│   └── http.py                  # fetch_url / fetch_json with exponential backoff
 ├── tools/                       # External tool execution
 │   ├── base.py                  # ToolRegistry
 │   ├── executor.py              # Tool dispatch + metrics integration
@@ -139,9 +141,7 @@ BoggersTheAI/
 │   ├── base.py                  # Protocol re-exports (backward compatible)
 │   ├── voice_in.py              # faster-whisper transcription
 │   ├── voice_out.py             # piper-tts synthesis
-│   ├── image_in.py              # BLIP2 captioning
-│   ├── whisper.py               # Whisper backend alias
-│   └── clip_embed.py            # CLIP backend alias
+│   └── image_in.py              # BLIP2 captioning
 ├── interface/                   # User-facing interfaces
 │   ├── runtime.py               # BoggersRuntime — composition root
 │   ├── chat.py                  # CLI chat interface + `health` command

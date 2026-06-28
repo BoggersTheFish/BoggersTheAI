@@ -25,7 +25,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Demos: gpt55_progress_demo lightened (fewer traces/scale, timings, flush, fixed dead code). Probes show factual fast, formal traces, injection.
 - Preload: expanded ~ +20 facts (more math/science). Graph ~35 nodes post-injection.
 - Generator: lazy, setter for robustness. Context builds prefer math/self-data.
-- Roadmap progress: Wave 0 foundation (unified, BOGVM first-class, VerifierOS, TSLC, self-data from real runs, scale probe, hard tasks). Early Wave 1 (proof prompts, injection, deep sim hooks). See SERIOUS_GPT55_ROADMAP.md.
+- Roadmap progress: Wave 0 foundation (unified, BOGVM first-class, VerifierOS, TSLC, self-data from real runs, scale probe, hard tasks). Early Wave 1 (proof prompts, injection, deep sim hooks). See COGNITIVE_PHYSICS_ROADMAP.md.
 
 See README.md (updated), ARCHITECTURE.md, experiments/frontier/ (roadmaps/plans updated with status). Factual now practical/light. Formal produces verifiable self-data traces. Loop feeds back (injected nodes surface in prove synthesis). Not frontier/full LLM yet (graph modest, model 117M, synthesis context-driven) — but TS mechanisms + feedback active toward GPT-5.5+ per roadmap.
 
@@ -42,21 +42,21 @@ ARCHITECTURE.md for full detail.
 - **`core/graph/wave_runner.py`** — `WaveCycleRunner` + `WaveConfig`; background wave thread and cycle step order live here; `UniversalLivingGraph` delegates to it.
 - **`interface/autonomous_loop.py`** / **`interface/self_improvement.py`** — `AutonomousLoopMixin` and `SelfImprovementMixin`; `BoggersRuntime` composes both.
 - **`core/path_sandbox.py`** — `validate_path` for safe reads under a base directory.
-- **`adapters/http_client.py`** — `fetch_url` / `fetch_json` with exponential backoff and retries; Wikipedia, RSS, Hacker News use it.
-- **`core/graph/operations.py`** — Pure helpers: `get_subgraph_around`, `batch_add_nodes`, `find_connected_components`, `get_nodes_by_activation_range`.
+- **`shared/http.py`** — `fetch_url` / `fetch_json` with exponential backoff and retries; Wikipedia, RSS, Hacker News use it.
+- **`core/graph/utils.py`** — Pure helpers: `get_subgraph_around`, `batch_add_nodes`, `find_connected_components`, `get_nodes_by_activation_range`.
 - **Tools:** `web_search.py` (DuckDuckGo instant answers), `datetime_tool.py`, `unit_convert.py`; registered in `ToolExecutor.with_defaults` and routed in `ToolRouter`.
 - **Dashboard:** `get_runtime()` lazy singleton; **`GET /health/live`**, **`GET /health/ready`**.
 - **`Makefile`**, **`.pre-commit-config.yaml`**, **`[tool.pytest.ini_options]`** in `pyproject.toml`.
 - **`[project.optional-dependencies].security`** — `defusedxml` for safer RSS XML when installed.
 - **Config:** `inference.ollama.base_url`, `os_loop.consolidation_on_shutdown`, strict validation via **`BOGGERS_CONFIG_STRICT`** / `validate_config(..., strict=True)`.
-- **Tests:** New modules covered (`test_config_loader`, `test_plugins`, `test_sqlite_backend`, `test_rules_engine`, `test_inference_router`, `test_path_sandbox`, `test_wave_runner`, `test_http_client`, `test_graph_operations`, `test_new_tools`); **200+** tests total.
+- **Tests:** New modules covered (`test_config_loader`, `test_plugins`, `test_sqlite_backend`, `test_rules_engine`, `test_inference_router`, `test_path_sandbox`, `test_wave_runner`, `test_http`, `test_graph_utils`, `test_new_tools`); **200+** tests total.
 
 ### Changed
 - **ConsolidationEngine** — topic-bucketed candidate pairs + Jaccard early exit (was full O(n²) over all pairs).
 - **`get_activated_subgraph`** — `heapq.nlargest` for global fill instead of full sort.
 - **AdapterRegistry** — thread-safe cache under `Lock`.
 - **`_check_guardrails`** — reads node count and cycle counters under graph `RLock`.
-- **CI:** pip cache, **`--cov-fail-under=60`**, **mypy blocking**, adapter tests mock **`http_client.urlopen`**.
+- **CI:** pip cache, **`--cov-fail-under=60`**, **mypy blocking**, adapter tests mock **`shared.http.urlopen`**.
 - **Dashboard:** default bind **`127.0.0.1`**, startup warning if no **`BOGGERS_DASHBOARD_TOKEN`**.
 
 ### Fixed

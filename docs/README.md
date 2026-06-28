@@ -4,7 +4,7 @@
 
 Fast factual paths (light: 2 waves, 0 BOGVM, direct graph). Full formal pipeline produces BOGVM traces for self-data. Self-data injection + math/proof boosts + proof prompts so self-data surfaces in reasoning. 
 
-See root README.md, SERIOUS_GPT55_ROADMAP.md (progress), ARCHITECTURE.md, CHANGELOG.md.
+See root README.md, COGNITIVE_PHYSICS_ROADMAP.md (progress), ARCHITECTURE.md, CHANGELOG.md.
 
 **Not full traditional LLM**. TS mechanisms = intelligence (verifiable, receipts, on-device). Generator for fluent output only.
 
@@ -12,7 +12,7 @@ See root README.md, SERIOUS_GPT55_ROADMAP.md (progress), ARCHITECTURE.md, CHANGE
 
 ## Key Docs (updated)
 
-- [SERIOUS_GPT55_ROADMAP](../experiments/frontier/SERIOUS_GPT55_ROADMAP.md) — plan + status (Wave 0 done, loop active)
+- [COGNITIVE_PHYSICS_ROADMAP](../experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) — plan + status (Wave 0 done, loop active)
 - [WAVE0_SPRINT_PLAN](../experiments/frontier/WAVE0_SPRINT_PLAN.md)
 - [ARCHITECTURE](../ARCHITECTURE.md)
 - [CHANGELOG](../CHANGELOG.md)

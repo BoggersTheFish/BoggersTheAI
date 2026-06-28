@@ -6,7 +6,7 @@ from unittest.mock import patch
 from urllib.error import URLError
 
 import pytest
-from BoggersTheAI.adapters.http_client import (
+from BoggersTheAI.shared.http import (
     fetch_json,
     fetch_url,
 )
@@ -25,7 +25,7 @@ class _FakeResponse(io.BytesIO):
 _URL = "https://example.com/data"
 
 
-@patch("BoggersTheAI.adapters.http_client.urlopen")
+@patch("BoggersTheAI.shared.http.urlopen")
 def test_fetch_url_success(mock_urlopen):
     mock_urlopen.return_value = _FakeResponse(b"hello")
     result = fetch_url(_URL)
@@ -33,7 +33,7 @@ def test_fetch_url_success(mock_urlopen):
     mock_urlopen.assert_called_once()
 
 
-@patch("BoggersTheAI.adapters.http_client.urlopen")
+@patch("BoggersTheAI.shared.http.urlopen")
 def test_fetch_url_retries_on_failure(
     mock_urlopen,
 ):
@@ -46,7 +46,7 @@ def test_fetch_url_retries_on_failure(
     assert mock_urlopen.call_count == 2
 
 
-@patch("BoggersTheAI.adapters.http_client.urlopen")
+@patch("BoggersTheAI.shared.http.urlopen")
 def test_fetch_url_raises_after_exhausted_retries(
     mock_urlopen,
 ):
@@ -56,8 +56,8 @@ def test_fetch_url_raises_after_exhausted_retries(
     assert mock_urlopen.call_count == 2
 
 
-@patch("BoggersTheAI.adapters.http_client.time.sleep")
-@patch("BoggersTheAI.adapters.http_client.urlopen")
+@patch("BoggersTheAI.shared.http.time.sleep")
+@patch("BoggersTheAI.shared.http.urlopen")
 def test_fetch_url_backoff_timing(mock_urlopen, mock_sleep):
     mock_urlopen.side_effect = [
         URLError("e1"),
@@ -72,7 +72,7 @@ def test_fetch_url_backoff_timing(mock_urlopen, mock_sleep):
     assert delays[1] == pytest.approx(2.0)
 
 
-@patch("BoggersTheAI.adapters.http_client.urlopen")
+@patch("BoggersTheAI.shared.http.urlopen")
 def test_fetch_url_custom_headers(mock_urlopen):
     mock_urlopen.return_value = _FakeResponse(b"body")
     fetch_url(_URL, headers={"X-Test": "value"})
@@ -80,7 +80,7 @@ def test_fetch_url_custom_headers(mock_urlopen):
     assert req.get_header("X-test") == "value"
 
 
-@patch("BoggersTheAI.adapters.http_client.urlopen")
+@patch("BoggersTheAI.shared.http.urlopen")
 def test_fetch_json_parses(mock_urlopen):
     payload = {"key": [1, 2, 3]}
     mock_urlopen.return_value = _FakeResponse(json.dumps(payload).encode())

@@ -100,13 +100,14 @@ def spawn_emergence(
     edges: List[Tuple[str, str, float]],
     evolve_fn: Optional[Callable[[str, List[str], str], str]] = None,
     prefer_graph_native: bool = False,  # New Phase 0 flag
+    max_spawn: int = EMERGENCE_MAX_SPAWN,
 ) -> List[str]:
     created: List[str] = []
     if not tensions:
         return created
 
     sorted_tensions = sorted(tensions.items(), key=lambda item: item[1], reverse=True)
-    for node_id, tension in sorted_tensions[:EMERGENCE_MAX_SPAWN]:
+    for node_id, tension in sorted_tensions[:max_spawn]:
         emergent_id = f"emergent:{node_id}"
         if emergent_id in nodes:
             continue
@@ -266,6 +267,7 @@ def run_rules_cycle(
     semantic_weight: float = 0.3,
     evolve_fn: Optional[Callable[[str, List[str], str], str]] = None,
     prefer_graph_native: bool = False,
+    max_spawn: int = EMERGENCE_MAX_SPAWN,
 ) -> RulesEngineCycleResult:
     strongest = elect_strongest(nodes)
     propagate(
@@ -289,7 +291,14 @@ def run_rules_cycle(
         resolved += 1
 
     tensions = detect_tension(nodes)
-    emergent = spawn_emergence(nodes, tensions, edges, evolve_fn=evolve_fn)
+    emergent = spawn_emergence(
+        nodes,
+        tensions,
+        edges,
+        evolve_fn=evolve_fn,
+        prefer_graph_native=prefer_graph_native,
+        max_spawn=max_spawn,
+    )
     strongest_id = strongest.id if strongest else None
     return RulesEngineCycleResult(
         strongest_node_id=strongest_id,

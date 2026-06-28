@@ -147,7 +147,7 @@ class QueryProcessor:
     def _process_query_inner(self, query: str) -> QueryResponse:
         topics = self._extract_topics(query)
         context = self._retrieve_context(topics)
-        sufficiency = self._score_sufficiency(context)
+        sufficiency = self._score_sufficiency(context, query)
         used_research = False
         used_tool = False
         tool_name: str | None = None
@@ -184,7 +184,7 @@ class QueryProcessor:
                         if isinstance(src, str):
                             tracker.link_ingestion(src, node.id)
             context = self._retrieve_context(topics)
-            sufficiency = self._score_sufficiency(context)
+            sufficiency = self._score_sufficiency(context, query)
             used_research = True
 
         tool_node = self._execute_tool_if_needed(query, topics, sufficiency)
@@ -301,36 +301,64 @@ class QueryProcessor:
         return node
 
     def _extract_topics(self, query: str) -> List[str]:
-        tokens = re.findall(r"[A-Za-z0-9_]+", query.lower())
+        try:
+            import spacy
+            if not hasattr(self, "_spacy_nlp"):
+                try:
+                    self._spacy_nlp = spacy.load("en_core_web_sm")
+                except OSError:
+                    self._spacy_nlp = None
+            if self._spacy_nlp is not None:
+                doc = self._spacy_nlp(query)
+                extracted = []
+                for ent in doc.ents:
+                    val = ent.text.lower().strip().replace(" ", "_")
+                    if val:
+                        extracted.append(val)
+                for chunk in doc.noun_chunks:
+                    val = chunk.root.text.lower().strip()
+                    if val and val not in extracted:
+                        extracted.append(val)
+                unique = []
+                seen = set()
+                for t in extracted:
+                    if t not in seen:
+                        seen.add(t)
+                        unique.append(t)
+                if unique:
+                    return unique[:5]
+        except ImportError:
+            pass
+
+        # Smart zero-dependency fallback (bi-gram extractor)
         stop = {
-            "the",
-            "a",
-            "an",
-            "and",
-            "or",
-            "to",
-            "of",
-            "in",
-            "for",
-            "on",
-            "with",
-            "is",
-            "are",
-            "be",
-            "this",
-            "that",
-            "it",
+            "the", "a", "an", "and", "or", "to", "of", "in", "for", "on", "with", "is", "are", "be",
+            "this", "that", "it", "how", "what", "why", "who", "where", "can", "should", "does", "do",
+            "will", "would", "could", "get", "put", "post", "about", "from", "by", "at", "as",
+            "into", "than", "then", "them", "their", "there", "they", "we", "i", "you", "he", "she",
+            "me", "us", "him", "her", "my", "your", "its", "our", "their", "please", "query", "search"
         }
-        filtered = [token for token in tokens if token not in stop and len(token) > 2]
-        unique: List[str] = []
+        tokens = re.findall(r"[A-Za-z0-9_]+", query.lower())
+        filtered = [t for t in tokens if t not in stop and len(t) > 2]
+        
+        bigrams = []
+        for i in range(len(tokens) - 1):
+            t1, t2 = tokens[i], tokens[i+1]
+            if t1 not in stop and t2 not in stop and len(t1) > 2 and len(t2) > 2:
+                bigrams.append(f"{t1}_{t2}")
+                
+        candidates = []
         seen = set()
-        for token in filtered:
-            if token not in seen:
-                seen.add(token)
-                unique.append(token)
-            if len(unique) >= 5:
-                break
-        return unique or ["general"]
+        for bg in bigrams:
+            if bg not in seen:
+                seen.add(bg)
+                candidates.append(bg)
+        for fg in filtered:
+            if fg not in seen:
+                seen.add(fg)
+                candidates.append(fg)
+                
+        return candidates[:5] or ["general"]
 
     def _retrieve_context(self, topics: List[str]) -> List[Node]:
         use_subgraph = bool(self.synthesis_config.get("use_graph_subgraph", True))
@@ -375,14 +403,44 @@ class QueryProcessor:
             attributes=dict(item.get("attributes", {})),
         )
 
-    def _score_sufficiency(self, nodes: List[Node]) -> float:
+    def _score_sufficiency(self, nodes: List[Node], query: str = "") -> float:
         if not nodes:
             return 0.0
-        w_count = float(self.synthesis_config.get("sufficiency_weight_count", 0.4))
+
+        semantic_score = 0.0
+        if query and self.local_llm is not None:
+            try:
+                query_emb = self.local_llm.embed_text(query)
+                if query_emb:
+                    from .embeddings import cosine_similarity
+                    sims = []
+                    for node in nodes:
+                        if node.embedding:
+                            sim = cosine_similarity(query_emb, node.embedding)
+                            sims.append(sim)
+                    if sims:
+                        semantic_score = max(0.0, sum(sims) / len(sims))
+            except Exception as exc:
+                logger.debug("Failed to calculate semantic sufficiency: %s", exc)
+
+        w_count = float(self.synthesis_config.get("sufficiency_weight_count", 0.2))
         w_activation = float(
-            self.synthesis_config.get("sufficiency_weight_activation", 0.4)
+            self.synthesis_config.get("sufficiency_weight_activation", 0.2)
         )
-        w_recency = float(self.synthesis_config.get("sufficiency_weight_recency", 0.2))
+        w_recency = float(self.synthesis_config.get("sufficiency_weight_recency", 0.1))
+        w_semantic = 1.0 - (w_count + w_activation + w_recency)
+        if w_semantic < 0.0:
+            w_semantic = 0.5
+            w_count, w_activation, w_recency = 0.2, 0.2, 0.1
+
+        if semantic_score == 0.0:
+            w_count = float(self.synthesis_config.get("sufficiency_weight_count", 0.4))
+            w_activation = float(
+                self.synthesis_config.get("sufficiency_weight_activation", 0.4)
+            )
+            w_recency = float(self.synthesis_config.get("sufficiency_weight_recency", 0.2))
+            w_semantic = 0.0
+
         count_score = min(len(nodes) / 10.0, 1.0) * w_count
         activation_score = (
             min(sum(node.activation for node in nodes) / max(len(nodes), 1), 1.0)
@@ -393,7 +451,9 @@ class QueryProcessor:
             if nodes
             else 0.0
         )
-        return count_score + activation_score + recency_score
+        semantic_term = semantic_score * w_semantic
+
+        return count_score + activation_score + recency_score + semantic_term
 
     def _synthesize(
         self, query: str, context: List[Node]

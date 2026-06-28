@@ -1,6 +1,6 @@
 # Wave 0 Sprint Plan: Production Foundation + First Non-Toy Verifiable Capability
 
-Goal (per SERIOUS_GPT55_ROADMAP): Turn excellent scattered components into one coherent, usable TS Engine that can do *real* (small but non-toy) frontier-style tasks with full receipts.
+Goal (per COGNITIVE_PHYSICS_ROADMAP): Turn excellent scattered components into one coherent, usable TS Engine that can do *real* (small but non-toy) frontier-style tasks with full receipts.
 
 **Definition of "non-toy" for this sprint gate**:
 - Multi-step formal task that requires language parsing → graph state → wave exploration + tension → verifier gate → BOGVM execution of a plan → receipt that proves the result.
@@ -69,7 +69,7 @@ Goal (per SERIOUS_GPT55_ROADMAP): Turn excellent scattered components into one c
 - Must run on this device without external LLM in the core path.
 - Should feel like "this could actually do useful formal work if we scale it."
 
-**Status (2026-06)**: Mostly complete. Unified engine + BOGVM + VerifierOS + TSLC + self-data skeleton + hard tasks + scale probe + demos (gpt55_progress etc.) running. Factual light/fast (2 waves/0 BOGVM); formal produces real BOGVM traces; self-data injection + math boosts + proof prompts live. Graph ~35 nodes. See SERIOUS_GPT55_ROADMAP.md for details/progress. Probes confirm loop starting.
+**Status (2026-06)**: Mostly complete. Unified engine + BOGVM + VerifierOS + TSLC + self-data skeleton + hard tasks + scale probe + demos (gpt55_progress etc.) running. Factual light/fast (2 waves/0 BOGVM); formal produces real BOGVM traces; self-data injection + math boosts + proof prompts live. Graph ~35 nodes. See COGNITIVE_PHYSICS_ROADMAP.md for details/progress. Probes confirm loop starting.
 
 ## Risks for this sprint
 - Import hell in the monorepo will slow unification — use adapters and thin wrappers aggressively.
@@ -84,6 +84,6 @@ Goal (per SERIOUS_GPT55_ROADMAP): Turn excellent scattered components into one c
 
 ---
 
-After this sprint we re-assess against the full SERIOUS_GPT55_ROADMAP and decide what Wave 1 looks like.
+After this sprint we re-assess against the full COGNITIVE_PHYSICS_ROADMAP and decide what Wave 1 looks like.
 
 Let's execute like it matters.

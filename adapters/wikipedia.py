@@ -6,7 +6,7 @@ from typing import List
 from urllib.parse import urlencode
 
 from ..core.types import Node
-from .http_client import fetch_json
+from ..shared.http import fetch_json
 
 logger = logging.getLogger("boggers.adapters.wikipedia")
 

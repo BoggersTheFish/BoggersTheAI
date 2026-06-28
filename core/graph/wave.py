@@ -4,10 +4,10 @@ from collections import deque
 from dataclasses import dataclass
 from typing import List
 
-from .contradiction import detect_contradictions, resolve_contradiction
-from .graph.rules_engine import detect_tension as rules_detect_tension
-from .graph.universal_living_graph import UniversalLivingGraph
-from .types import Node, Tension
+from ..contradiction import detect_contradictions, resolve_contradiction
+from .rules_engine import detect_tension as rules_detect_tension
+from .universal_living_graph import UniversalLivingGraph
+from ..types import Node, Tension
 
 _wave_history: deque[dict] = deque(maxlen=100)
 
@@ -44,7 +44,7 @@ def propagate(
             topo = node.activation * weight * spread_factor * damping
             sem = 0.0
             if node.embedding and graph.nodes[neighbor_id].embedding:
-                from .embeddings import cosine_similarity
+                from ..embeddings import cosine_similarity
 
                 sim = cosine_similarity(
                     node.embedding, graph.nodes[neighbor_id].embedding
@@ -186,7 +186,7 @@ def run_wave(graph: UniversalLivingGraph) -> WaveResult:
     if strongest:
         strongest.last_wave += 1
 
-    from .graph.wave_propagation import normalise_activations as _norm
+    from .wave_propagation import normalise_activations as _norm
 
     gn = {
         nid: graph._to_graph_node(n)

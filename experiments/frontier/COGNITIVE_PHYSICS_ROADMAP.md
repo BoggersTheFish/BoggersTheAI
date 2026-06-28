@@ -1,4 +1,4 @@
-# SERIOUS GPT-5.5+ ROADMAP — TS Cognitive Physics Engine
+# ROADMAP — TS Cognitive Physics Engine
 
 **Author**: Synthesis for BoggersTheFish  
 **Date**: 2026-06-28  

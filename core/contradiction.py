@@ -29,6 +29,24 @@ _KNOWN_ANTONYMS: Dict[str, Set[str]] = {
 }
 
 
+_nli_pipeline = None
+
+
+def _get_nli_pipeline():
+    global _nli_pipeline
+    if _nli_pipeline is None:
+        try:
+            import transformers
+            # Lightweight zero-shot classifier model for NLI classification
+            _nli_pipeline = transformers.pipeline(
+                "zero-shot-classification",
+                model="cross-encoder/nli-mini-roberta-sentence-transformers"
+            )
+        except Exception:
+            pass
+    return _nli_pipeline
+
+
 def detect_contradictions(
     nodes: Dict[str, object],
     activation_threshold: float = 0.5,
@@ -67,29 +85,76 @@ def detect_contradictions(
                 if len(overlap) < topic_overlap_min:
                     continue
 
-                words_a = set(getattr(a, "content", "").lower().split())
-                words_b = set(getattr(b, "content", "").lower().split())
-                conflict_words: List[str] = []
-                for word in words_a:
-                    antonyms = _KNOWN_ANTONYMS.get(word, set())
-                    if antonyms & words_b:
-                        conflict_words.append(word)
+                content_a = getattr(a, "content", "")
+                content_b = getattr(b, "content", "")
 
-                if conflict_words:
-                    severity = min(
-                        1.0,
-                        (getattr(a, "activation", 0.0) + getattr(b, "activation", 0.0))
-                        * 0.5
-                        * len(conflict_words),
-                    )
+                severity = 0.0
+                reason = ""
+                conflict_found = False
+
+                # 1. Check zero-shot NLI pipeline if available
+                nli_pipe = _get_nli_pipeline()
+                if nli_pipe is not None:
+                    try:
+                        res = nli_pipe(
+                            content_b,
+                            candidate_labels=["contradicts", "agrees", "neutral"],
+                            hypothesis=f"This statement {{}} the statement: '{content_a}'"
+                        )
+                        labels = res.get("labels", [])
+                        scores = res.get("scores", [])
+                        if labels and labels[0] == "contradicts":
+                            severity = scores[0]
+                            reason = f"NLI contradiction on shared topics {overlap} (score: {severity:.2f})"
+                            conflict_found = True
+                    except Exception as exc:
+                        logger.debug("NLI contradiction check failed: %s", exc)
+
+                # 2. Check Embedding negation/polarity alignment (if embeddings are populated)
+                if not conflict_found and getattr(a, "embedding", None) and getattr(b, "embedding", None):
+                    try:
+                        from .embeddings import cosine_similarity
+                        sim = cosine_similarity(a.embedding, b.embedding)
+                        if sim > 0.85:
+                            # High semantic similarity but opposite polarity/negations
+                            negations = {"not", "never", "no", "cannot", "n't", "fail", "unable", "deny", "refuse"}
+                            words_a = {w.strip(".,?!;:") for w in content_a.lower().split()}
+                            words_b = {w.strip(".,?!;:") for w in content_b.lower().split()}
+                            neg_a = bool(negations & words_a)
+                            neg_b = bool(negations & words_b)
+                            if neg_a != neg_b:
+                                severity = sim * 0.9
+                                reason = f"Semantic polarization contradiction on shared topics {overlap} (embedding similarity: {sim:.2f})"
+                                conflict_found = True
+                    except Exception as exc:
+                        logger.debug("Embedding contradiction check failed: %s", exc)
+
+                # 3. Fallback to lexical antonym matching
+                if not conflict_found:
+                    words_a = set(content_a.lower().split())
+                    words_b = set(content_b.lower().split())
+                    conflict_words: List[str] = []
+                    for word in words_a:
+                        antonyms = _KNOWN_ANTONYMS.get(word, set())
+                        if antonyms & words_b:
+                            conflict_words.append(word)
+
+                    if conflict_words:
+                        severity = min(
+                            1.0,
+                            (getattr(a, "activation", 0.0) + getattr(b, "activation", 0.0))
+                            * 0.5
+                            * len(conflict_words),
+                        )
+                        reason = f"antonym conflict on shared topics {overlap}: {conflict_words}"
+                        conflict_found = True
+
+                if conflict_found:
                     contradictions.append(
                         Contradiction(
                             node_a=aid,
                             node_b=bid,
-                            reason=(
-                                f"antonym conflict on shared topics {overlap}: "
-                                f"{conflict_words}"
-                            ),
+                            reason=reason,
                             severity=severity,
                         )
                     )
@@ -98,7 +163,7 @@ def detect_contradictions(
                         aid,
                         bid,
                         severity,
-                        conflict_words,
+                        reason,
                     )
 
     return contradictions

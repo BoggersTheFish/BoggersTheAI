@@ -67,6 +67,10 @@ class UnslothFineTuner:
                 "adapter_path": str(self.adapter_save_path),
             }
         if self.config.safety_dry_run:
+            logger.warning(
+                "Fine-tuning triggered but dry-run mode is enabled (safety_dry_run=True). Weights will NOT be updated. "
+                "Set safety_dry_run=false in config to run actual training."
+            )
             return {
                 "success": False,
                 "skipped": True,

@@ -85,6 +85,7 @@ packages = [
   "BoggersTheAI.mind",
   "BoggersTheAI.multimodal",
   "BoggersTheAI.tools",
+  "BoggersTheAI.shared",
 ]
 
 [tool.setuptools.package-data]

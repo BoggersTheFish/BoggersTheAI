@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
-from BoggersTheAI.core.wave import get_wave_history, run_wave
+from BoggersTheAI.core.graph.wave import get_wave_history, run_wave
 
 
 def main() -> None:

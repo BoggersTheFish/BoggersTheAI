@@ -10,7 +10,7 @@ from .graph.universal_living_graph import UniversalLivingGraph
 from .mode_manager import ModeManager
 from .protocols import ImageInProtocol, VoiceInProtocol
 from .query_processor import QueryProcessor, QueryResponse
-from .wave import run_wave
+from .graph.wave import run_wave
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ class RouterConfig:
     default_adapter: str = "wikipedia"
     adapter_sources: Dict[str, List[str]] = field(default_factory=dict)
     max_hypotheses_per_cycle: int = 2
+    user_request_timeout: float = 30.0
 
 
 class RegistryIngestAdapter:
@@ -48,43 +49,26 @@ class RegistryIngestAdapter:
         self.adapter_sources = adapter_sources or {}
         self.default_adapter = default_adapter
 
-    def ingest(self, topic: str):
-        names = self.registry.names()
-        if not names:
-            return []
-
-        nodes = []
-        # If explicit sources are configured, ingest from each source for each adapter.
-        for name in names:
-            sources = self.adapter_sources.get(name, [])
-            if sources:
-                for source in sources:
-                    try:
-                        batch = self.registry.ingest(name, source)
-                        for n in batch:
-                            n.attributes.setdefault("ingest_source", name)
-                        nodes.extend(batch)
-                    except Exception:
-                        continue
-            else:
-                try:
-                    batch = self.registry.ingest(name, topic)
-                    for n in batch:
-                        n.attributes.setdefault("ingest_source", name)
-                    nodes.extend(batch)
-                except Exception:
-                    continue
-        if nodes:
-            return nodes
-
-        # Fallback to a single adapter against the topic.
-        try:
-            return self.registry.ingest(self.default_adapter, topic)
-        except Exception:
-            return []
+    def ingest(self, topic: str) -> List[object]:
+        from ..core.types import Node
+        sources = self.adapter_sources.get(topic, [self.default_adapter])
+        nodes: List[object] = []
+        for name in sources:
+            try:
+                res = self.registry.ingest(name, topic)
+                if isinstance(res, list):
+                    nodes.extend(res)
+            except Exception as exc:
+                logger.warning("Adapter %s failed to ingest %s: %s", name, topic, exc)
+        return nodes
 
 
 class QueryRouter:
+    """
+    Routes query request text to search, tools, or local LLM/consolidator.
+    Pauses autonomous loops when user query runs.
+    """
+
     def __init__(
         self,
         graph: UniversalLivingGraph,
@@ -100,7 +84,8 @@ class QueryRouter:
         self._queue_lock = threading.Lock()
 
     def process_text(self, query: str) -> QueryResponse:
-        if not self.mode_manager.request_user_mode():
+        timeout = getattr(self.config, "user_request_timeout", 30.0)
+        if not self.mode_manager.request_user_mode(timeout=timeout):
             logger.warning("request_user_mode timed out; autonomous cycle still active")
             return QueryResponse(
                 query=query,

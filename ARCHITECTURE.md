@@ -4,7 +4,7 @@
 > **Canonical source**: `BoggersTheAI/ARCHITECTURE.md`
 > **Focus**: Verifiable reasoning engine (graph + waves + verifier + BOGVM) + TensionLM synthesis from verified state. Not full traditional LLM.
 
-See README.md and experiments/frontier/SERIOUS_GPT55_ROADMAP.md for status. Current: light factual paths, full formal pipeline producing BOGVM traces, self-data generation + injection, proof prompts, math boosts. Graph ~35 nodes. Factual fast (2 waves, 0 BOGVM). Formal generates real self-data. Loop closing.
+See README.md and experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md for status. Current: light factual paths, full formal pipeline producing BOGVM traces, self-data generation + injection, proof prompts, math boosts. Graph ~35 nodes. Factual fast (2 waves, 0 BOGVM). Formal generates real self-data. Loop closing.
 
 ---
 
@@ -54,12 +54,12 @@ BoggersTheAI/
 │   │   ├── snapshots.py                # Timestamped full-graph snapshots
 │   │   ├── export.py                   # GraphML + JSON-LD export
 │   │   ├── pruning.py                  # Configurable pruning policies
-│   │   ├── operations.py               # Pure BFS / batch / components / range helpers
+│   │   ├── utils.py                    # Pure BFS / batch / components / range helpers
+│   │   ├── wave.py                     # Simplified wave API (propagate/relax/break/evolve)
 │   │   └── migrate.py                  # Forward-compatible schema migration
 │   ├── path_sandbox.py          # validate_path — paths confined to base directory
 │   ├── query_processor.py      # Query pipeline orchestrator
 │   ├── router.py               # Mode-aware query routing + hypothesis queue
-│   ├── wave.py                 # Simplified wave API (propagate/relax/break/evolve)
 │   ├── types.py                # Node, Edge, Tension dataclasses
 │   ├── local_llm.py            # Ollama / Unsloth LLM wrapper
 │   ├── fine_tuner.py           # QLoRA fine-tuning pipeline
@@ -85,7 +85,6 @@ BoggersTheAI/
 │   ├── rss.py                  # RSS/Atom feeds (HTTPS-only)
 │   ├── hacker_news.py          # Hacker News Algolia API
 │   ├── markdown.py             # Local markdown file ingestion
-│   ├── vault.py                # Knowledge vault (delegates to markdown)
 │   └── x_api.py                # X (Twitter) API v2
 ├── tools/                      # External tool execution
 │   ├── base.py                 # ToolRegistry + ToolProtocol
@@ -107,9 +106,7 @@ BoggersTheAI/
 │   ├── base.py                 # Protocol re-exports
 │   ├── voice_in.py             # faster-whisper transcription
 │   ├── voice_out.py            # piper-tts synthesis
-│   ├── image_in.py             # BLIP2 image captioning
-│   ├── whisper.py              # Whisper backend alias
-│   └── clip_embed.py           # CLIP backend alias
+│   └── image_in.py             # BLIP2 image captioning
 ├── interface/                  # User-facing entry points
 │   ├── runtime.py              # BoggersRuntime — composition root (+ mixins)
 │   ├── autonomous_loop.py      # AutonomousLoopMixin — OS loop, nightly, exploration
@@ -1332,16 +1329,7 @@ Caching: Results are cached by `(adapter_name, source)` key for `_CACHE_TTL` sec
    - `topics`: extracted from header text
    - `attributes`: `{"source": "markdown", "file": "..."}`
 
----
 
-### vault.py — `VaultAdapter`
-
-| Property | Value |
-|----------|-------|
-| `poll_interval` | `300` (5 min) |
-| **Delegates to** | `MarkdownAdapter` |
-
-Thin wrapper around `MarkdownAdapter` that scans the vault directory (configured via `runtime.insight_vault_path`) for markdown files.
 
 ---
 
@@ -1718,15 +1706,10 @@ Dispatches to backend. `blip2`: loads image from bytes, runs through BLIP2 model
 
 ---
 
-### whisper.py — `WhisperAdapter`
+### __init__.py — `WhisperAdapter` and `ClipCaptionAdapter`
 
-Subclass of `VoiceInAdapter` that forces `backend="faster-whisper"`. Convenience alias.
-
----
-
-### clip_embed.py — `ClipCaptionAdapter`
-
-Subclass of `ImageInAdapter` that forces `backend="clip"`. Currently falls back to placeholder (no real CLIP implementation). Reserved for future CLIP-based image embedding.
+- `WhisperAdapter`: Subclass of `VoiceInAdapter` that forces `backend="faster-whisper"`. Convenience alias.
+- `ClipCaptionAdapter`: Subclass of `ImageInAdapter` that forces `backend="clip"`. Currently falls back to placeholder (no real CLIP implementation). Reserved for future CLIP-based image embedding.
 
 ---
 

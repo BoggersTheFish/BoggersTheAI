@@ -15,8 +15,8 @@ from typing import Any, Callable
 from ..adapters import (
     AdapterRegistry,
     HackerNewsAdapter,
+    MarkdownAdapter,
     RSSAdapter,
-    VaultAdapter,
     WikipediaAdapter,
     XApiAdapter,
 )
@@ -46,8 +46,8 @@ from ..entities import (
 )
 from ..multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
 from ..tools import ToolExecutor, ToolRouter
-from .autonomous_loop import AutonomousLoopMixin
-from .self_improvement import SelfImprovementMixin
+from .autonomous_loop import AutonomousLoopManager
+from .self_improvement import SelfImprovementManager
 
 logger = logging.getLogger("boggers.runtime")
 
@@ -158,7 +158,7 @@ class RuntimeConfig:
         return getattr(self, key, default)
 
 
-class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
+class BoggersRuntime:
     def __init__(self, config: RuntimeConfig | None = None) -> None:
         self.config = config or RuntimeConfig()
         from ..core.config_loader import load_and_apply
@@ -169,8 +169,6 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
 
         self.graph = UniversalLivingGraph(config=self.config)
         self.graph.load()
-
-        self._warn_self_improvement()
 
         self._setup_embedder()
 
@@ -201,14 +199,14 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
             if adapter_flags.get("hacker_news", True):
                 adapter_registry.register("hacker_news", HackerNewsAdapter())
             if adapter_flags.get("vault", True):
-                adapter_registry.register("vault", VaultAdapter(self.raw_config))
+                adapter_registry.register("vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path)))
             if adapter_flags.get("x_api", False):
                 adapter_registry.register("x_api", XApiAdapter())
         else:
             adapter_registry.register("wikipedia", WikipediaAdapter())
             adapter_registry.register("rss", RSSAdapter())
             adapter_registry.register("hacker_news", HackerNewsAdapter())
-            adapter_registry.register("vault", VaultAdapter(self.raw_config))
+            adapter_registry.register("vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path)))
             adapter_registry.register("x_api", XApiAdapter())
         adapter_plugins.discover_entry_points("boggers.adapters")
         for name in adapter_plugins.names():
@@ -302,23 +300,16 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
                 mc_dir = str(si_mc.get("meta_critique_traces_dir", mc_dir))
         self.meta_critique = MetaCritiqueNode(traces_dir=Path(mc_dir))
         self.fine_tuner = UnslothFineTuner(config=self.config, graph=self.graph)
-        self._fine_cfg = self._resolve_fine_cfg()
-        fine_cfg = self._fine_cfg
-        adapter_save_path = str(
-            fine_cfg.get("adapter_save_path", "models/fine_tuned_adapter")
-        )
-        Path(adapter_save_path).mkdir(parents=True, exist_ok=True)
-        Path("models/backups").mkdir(parents=True, exist_ok=True)
-        self._trace_count_cache: int = 0
-        self._trace_count_cache_time: float = 0.0
-        self.min_traces_for_tune = (
-            int(fine_cfg.get("min_new_traces", 50))
-            if isinstance(fine_cfg, dict)
-            else 50
-        )
-        state = self._get_self_improvement_state()
-        self._last_fine_tune_time = float(state.get("last_fine_tune_time", 0.0))
-        self._last_tuned_trace_count = int(state.get("last_tuned_trace_count", 0))
+        self.self_improvement = SelfImprovementManager(self)
+        self.autonomous_loop = AutonomousLoopManager(self)
+
+        self.self_improvement._warn_self_improvement()
+
+        # backward compatibility aliases
+        self._fine_cfg = self.self_improvement._fine_cfg
+        self.min_traces_for_tune = self.self_improvement.min_traces_for_tune
+        self._last_fine_tune_time = self.self_improvement._last_fine_tune_time
+        self._last_tuned_trace_count = self.self_improvement._last_tuned_trace_count
 
         self._register_meta_critique_wave_bus()
         self._meta_critique_self_ingest_if_enabled()
@@ -340,7 +331,7 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         self.voice_out = VoiceOutAdapter()
         self.image_in = ImageInAdapter()
         if self.config.get("os_loop", {}).get("enabled", True):
-            self._start_os_loop()
+            self.autonomous_loop.start()
         if self.config.get("tui", {}).get("enabled", False):
             self._start_tui_thread()
         atexit.register(self.shutdown)
@@ -646,9 +637,12 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
 
         def _wave_health() -> dict:
             s = self.graph.get_wave_status()
+            interval = float(self.config.get("wave", {}).get("interval_seconds", 30))
+            is_healthy = self.mode_manager.check_wave_health(interval)
             return {
                 "alive": s.get("thread_alive", False),
                 "cycles": s.get("cycle_count", 0),
+                "healthy": is_healthy,
             }
 
         def _llm_health() -> dict:
@@ -666,6 +660,24 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
 
     def run_health_checks(self) -> dict:
         return health_checker.run_all()
+
+    def _start_os_loop(self) -> None:
+        self.autonomous_loop.start()
+
+    def _stop_os_loop(self) -> None:
+        self.autonomous_loop.stop()
+
+    def run_nightly_consolidation(self, force: bool = False) -> None:
+        self.autonomous_loop.run_nightly_consolidation(force=force)
+
+    def build_training_dataset(self) -> dict:
+        return self.self_improvement.build_training_dataset()
+
+    def trigger_self_improvement(self) -> dict:
+        return self.self_improvement.trigger_self_improvement()
+
+    def fine_tune_and_hotswap(self, epochs: int = 1) -> dict:
+        return self.self_improvement.fine_tune_and_hotswap(epochs=epochs)
 
     def _setup_evolve_fn(self) -> None:
         if self.local_llm is not None:

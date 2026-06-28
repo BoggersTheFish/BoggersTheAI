@@ -1,6 +1,6 @@
 from .export import export_graphml, export_json_ld
 from .migrate import migrate_graph_data, migrate_json_file
-from .operations import (
+from .utils import (
     batch_add_nodes,
     find_connected_components,
     get_nodes_by_activation_range,

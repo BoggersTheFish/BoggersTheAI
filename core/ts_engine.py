@@ -9,7 +9,7 @@ This is the core unified surface for the TS (Thinking System) architecture:
 - Proposers from intuition layer (Tension models)
 - Full receipts for everything
 
-Follows the SERIOUS_GPT55_ROADMAP: everything is TS-based, on-device, verifiable.
+Follows the COGNITIVE_PHYSICS_ROADMAP: everything is TS-based, on-device, verifiable.
 
 Usage:
   from core.ts_engine import TSEngine

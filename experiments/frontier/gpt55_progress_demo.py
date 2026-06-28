@@ -14,7 +14,7 @@ Run:
   PYTHONPATH=. python3 experiments/frontier/gpt55_progress_demo.py
 
 This is NOT a full traditional LLM. It is the TS cognitive engine foundation.
-Per SERIOUS_GPT55_ROADMAP, this is the production base for scaling to GPT-5.5+ level verifiable intelligence.
+Per COGNITIVE_PHYSICS_ROADMAP, this is the production base for scaling to GPT-5.5+ level verifiable intelligence.
 """
 
 import hashlib
@@ -125,7 +125,7 @@ def main():
     )
 
     print("\n" + "=" * 80)
-    print("STATUS vs SERIOUS_GPT55_ROADMAP")
+    print("STATUS vs COGNITIVE_PHYSICS_ROADMAP")
     print(
         "- Wave 0: unified engine, BOGVM first-class, VerifierOS, TSLC, hard tasks, receipts, Tension synthesis: ACTIVE"
     )

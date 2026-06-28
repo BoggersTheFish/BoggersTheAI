@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
-from BoggersTheAI.core.wave import run_wave
+from BoggersTheAI.core.graph.wave import run_wave
 
 
 def test_run_wave_returns_result() -> None:

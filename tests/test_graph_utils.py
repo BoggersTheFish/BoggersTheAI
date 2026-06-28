@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from BoggersTheAI.core.graph.operations import (
+from BoggersTheAI.core.graph.utils import (
     batch_add_nodes,
     find_connected_components,
     get_nodes_by_activation_range,

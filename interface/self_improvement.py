@@ -5,31 +5,39 @@ import shutil
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ..core.local_llm import LocalLLM
+
+if TYPE_CHECKING:
+    from .runtime import BoggersRuntime
 
 logger = logging.getLogger("boggers.runtime")
 
 
-class SelfImprovementMixin:
-    """Mixin providing self-improvement, fine-tuning, and quality-gate logic.
+class SelfImprovementManager:
+    """Manages self-improvement, fine-tuning, and quality-gate logic."""
 
-    Expects the consuming class to supply:
-        self.graph, self.config, self.raw_config, self.trace_processor,
-        self.fine_tuner, self.local_llm, self._llm_lock, self._fine_cfg,
-        self._trace_count_cache, self._trace_count_cache_time,
-        self.query_processor, self.min_traces_for_tune,
-        self._last_fine_tune_time, self._last_tuned_trace_count
-    """
+    def __init__(self, runtime: BoggersRuntime) -> None:
+        self.runtime = runtime
+        self._fine_cfg = self._resolve_fine_cfg()
+        self.min_traces_for_tune = int(self._fine_cfg.get("min_new_traces", 50))
+        
+        self._trace_count_cache: int = 0
+        self._trace_count_cache_time: float = 0.0
+
+        state = self._get_self_improvement_state()
+        self._last_fine_tune_time = float(state.get("last_fine_tune_time", 0.0))
+        self._last_tuned_trace_count = int(state.get("last_tuned_trace_count", 0))
 
     def build_training_dataset(self) -> dict:
-        return self.trace_processor.build_dataset()
+        return self.runtime.trace_processor.build_dataset()
 
     def trigger_self_improvement(self) -> dict:
         return self._auto_fine_tune_check(force=True)
 
     def fine_tune_and_hotswap(self, epochs: int = 1) -> dict:
-        stats = self.fine_tuner.fine_tune(epochs=epochs)
+        stats = self.runtime.fine_tuner.fine_tune(epochs=epochs)
         if stats.get("track") == "cpu_distillora":
             stats["hotswapped"] = False
             return stats
@@ -63,10 +71,10 @@ class SelfImprovementMixin:
                 stats["previous_best_val_loss"] = float(previous_best_loss)
                 return stats
 
-        adapter_path = str(stats.get("adapter_path", ""))
+        adapter_path = stats.get("adapter_path", "")
 
         if validation_enabled and adapter_path:
-            test_result = self._run_quality_gate(adapter_path, fine_cfg)
+            test_result = self._run_quality_gate(str(adapter_path), fine_cfg)
             if not test_result.get("passed", False):
                 stats["hotswapped"] = False
                 stats["quality_gate"] = test_result
@@ -74,9 +82,9 @@ class SelfImprovementMixin:
 
         backup_path = None
         if (
-            self.local_llm is not None
-            and getattr(self.local_llm, "adapter_path", None)
-            and Path(str(self.local_llm.adapter_path)).exists()
+            self.runtime.local_llm is not None
+            and getattr(self.runtime.local_llm, "adapter_path", None)
+            and Path(str(self.runtime.local_llm.adapter_path)).exists()
         ):
             backup_root = Path("models/backups")
             backup_root.mkdir(parents=True, exist_ok=True)
@@ -86,7 +94,7 @@ class SelfImprovementMixin:
             )
             try:
                 shutil.copytree(
-                    str(self.local_llm.adapter_path),
+                    str(self.runtime.local_llm.adapter_path),
                     str(backup_path),
                     dirs_exist_ok=True,
                 )
@@ -96,17 +104,17 @@ class SelfImprovementMixin:
 
         if auto_hotswap and adapter_path:
             try:
-                if self.local_llm is None:
+                if self.runtime.local_llm is None:
                     ollama_cfg = (
-                        self.config.get("inference", {}).get("ollama", {})
-                        if isinstance(self.config.get("inference", {}), dict)
+                        self.runtime.config.get("inference", {}).get("ollama", {})
+                        if isinstance(self.runtime.config.get("inference", {}), dict)
                         else {}
                     )
-                    self.local_llm = LocalLLM(
+                    self.runtime.local_llm = LocalLLM(
                         model=str(ollama_cfg.get("model", "llama3.2")),
                         temperature=float(ollama_cfg.get("temperature", 0.3)),
                         max_tokens=int(ollama_cfg.get("max_tokens", 512)),
-                        adapter_path=adapter_path,
+                        adapter_path=str(adapter_path),
                         base_model=(
                             str(
                                 fine_cfg.get(
@@ -121,8 +129,8 @@ class SelfImprovementMixin:
                         ),
                     )
                 else:
-                    self.local_llm.load_adapter(
-                        adapter_path,
+                    self.runtime.local_llm.load_adapter(
+                        str(adapter_path),
                         base_model=(
                             str(
                                 fine_cfg.get(
@@ -133,7 +141,7 @@ class SelfImprovementMixin:
                             else "unsloth/llama-3.2-1b-instruct"
                         ),
                     )
-                self.query_processor.local_llm = self.local_llm
+                self.runtime.query_processor.local_llm = self.runtime.local_llm
                 stats["hotswapped"] = True
                 lineage_id = (
                     f"finetune:{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
@@ -142,7 +150,7 @@ class SelfImprovementMixin:
                     f"Fine-tuned adapter from {stats.get('epochs', 1)} epochs, "
                     f"loss={stats.get('loss', 0):.4f}"
                 )
-                self.graph.add_node(
+                self.runtime.graph.add_node(
                     node_id=lineage_id,
                     content=finetune_content,
                     topics=["finetune", "self_improvement", "lineage"],
@@ -151,11 +159,11 @@ class SelfImprovementMixin:
                     base_strength=0.8,
                     attributes={
                         "type": "finetune_lineage",
-                        "adapter_path": adapter_path,
+                        "adapter_path": str(adapter_path),
                         "epochs": stats.get("epochs", 1),
                         "loss": stats.get("loss", 0.0),
                         "val_loss": stats.get("val_loss"),
-                        "wave_cycle": self.graph.get_wave_status().get(
+                        "wave_cycle": self.runtime.graph.get_wave_status().get(
                             "cycle_count", 0
                         ),
                         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -163,10 +171,10 @@ class SelfImprovementMixin:
                 )
             except Exception as exc:
                 rolled_back = False
-                if self.local_llm is not None:
-                    rolled_back = self.local_llm.load_previous_adapter()
-                if not rolled_back and backup_path and self.local_llm is not None:
-                    self.local_llm.load_adapter(
+                if self.runtime.local_llm is not None:
+                    rolled_back = self.runtime.local_llm.load_previous_adapter()
+                if not rolled_back and backup_path and self.runtime.local_llm is not None:
+                    self.runtime.local_llm.load_adapter(
                         str(backup_path),
                         base_model=(
                             str(
@@ -206,12 +214,7 @@ class SelfImprovementMixin:
         return stats
 
     def _auto_fine_tune_check(self, force: bool = False) -> dict:
-        inference_cfg = self.config.get("inference", {})
-        (
-            inference_cfg.get("self_improvement", {})
-            if isinstance(inference_cfg, dict)
-            else {}
-        )
+        inference_cfg = self.runtime.config.get("inference", {})
         fine_cfg = self._fine_cfg
         if not isinstance(fine_cfg, dict) or not bool(fine_cfg.get("enabled", False)):
             return {"triggered": False, "reason": "fine_tuning_disabled"}
@@ -220,7 +223,7 @@ class SelfImprovementMixin:
 
         current_trace_count = self._count_traces()
         new_traces = max(0, current_trace_count - int(self._last_tuned_trace_count))
-        nightly_hour = int(self.config.get("os_loop", {}).get("nightly_hour_utc", 3))
+        nightly_hour = int(self.runtime.config.get("os_loop", {}).get("nightly_hour_utc", 3))
         should_run_nightly = datetime.now(timezone.utc).hour == nightly_hour
         should_run_threshold = new_traces >= int(self.min_traces_for_tune)
 
@@ -241,7 +244,7 @@ class SelfImprovementMixin:
         now = time.time()
         if now - self._trace_count_cache_time < 60.0:
             return self._trace_count_cache
-        inference_cfg = self.config.get("inference", {})
+        inference_cfg = self.runtime.config.get("inference", {})
         self_improvement_cfg = (
             inference_cfg.get("self_improvement", {})
             if isinstance(inference_cfg, dict)
@@ -266,17 +269,17 @@ class SelfImprovementMixin:
         return total
 
     def _get_self_improvement_state(self) -> dict:
-        node = self.graph.get_node("runtime:self_improvement")
+        node = self.runtime.graph.get_node("runtime:self_improvement")
         if node is None:
             return {}
         attrs = getattr(node, "attributes", {})
         return attrs if isinstance(attrs, dict) else {}
 
     def _update_self_improvement_state(self, updates: dict) -> None:
-        node = self.graph.get_node("runtime:self_improvement")
+        node = self.runtime.graph.get_node("runtime:self_improvement")
         if node is None:
-            self._ensure_self_improvement_node()
-            node = self.graph.get_node("runtime:self_improvement")
+            # Try to recreate or get again
+            node = self.runtime.graph.get_node("runtime:self_improvement")
         if node is None:
             return
         attributes = getattr(node, "attributes", {})
@@ -284,14 +287,14 @@ class SelfImprovementMixin:
             attributes = {}
         attributes.update(updates)
         node.attributes = attributes
-        self.graph.save()
+        self.runtime.graph.save()
 
     def _run_quality_gate(self, adapter_path: str, fine_cfg: dict) -> dict:
         try:
-            if self.local_llm is None:
+            if self.runtime.local_llm is None:
                 return {"passed": True, "reason": "no_llm_to_test"}
-            with self._llm_lock:
-                result = self.local_llm.summarize_and_hypothesize(
+            with self.runtime._llm_lock:
+                result = self.runtime.local_llm.summarize_and_hypothesize(
                     "Test context about TS-OS graph wave architecture.",
                     "What is the core TS-OS loop?",
                 )
@@ -308,7 +311,7 @@ class SelfImprovementMixin:
             return {"passed": False, "error": str(exc)}
 
     def _warn_self_improvement(self) -> None:
-        inference_cfg = self.config.get("inference", {})
+        inference_cfg = self.runtime.config.get("inference", {})
         if not isinstance(inference_cfg, dict):
             return
         si_cfg = inference_cfg.get("self_improvement", {})
@@ -321,9 +324,15 @@ class SelfImprovementMixin:
                 "degrade model quality. Ensure validation_enabled=true and "
                 "safety_dry_run=true for safe testing."
             )
+            # Dry-run safety warning
+            if bool(ft_cfg.get("safety_dry_run", True)):
+                logger.warning(
+                    "Safety dry-run mode is ENABLED. Weights will NOT be updated. "
+                    "Set safety_dry_run=false in config to enable actual QLoRA training."
+                )
 
     def _resolve_fine_cfg(self) -> dict:
-        inference_cfg = self.config.get("inference", {})
+        inference_cfg = self.runtime.config.get("inference", {})
         si_cfg = (
             inference_cfg.get("self_improvement", {})
             if isinstance(inference_cfg, dict)
