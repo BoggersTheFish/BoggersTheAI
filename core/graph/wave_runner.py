@@ -101,7 +101,7 @@ class WaveCycleRunner:
 
         graph_nodes = {
             node_id: graph._to_graph_node(node)
-            for node_id, node in graph.nodes.items()
+            for node_id, node in list(graph.nodes.items())
             if not node.collapsed
         }
         edge_tuples = [(edge.src, edge.dst, edge.weight) for edge in graph.edges]
