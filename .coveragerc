@@ -1,0 +1,13 @@
+[run]
+omit =
+    reasoner/*
+    core-vm/*
+    inference/*
+    core/ts_engine.py
+    core/verifier/*
+    core/language/*
+    interface/api.py
+    interface/chat.py
+    mind/*
+    setup.py
+    tests/*
