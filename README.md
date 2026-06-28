@@ -192,7 +192,7 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 - **Path sandbox** (`core/path_sandbox.py`): `validate_path` for markdown/vault/file reads under a fixed base directory
 
 ### Runtime composition (v0.5.0)
-- **`BoggersRuntime`** inherits **`AutonomousLoopMixin`** (`interface/autonomous_loop.py`) and **`SelfImprovementMixin`** (`interface/self_improvement.py`) — OS loop, nightly consolidation, and self-improvement logic live in dedicated modules; `runtime.py` remains the public composition root
+- **`BoggersRuntime`** composes **`AutonomousLoopManager`** (`interface/autonomous_loop.py`) and **`SelfImprovementManager`** (`interface/self_improvement.py`) — OS loop, nightly consolidation, and self-improvement logic live in dedicated managers; `runtime.py` remains the public composition root
 - **Dashboard** uses **`get_runtime()`** (lazy singleton) so importing `dashboard.app` does not construct the full runtime at import time
 
 ### Additional tools (beyond calc / search / code / file_read)
@@ -1123,9 +1123,9 @@ BoggersTheAI/
 │   └── image_in.py                    # ImageInAdapter (BLIP2)
 │
 ├── interface/                         # User-facing entry points
-│   ├── runtime.py                     # BoggersRuntime (composition root + mixins)
-│   ├── autonomous_loop.py           # AutonomousLoopMixin — OS loop, nightly, exploration
-│   ├── self_improvement.py            # SelfImprovementMixin — traces, fine-tune, hot-swap
+│   ├── runtime.py                     # BoggersRuntime (composition root)
+│   ├── autonomous_loop.py           # AutonomousLoopManager — OS loop, nightly, exploration
+│   ├── self_improvement.py            # SelfImprovementManager — traces, fine-tune, hot-swap
 │   ├── chat.py                        # CLI: run_chat() with command parsing
 │   └── api.py                         # handle_query() library helper
 │

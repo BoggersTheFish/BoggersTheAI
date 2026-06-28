@@ -108,9 +108,9 @@ BoggersTheAI/
 │   ├── voice_out.py            # piper-tts synthesis
 │   └── image_in.py             # BLIP2 image captioning
 ├── interface/                  # User-facing entry points
-│   ├── runtime.py              # BoggersRuntime — composition root (+ mixins)
-│   ├── autonomous_loop.py      # AutonomousLoopMixin — OS loop, nightly, exploration
-│   ├── self_improvement.py     # SelfImprovementMixin — traces, fine-tune, hot-swap
+│   ├── runtime.py              # BoggersRuntime — composition root
+│   ├── autonomous_loop.py      # AutonomousLoopManager — OS loop, nightly, exploration
+│   ├── self_improvement.py     # SelfImprovementManager — traces, fine-tune, hot-swap
 │   ├── chat.py                 # CLI REPL interface
 │   └── api.py                  # HTTP API handler
 ├── mind/                       # Terminal UI
