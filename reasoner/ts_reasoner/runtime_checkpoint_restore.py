@@ -32,7 +32,9 @@ def canonical_json(payload: Any) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
-def build_checkpoint(case_id: str, initial_state: dict[str, Any], events: list[dict[str, Any]]) -> RuntimeCheckpointResult:
+def build_checkpoint(
+    case_id: str, initial_state: dict[str, Any], events: list[dict[str, Any]]
+) -> RuntimeCheckpointResult:
     result = build_tamper_evident_ledger(
         case_id=case_id,
         initial_state=initial_state,
@@ -59,7 +61,11 @@ def build_checkpoint(case_id: str, initial_state: dict[str, Any], events: list[d
         and isinstance(checkpoint["ledger"], list)
         and isinstance(checkpoint["head_hash"], str)
         and verify_hash_chain(ledger)
-        and (head_hash == GENESIS_HASH if not ledger else head_hash == ledger[-1]["entry_hash"])
+        and (
+            head_hash == GENESIS_HASH
+            if not ledger
+            else head_hash == ledger[-1]["entry_hash"]
+        )
         and checkpoint["candidate_graph_contamination_count"] == 0
     )
 
@@ -99,7 +105,9 @@ def restore_checkpoint(checkpoint: dict[str, Any]) -> dict[str, Any]:
     return deepcopy(state)
 
 
-def evaluate_runtime_checkpoint_cases(cases: Iterable[dict[str, Any]]) -> dict[str, object]:
+def evaluate_runtime_checkpoint_cases(
+    cases: Iterable[dict[str, Any]],
+) -> dict[str, object]:
     results = []
     passed = 0
     total = 0
@@ -117,7 +125,9 @@ def evaluate_runtime_checkpoint_cases(cases: Iterable[dict[str, Any]]) -> dict[s
         expected_checkpoint_valid = bool(raw["expected_checkpoint_valid"])
         expected_restore_valid = bool(raw["expected_restore_valid"])
         expected_head_hash_present = bool(raw["expected_head_hash_present"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.actions == expected_actions

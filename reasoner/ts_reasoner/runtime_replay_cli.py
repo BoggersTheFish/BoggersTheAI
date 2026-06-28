@@ -63,22 +63,32 @@ def main(argv: list[str] | None = None) -> int:
         try:
             session = load_json_arg(args.session)
         except Exception as exc:
-            print(json.dumps({
-                "action": "invalid_input",
-                "error": str(exc),
-                "candidate_graph_contamination_count": 0,
-            }, sort_keys=True))
+            print(
+                json.dumps(
+                    {
+                        "action": "invalid_input",
+                        "error": str(exc),
+                        "candidate_graph_contamination_count": 0,
+                    },
+                    sort_keys=True,
+                )
+            )
             return 2
 
         exit_code, payload = replay_session(session)
         print(json.dumps(payload, indent=2, sort_keys=True))
         return exit_code
 
-    print(json.dumps({
-        "action": "invalid_input",
-        "error": "unknown_command",
-        "candidate_graph_contamination_count": 0,
-    }, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "action": "invalid_input",
+                "error": "unknown_command",
+                "candidate_graph_contamination_count": 0,
+            },
+            sort_keys=True,
+        )
+    )
     return 2
 
 

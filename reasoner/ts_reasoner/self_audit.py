@@ -17,7 +17,6 @@ from typing import Any
 
 from ts_reasoner.common_ground import CommonGround
 
-
 RELEASE = "v7.9.0"
 SCHEMA = "ts_reasoner_live_self_audit_v1"
 
@@ -36,13 +35,19 @@ def audit_common_ground(common_ground: CommonGround) -> dict[str, Any]:
     accepted_records = [record for record in records if record.status == "accepted"]
     rejected_records = [record for record in records if record.status == "rejected"]
     abstained_records = [record for record in records if record.status == "abstained"]
-    unsupported_records = [record for record in records if record.status == "unsupported"]
+    unsupported_records = [
+        record for record in records if record.status == "unsupported"
+    ]
 
     accepted_edges = sorted(common_ground.accepted_edges)
 
     question_records = [record for record in records if record.kind == "question"]
-    requested_claim_records = [record for record in records if record.kind == "requested_claim"]
-    contradiction_records = [record for record in records if record.kind == "contradiction_claim"]
+    requested_claim_records = [
+        record for record in records if record.kind == "requested_claim"
+    ]
+    contradiction_records = [
+        record for record in records if record.kind == "contradiction_claim"
+    ]
     negative_records = [record for record in records if record.kind == "negative_claim"]
 
     # A wrong accept, in this bounded verifier-first sense, is an accepted
@@ -72,11 +77,12 @@ def audit_common_ground(common_ground: CommonGround) -> dict[str, Any]:
         1 for repair in repairs if repair.kind == "contradiction"
     )
     repair_pressure = len(open_repairs)
-    rejection_pressure = len(rejected_records) + len(abstained_records) + len(unsupported_records)
+    rejection_pressure = (
+        len(rejected_records) + len(abstained_records) + len(unsupported_records)
+    )
 
     proof_boundary_preserved = (
-        len(risky_accepts) == 0
-        and len(unsupported_promotions) == 0
+        len(risky_accepts) == 0 and len(unsupported_promotions) == 0
     )
 
     gates = {
@@ -166,7 +172,9 @@ def render_self_audit(audit: dict[str, Any]) -> str:
         lines.append(f"- contradiction_pressure: {audit['contradiction_pressure']}")
         lines.append(f"- rejection_pressure: {audit['rejection_pressure']}")
 
-    lines.append("Boundary: audit output is not proof; typed verifier support remains authority.")
+    lines.append(
+        "Boundary: audit output is not proof; typed verifier support remains authority."
+    )
     return "\n".join(lines)
 
 
@@ -212,7 +220,9 @@ def self_audit_valid(audit: dict[str, Any]) -> bool:
 def _write_json(path: str | Path, payload: Any) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out
 
 
@@ -249,18 +259,21 @@ def run_self_audit_demo(out_dir: str | Path) -> dict[str, Any]:
     _write_json(audit_path, audit)
 
     audit_command_rendered = any(
-        "TS-Chat self-audit:" in receipt.response
-        for receipt in receipts
+        "TS-Chat self-audit:" in receipt.response for receipt in receipts
     )
 
     gates = {
         "audit_valid": self_audit_valid(audit),
         "audit_command_rendered": audit_command_rendered,
         "wrong_accept_count_is_zero": audit["wrong_accept_count"] == 0,
-        "unsupported_promotion_count_is_zero": audit["unsupported_promotion_count"] == 0,
+        "unsupported_promotion_count_is_zero": audit["unsupported_promotion_count"]
+        == 0,
         "has_open_repairs": audit["open_repair_count"] >= 1,
         "has_contradiction_pressure": audit["contradiction_pressure"] >= 1,
-        "candidate_graph_contamination_count_is_zero": audit["candidate_graph_contamination_count"] == 0,
+        "candidate_graph_contamination_count_is_zero": audit[
+            "candidate_graph_contamination_count"
+        ]
+        == 0,
         "proof_boundary_preserved": audit["proof_boundary_preserved"] is True,
         "external_llm_used_false": audit["external_llm_used"] is False,
     }
@@ -283,7 +296,9 @@ def run_self_audit_demo(out_dir: str | Path) -> dict[str, Any]:
         "resolved_repair_count": audit["resolved_repair_count"],
         "wrong_accept_count": audit["wrong_accept_count"],
         "unsupported_promotion_count": audit["unsupported_promotion_count"],
-        "candidate_graph_contamination_count": audit["candidate_graph_contamination_count"],
+        "candidate_graph_contamination_count": audit[
+            "candidate_graph_contamination_count"
+        ],
         "proof_boundary_preserved": audit["proof_boundary_preserved"],
         "audit_output_is_not_proof": True,
         "audit_metrics_are_not_proof": True,
@@ -314,7 +329,9 @@ def run_self_audit_demo(out_dir: str | Path) -> dict[str, Any]:
         "resolved_repair_count": receipt["resolved_repair_count"],
         "wrong_accept_count": receipt["wrong_accept_count"],
         "unsupported_promotion_count": receipt["unsupported_promotion_count"],
-        "candidate_graph_contamination_count": receipt["candidate_graph_contamination_count"],
+        "candidate_graph_contamination_count": receipt[
+            "candidate_graph_contamination_count"
+        ],
         "proof_boundary_preserved": receipt["proof_boundary_preserved"],
         "external_llm_used": False,
         "all_gates_passed": receipt["all_gates_passed"],

@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any, Iterable
 
-
 STATE_CHANGING_PATCHES = {
     "claim_added",
     "repair_resolved",
@@ -49,7 +48,9 @@ def make_reasoning_patch(case: dict[str, Any]) -> ReasoningPatch:
     after_claims = normalize_claims(case.get("after_claims", []))
     payload = dict(case.get("payload", {}))
 
-    state_changed = before_claims != after_claims or event_type in STATE_CHANGING_PATCHES
+    state_changed = (
+        before_claims != after_claims or event_type in STATE_CHANGING_PATCHES
+    )
     requires_verifier_support = event_type in VERIFIER_REQUIRED_PATCHES
 
     if event_type == "claim_quarantined":
@@ -78,7 +79,9 @@ def make_reasoning_patch(case: dict[str, Any]) -> ReasoningPatch:
     )
 
 
-def evaluate_reasoning_patch_cases(cases: Iterable[dict[str, Any]]) -> dict[str, object]:
+def evaluate_reasoning_patch_cases(
+    cases: Iterable[dict[str, Any]],
+) -> dict[str, object]:
     results = []
     passed = 0
     total = 0
@@ -90,7 +93,9 @@ def evaluate_reasoning_patch_cases(cases: Iterable[dict[str, Any]]) -> dict[str,
 
         expected_patch_type = str(raw["expected_patch_type"])
         expected_state_changed = bool(raw["expected_state_changed"])
-        expected_requires_verifier_support = bool(raw["expected_requires_verifier_support"])
+        expected_requires_verifier_support = bool(
+            raw["expected_requires_verifier_support"]
+        )
 
         case_passed = (
             patch.patch_type == expected_patch_type

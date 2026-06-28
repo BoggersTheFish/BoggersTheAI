@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from pathlib import Path
 import argparse
 import sys
 import time
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.graph.client import NebulaGraphClient
+
 
 def summarize_result(result: object) -> dict[str, object]:
     summary: dict[str, object] = {
@@ -40,7 +41,9 @@ def ensure_storage_host_registered(client: NebulaGraphClient) -> None:
         raise RuntimeError("Failed to register Nebula storage host.")
 
 
-def wait_for_space(client: NebulaGraphClient, space_name: str, attempts: int = 20) -> None:
+def wait_for_space(
+    client: NebulaGraphClient, space_name: str, attempts: int = 20
+) -> None:
     for attempt in range(1, attempts + 1):
         spaces_result = client.query_ngql("SHOW SPACES;")
         summary = summarize_result(spaces_result)
@@ -84,11 +87,17 @@ def main() -> None:
             if not path.exists():
                 print(f"  (missing: {path})")
                 continue
-            statements = [s.strip() for s in path.read_text(encoding="utf-8").split(";") if s.strip()]
+            statements = [
+                s.strip()
+                for s in path.read_text(encoding="utf-8").split(";")
+                if s.strip()
+            ]
             for stmt in statements:
                 preview = stmt[:80] + "..." if len(stmt) > 80 else stmt
                 print(f"  {script_name}: {preview}")
-        print("Run with --live to apply against a running NebulaGraph (e.g. after docker compose up -d).")
+        print(
+            "Run with --live to apply against a running NebulaGraph (e.g. after docker compose up -d)."
+        )
         return
 
     client = NebulaGraphClient(
@@ -113,7 +122,9 @@ def main() -> None:
             print(f"Applied {script_name}: {partial}")
             if not getattr(result, "is_succeeded", lambda: True)():
                 raise RuntimeError(f"Failed statement: {partial}")
-            if script_name == "create_space.ngql" and partial.startswith("CREATE SPACE"):
+            if script_name == "create_space.ngql" and partial.startswith(
+                "CREATE SPACE"
+            ):
                 wait_for_space(client, "ts_graph")
 
     client.close()

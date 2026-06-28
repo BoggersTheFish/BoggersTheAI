@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 import socket
+from pathlib import Path
 from typing import Any
 
 
@@ -41,10 +41,14 @@ def _request(operation: str, **params: Any) -> dict:
     request = {"operation": operation, "token": token, **params}
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
         client.connect(str(Path(socket_path)))
-        client.sendall(json.dumps(request, sort_keys=True, separators=(",", ":")).encode() + b"\n")
+        client.sendall(
+            json.dumps(request, sort_keys=True, separators=(",", ":")).encode() + b"\n"
+        )
         response = json.loads(_read_line(client))
     if response.get("execution_status") != "completed":
-        reason = response.get("failures", [{"reason": "capability request blocked"}])[0]["reason"]
+        reason = response.get("failures", [{"reason": "capability request blocked"}])[
+            0
+        ]["reason"]
         raise BogCapabilityError(reason)
     return response
 

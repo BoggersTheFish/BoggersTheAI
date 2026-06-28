@@ -13,6 +13,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 try:
     import numpy as np
+
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
@@ -21,11 +22,11 @@ except ImportError:
 from ..events import bus
 from ..types import Edge, Node
 from .migrate import migrate_graph_data
+from .receipts import WaveStepReceipt, make_wave_receipt, stable_hash
 from .rules_engine import (
     RulesEngineCycleResult,
     run_rules_cycle,
 )
-from .receipts import make_wave_receipt, WaveStepReceipt, stable_hash
 from .wave_runner import WaveConfig, WaveCycleRunner
 
 logger = logging.getLogger("boggers.graph")
@@ -339,13 +340,20 @@ class UniversalLivingGraph:
             if use_vectorized:
                 try:
                     from .wave_propagation import propagate_vectorized
+
                     propagate_vectorized(
                         self.nodes,
                         self._adjacency,
-                        spread_factor=float(self._wave_settings.get("spread_factor", 0.1)),
+                        spread_factor=float(
+                            self._wave_settings.get("spread_factor", 0.1)
+                        ),
                         damping=float(self._wave_settings.get("damping", 0.95)),
-                        activation_cap=float(self._wave_settings.get("activation_cap", 1.0)),
-                        semantic_weight=float(self._wave_settings.get("semantic_weight", 0.3)),
+                        activation_cap=float(
+                            self._wave_settings.get("activation_cap", 1.0)
+                        ),
+                        semantic_weight=float(
+                            self._wave_settings.get("semantic_weight", 0.3)
+                        ),
                     )
                     for nid in self.nodes:
                         self._dirty_nodes.add(nid)
@@ -454,8 +462,12 @@ class UniversalLivingGraph:
         self._adjacency[cid] = {}
         for mid in member_ids:
             if mid in self.nodes:
-                self.add_edge(source_id=mid, target_id=cid, relation="member_of", weight=0.8)
-                self.add_edge(source_id=cid, target_id=mid, relation="contains", weight=0.7)
+                self.add_edge(
+                    source_id=mid, target_id=cid, relation="member_of", weight=0.8
+                )
+                self.add_edge(
+                    source_id=cid, target_id=mid, relation="contains", weight=0.7
+                )
         self._dirty_nodes.add(cid)
         return cid
 
@@ -465,10 +477,18 @@ class UniversalLivingGraph:
             for nid, node in self.nodes.items():
                 if "cluster" not in node.topics:
                     continue
-                members = [e.source_id for e in self.edges if e.target_id == nid and e.relation == "member_of"]
+                members = [
+                    e.source_id
+                    for e in self.edges
+                    if e.target_id == nid and e.relation == "member_of"
+                ]
                 if members:
-                    avg_act = sum(self.nodes[m].activation for m in members if m in self.nodes) / max(len(members), 1)
-                    node.activation = max(node.activation, avg_act * 0.6)  # summary boost
+                    avg_act = sum(
+                        self.nodes[m].activation for m in members if m in self.nodes
+                    ) / max(len(members), 1)
+                    node.activation = max(
+                        node.activation, avg_act * 0.6
+                    )  # summary boost
 
     def run_wave_cycle(self) -> RulesEngineCycleResult:
         with self._lock:
@@ -521,9 +541,9 @@ class UniversalLivingGraph:
         if node_id not in self.nodes:
             raise ValueError(f"Node {node_id} not found")
         node = self.nodes[node_id]
-        if not hasattr(node, 'attributes') or node.attributes is None:
+        if not hasattr(node, "attributes") or node.attributes is None:
             node.attributes = {}
-        node.attributes['bogvm_program'] = bogbin_path
+        node.attributes["bogvm_program"] = bogbin_path
         self._dirty_nodes.add(node_id)
 
     def spawn_bogvm_simulation(self, node_id: str, steps: int = 5) -> dict:
@@ -531,24 +551,39 @@ class UniversalLivingGraph:
         if node_id not in self.nodes:
             raise ValueError(f"Node {node_id} not found")
         node = self.nodes[node_id]
-        program = node.attributes.get('bogvm_program') if hasattr(node, 'attributes') and node.attributes else None
+        program = (
+            node.attributes.get("bogvm_program")
+            if hasattr(node, "attributes") and node.attributes
+            else None
+        )
         if not program:
             return {"status": "no_program", "node": node_id}
         # Use CLI for execution (real BOGVM)
+        import json as json_mod
         import subprocess
         import tempfile
-        import json as json_mod
-        receipt_path = tempfile.mktemp(suffix='.json')
+
+        receipt_path = tempfile.mktemp(suffix=".json")
         try:
-            subprocess.check_call([
-                "python3", "-m", "core-vm.bogvm", "run", program, "--receipt", receipt_path
-            ])
+            subprocess.check_call(
+                [
+                    "python3",
+                    "-m",
+                    "core-vm.bogvm",
+                    "run",
+                    program,
+                    "--receipt",
+                    receipt_path,
+                ]
+            )
             with open(receipt_path) as f:
                 bog_receipt = json_mod.load(f)
             # Feed tension/verifier back
             tension = bog_receipt.get("max_tension", 0.1)
             if node_id in self.nodes:
-                self.nodes[node_id].activation = min(1.0, self.nodes[node_id].activation + tension * 0.1)
+                self.nodes[node_id].activation = min(
+                    1.0, self.nodes[node_id].activation + tension * 0.1
+                )
             return {"status": "executed", "receipt": bog_receipt, "node": node_id}
         except Exception as e:
             return {"status": "error", "error": str(e), "node": node_id}
@@ -799,9 +834,7 @@ class UniversalLivingGraph:
             tension_fire_threshold=float(
                 self._wave_settings.get("tension_fire_threshold", 0.7)
             ),
-            idle_heartbeat_seconds=(
-                float(idle_hb) if idle_hb is not None else None
-            ),
+            idle_heartbeat_seconds=(float(idle_hb) if idle_hb is not None else None),
             log_each_cycle=bool(self._wave_settings.get("log_each_cycle", True)),
             auto_save=bool(self._wave_settings.get("auto_save", True)),
             incremental_save_interval=int(

@@ -34,11 +34,12 @@ Training signal (all losses share one computation graph — no bugs):
     TensionDiversityLoss    (heads should spread tension, not collapse)
 """
 
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import math
 
 # ── Corpus & Vocabulary ──────────────────────────────────────────────────────
 
@@ -72,10 +73,10 @@ the cat jumped down from the shelf and walked past the sleeping dog
 
 
 def build_vocab(text: str):
-    words  = text.split()
+    words = text.split()
     unique = sorted(set(words))
-    w2i    = {w: i for i, w in enumerate(unique)}
-    i2w    = {i: w for i, w in enumerate(unique)}
+    w2i = {w: i for i, w in enumerate(unique)}
+    i2w = {i: w for i, w in enumerate(unique)}
     return w2i, i2w, len(unique)
 
 
@@ -84,6 +85,7 @@ corpus_ids = [word_to_idx[w] for w in CORPUS.split()]
 
 
 # ── Multi-Head Causal Tension Layer ──────────────────────────────────────────
+
 
 class MultiHeadCausalTensionLayer(nn.Module):
     """
@@ -100,17 +102,18 @@ class MultiHeadCausalTensionLayer(nn.Module):
     independent — the total pull on token t can be 0, 4, or anything
     in between, depending on what's in the context. No competition.
     """
+
     def __init__(self, dim: int, window: int = 8, num_heads: int = 4):
         super().__init__()
         assert dim % num_heads == 0
-        self.window    = window
+        self.window = window
         self.num_heads = num_heads
-        self.head_dim  = dim // num_heads
-        self.scale     = math.sqrt(self.head_dim)
+        self.head_dim = dim // num_heads
+        self.scale = math.sqrt(self.head_dim)
 
-        self.wq  = nn.Linear(dim, dim, bias=False)
+        self.wq = nn.Linear(dim, dim, bias=False)
         self.wkv = nn.Linear(dim, dim * 2, bias=False)  # k and v fused — one matmul
-        self.wo  = nn.Linear(dim, dim, bias=False)
+        self.wo = nn.Linear(dim, dim, bias=False)
         self.norm = nn.LayerNorm(dim)
 
     def _gather_window(self, z: torch.Tensor, T: int) -> torch.Tensor:
@@ -120,41 +123,39 @@ class MultiHeadCausalTensionLayer(nn.Module):
         result[:, t, :, w, :] = z[:, t-w-1, :, :] for w < t, else zeros.
         Uses pad + unfold — no Python loops over T or W.
         """
-        W  = self.window
-        zt = z.permute(0, 2, 3, 1)                              # B H C T
-        zp = F.pad(zt, (W, 0), value=0.0)                       # B H C (T+W)
-        nb = zp.unfold(-1, W, 1)[:, :, :, :T, :].flip(-1)      # B H C T W
-        return nb.permute(0, 3, 1, 4, 2)                        # B T H W C
+        W = self.window
+        zt = z.permute(0, 2, 3, 1)  # B H C T
+        zp = F.pad(zt, (W, 0), value=0.0)  # B H C (T+W)
+        nb = zp.unfold(-1, W, 1)[:, :, :, :T, :].flip(-1)  # B H C T W
+        return nb.permute(0, 3, 1, 4, 2)  # B T H W C
 
     def forward(self, x: torch.Tensor, return_tensions: bool = False):
         B, T, D = x.shape
         HD = self.head_dim
 
-        q  = self.wq(x).view(B, T, self.num_heads, HD)
+        q = self.wq(x).view(B, T, self.num_heads, HD)
         kv = self.wkv(x).view(B, T, self.num_heads, HD * 2)
 
         # Single gather for k+v together — one unfold instead of two
-        nb_kv        = self._gather_window(kv, T)   # B T H W 2*HD
-        nb_k, nb_v   = nb_kv.split(HD, dim=-1)      # B T H W HD each
-        k, v         = kv.split(HD, dim=-1)          # B T H HD each (unused k for clarity)
+        nb_kv = self._gather_window(kv, T)  # B T H W 2*HD
+        nb_k, nb_v = nb_kv.split(HD, dim=-1)  # B T H W HD each
+        k, v = kv.split(HD, dim=-1)  # B T H HD each (unused k for clarity)
 
         # Tension: sigmoid scaled dot product — no softmax, no competition
         # q[:, t, h, :] · nb_k[:, t, h, w, :] → scalar per (t, h, w)
-        tau = torch.sigmoid(
-            (q.unsqueeze(3) * nb_k).sum(-1) / self.scale   # B T H W
-        )
-
+        tau = torch.sigmoid((q.unsqueeze(3) * nb_k).sum(-1) / self.scale)  # B T H W
 
         # Aggregate neighbor values weighted by tension
-        msg = (tau.unsqueeze(-1) * nb_v).sum(3)             # B T H HD
+        msg = (tau.unsqueeze(-1) * nb_v).sum(3)  # B T H HD
         out = self.norm(x + self.wo(msg.reshape(B, T, D)))
 
         if return_tensions:
-            return out, tau   # tau: B T H W
+            return out, tau  # tau: B T H W
         return out
 
 
 # ── Oscillatory Positional Modulation ────────────────────────────────────────
+
 
 class OscillatoryModulation(nn.Module):
     """
@@ -168,28 +169,31 @@ class OscillatoryModulation(nn.Module):
     Unlike fixed sinusoidal encodings (Transformer), these waves are
     trained end-to-end and can specialize per layer.
     """
+
     def __init__(self, dim: int):
         super().__init__()
-        self.freqs  = nn.Parameter(torch.randn(dim) * 0.02)
+        self.freqs = nn.Parameter(torch.randn(dim) * 0.02)
         self.phases = nn.Parameter(torch.zeros(dim))
-        self.amp    = nn.Parameter(torch.full((1,), 0.1))
+        self.amp = nn.Parameter(torch.full((1,), 0.1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, T, D = x.shape
         pos = torch.arange(T, device=x.device).float().unsqueeze(-1)  # T 1
-        mod = torch.sin(pos * self.freqs + self.phases)                # T D
+        mod = torch.sin(pos * self.freqs + self.phases)  # T D
         return x * (1.0 + self.amp * mod.unsqueeze(0))
 
 
 # ── SwiGLU Feed-Forward ───────────────────────────────────────────────────────
 
+
 class TensionFFN(nn.Module):
     """Gated feed-forward with SwiGLU activation."""
+
     def __init__(self, dim: int, expansion: int = 3):
         super().__init__()
-        hidden    = dim * expansion
+        hidden = dim * expansion
         self.gate = nn.Linear(dim, hidden, bias=False)
-        self.val  = nn.Linear(dim, hidden, bias=False)
+        self.val = nn.Linear(dim, hidden, bias=False)
         self.proj = nn.Linear(hidden, dim, bias=False)
         self.norm = nn.LayerNorm(dim)
 
@@ -199,13 +203,14 @@ class TensionFFN(nn.Module):
 
 # ── Tension Block ─────────────────────────────────────────────────────────────
 
+
 class TensionBlock(nn.Module):
     def __init__(self, dim: int, window: int = 8, num_heads: int = 4):
         super().__init__()
-        self.pre_norm  = nn.LayerNorm(dim)
-        self.tension   = MultiHeadCausalTensionLayer(dim, window, num_heads)
+        self.pre_norm = nn.LayerNorm(dim)
+        self.tension = MultiHeadCausalTensionLayer(dim, window, num_heads)
         self.oscillate = OscillatoryModulation(dim)
-        self.ffn       = TensionFFN(dim)
+        self.ffn = TensionFFN(dim)
 
     def forward(self, x: torch.Tensor, return_tensions: bool = False):
         h = self.pre_norm(x)
@@ -217,24 +222,25 @@ class TensionBlock(nn.Module):
 
 # ── TensionLM ─────────────────────────────────────────────────────────────────
 
+
 class TensionLM(nn.Module):
     def __init__(
         self,
-        vocab_size:  int,
-        dim:         int = 64,
-        num_layers:  int = 4,
-        window:      int = 8,
-        num_heads:   int = 4,
+        vocab_size: int,
+        dim: int = 64,
+        num_layers: int = 4,
+        window: int = 8,
+        num_heads: int = 4,
         max_seq_len: int = 256,
     ):
         super().__init__()
-        self.embedding     = nn.Embedding(vocab_size, dim)
+        self.embedding = nn.Embedding(vocab_size, dim)
         self.pos_embedding = nn.Embedding(max_seq_len, dim)
-        self.blocks        = nn.ModuleList([
-            TensionBlock(dim, window, num_heads) for _ in range(num_layers)
-        ])
+        self.blocks = nn.ModuleList(
+            [TensionBlock(dim, window, num_heads) for _ in range(num_layers)]
+        )
         self.final_norm = nn.LayerNorm(dim)
-        self.lm_head    = nn.Linear(dim, vocab_size, bias=False)
+        self.lm_head = nn.Linear(dim, vocab_size, bias=False)
         self.lm_head.weight = self.embedding.weight  # weight tying
 
         self._init_weights()
@@ -254,8 +260,8 @@ class TensionLM(nn.Module):
         All three share one computation graph — aux losses backprop correctly.
         """
         B, T = input_ids.shape
-        pos  = torch.arange(T, device=input_ids.device).unsqueeze(0)
-        x    = self.embedding(input_ids) + self.pos_embedding(pos)
+        pos = torch.arange(T, device=input_ids.device).unsqueeze(0)
+        x = self.embedding(input_ids) + self.pos_embedding(pos)
 
         all_tensions = []
         for block in self.blocks:
@@ -275,6 +281,7 @@ class TensionLM(nn.Module):
 
 # ── Auxiliary Losses ──────────────────────────────────────────────────────────
 
+
 def manifold_closure_loss(hidden: torch.Tensor) -> torch.Tensor:
     """
     The sequence's final hidden state should be coherent with its first.
@@ -292,25 +299,25 @@ def tension_diversity_loss(all_tensions: list) -> torch.Tensor:
     collapsing onto a single dominant position. Encourages specialisation.
     """
     device = all_tensions[0].device
-    total  = torch.tensor(0.0, device=device)
-    for tau in all_tensions:             # B T H W
+    total = torch.tensor(0.0, device=device)
+    for tau in all_tensions:  # B T H W
         _, _, _, W = tau.shape
-        p       = tau / (tau.sum(-1, keepdim=True) + 1e-8)
-        entropy = -(p * torch.log(p + 1e-8)).sum(-1)   # B T H
+        p = tau / (tau.sum(-1, keepdim=True) + 1e-8)
+        entropy = -(p * torch.log(p + 1e-8)).sum(-1)  # B T H
         deficit = F.relu(math.log(W) - entropy.mean())
-        total   = total + deficit
+        total = total + deficit
     return total / len(all_tensions)
 
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
 
-SEQ_LEN    = 16
-STRIDE     = 3
-DIM        = 64
+SEQ_LEN = 16
+STRIDE = 3
+DIM = 64
 NUM_LAYERS = 4
-WINDOW     = 8
-NUM_HEADS  = 4
-EPOCHS     = 50   # ~8s/epoch on CPU; increase to 150+ for better generation
+WINDOW = 8
+NUM_HEADS = 4
+EPOCHS = 50  # ~8s/epoch on CPU; increase to 150+ for better generation
 
 
 def make_dataset(ids, seq_len=SEQ_LEN, stride=STRIDE):
@@ -320,17 +327,17 @@ def make_dataset(ids, seq_len=SEQ_LEN, stride=STRIDE):
         for i in range(0, len(ids) - seq_len, stride)
         if len(ids[i : i + seq_len + 1]) == seq_len + 1
     ]
-    data   = torch.tensor(seqs, dtype=torch.long)   # N × (seq_len+1)
-    inputs  = data[:, :-1]                          # N × seq_len
-    targets = data[:, 1:]                           # N × seq_len
+    data = torch.tensor(seqs, dtype=torch.long)  # N × (seq_len+1)
+    inputs = data[:, :-1]  # N × seq_len
+    targets = data[:, 1:]  # N × seq_len
     return inputs, targets
 
 
 # ── Training ──────────────────────────────────────────────────────────────────
 
-model   = TensionLM(VOCAB_SIZE, DIM, NUM_LAYERS, WINDOW, NUM_HEADS, max_seq_len=64)
+model = TensionLM(VOCAB_SIZE, DIM, NUM_LAYERS, WINDOW, NUM_HEADS, max_seq_len=64)
 inputs, targets = make_dataset(corpus_ids)
-n_seqs   = inputs.shape[0]
+n_seqs = inputs.shape[0]
 n_params = sum(p.numel() for p in model.parameters())
 
 print(f"Vocab: {VOCAB_SIZE}  |  Corpus: {len(corpus_ids)} tokens")
@@ -338,9 +345,7 @@ print(f"Parameters: {n_params:,}  |  Training sequences: {n_seqs}")
 print(f"Training {EPOCHS} epochs (full-batch, all {n_seqs} sequences per step)...")
 
 optimizer = optim.AdamW(model.parameters(), lr=3e-3, weight_decay=0.01)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(
-    optimizer, T_max=EPOCHS, eta_min=5e-5
-)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=5e-5)
 criterion = nn.CrossEntropyLoss()
 
 for epoch in range(1, EPOCHS + 1):
@@ -350,9 +355,9 @@ for epoch in range(1, EPOCHS + 1):
     # Single forward pass over the entire dataset — all losses share the graph
     logits, hidden, all_tensions = model(inputs, return_all=True)
 
-    loss_ce   = criterion(logits.reshape(-1, VOCAB_SIZE), targets.reshape(-1))
+    loss_ce = criterion(logits.reshape(-1, VOCAB_SIZE), targets.reshape(-1))
     loss_attr = manifold_closure_loss(hidden)
-    loss_div  = tension_diversity_loss(all_tensions)
+    loss_div = tension_diversity_loss(all_tensions)
 
     loss = loss_ce + 0.05 * loss_attr + 0.02 * loss_div
     loss.backward()
@@ -373,10 +378,11 @@ for epoch in range(1, EPOCHS + 1):
 
 # ── Generation ────────────────────────────────────────────────────────────────
 
+
 def top_p_sample(logits: torch.Tensor, p: float = 0.9, temp: float = 1.0) -> int:
     """Nucleus (top-p) sampling with temperature."""
     logits = logits / temp
-    probs  = F.softmax(logits, dim=-1)
+    probs = F.softmax(logits, dim=-1)
     sorted_probs, sorted_idx = torch.sort(probs, descending=True)
     cumprobs = torch.cumsum(sorted_probs, dim=-1)
     mask = (cumprobs - sorted_probs) < p
@@ -387,18 +393,18 @@ def top_p_sample(logits: torch.Tensor, p: float = 0.9, temp: float = 1.0) -> int
 
 def generate(
     model,
-    prompt:  str,
-    max_new: int   = 40,
-    temp:    float = 0.85,
-    top_p:   float = 0.92,
+    prompt: str,
+    max_new: int = 40,
+    temp: float = 0.85,
+    top_p: float = 0.92,
 ) -> str:
     model.eval()
     ids = [word_to_idx.get(w, 0) for w in prompt.split()]
     with torch.no_grad():
         for _ in range(max_new):
-            ctx    = torch.tensor([ids[-32:]], dtype=torch.long)
+            ctx = torch.tensor([ids[-32:]], dtype=torch.long)
             logits = model(ctx)[:, -1, :]
-            for prev in set(ids[-5:]):   # light repetition penalty
+            for prev in set(ids[-5:]):  # light repetition penalty
                 logits[0, prev] -= 1.8
             ids.append(top_p_sample(logits[0], p=top_p, temp=temp))
             if idx_to_word.get(ids[-1], "") in (".", "!"):
@@ -408,6 +414,7 @@ def generate(
 
 # ── Tension Visualiser ────────────────────────────────────────────────────────
 
+
 def show_tensions(model, prompt: str, layer: int = 0):
     """
     Print a readable map of what each token is being pulled toward
@@ -416,15 +423,15 @@ def show_tensions(model, prompt: str, layer: int = 0):
     """
     model.eval()
     words = prompt.split()
-    ids   = [word_to_idx.get(w, 0) for w in words]
+    ids = [word_to_idx.get(w, 0) for w in words]
     with torch.no_grad():
         _, _, all_tensions = model(
             torch.tensor([ids], dtype=torch.long), return_all=True
         )
 
-    tau     = all_tensions[layer][0]    # T H W
-    tau_avg = tau.mean(dim=1)           # T W  (averaged over heads)
-    W       = model.blocks[0].tension.window
+    tau = all_tensions[layer][0]  # T H W
+    tau_avg = tau.mean(dim=1)  # T W  (averaged over heads)
+    W = model.blocks[0].tension.window
 
     print(f"\nTension field — layer {layer + 1} — '{prompt}'")
     print("─" * 60)

@@ -30,14 +30,18 @@ class TensionLMExportRow:
 
 def load_tensionlm_export_jsonl(path: str | Path) -> list[TensionLMExportRow]:
     rows = []
-    for index, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), start=1):
+    for index, line in enumerate(
+        Path(path).read_text(encoding="utf-8").splitlines(), start=1
+    ):
         if not line.strip():
             continue
         rows.append(parse_tensionlm_export_row(json.loads(line), index))
     return rows
 
 
-def parse_tensionlm_export_row(row: dict[str, Any], index: int = 1) -> TensionLMExportRow:
+def parse_tensionlm_export_row(
+    row: dict[str, Any], index: int = 1
+) -> TensionLMExportRow:
     input_text = str(row["input_text"])
     model = str(row.get("model", "unknown_model"))
     row_id = str(row.get("case_id", row.get("row_id", f"export_row_{index}")))
@@ -51,7 +55,11 @@ def parse_tensionlm_export_row(row: dict[str, Any], index: int = 1) -> TensionLM
         input_text=input_text,
         model=model,
         candidates=candidates,
-        premises=[str(premise).strip() for premise in premises if str(premise).strip()] if premises else None,
+        premises=(
+            [str(premise).strip() for premise in premises if str(premise).strip()]
+            if premises
+            else None
+        ),
         raw=dict(row),
     )
 
@@ -66,8 +74,12 @@ def normalize_export_candidate(
     source = str(provenance) if provenance is not None else ""
     raw_text = candidate.get("raw_text", candidate.get("raw_output"))
     source_claim = str(candidate.get("claim", raw_text or ""))
-    normalized_claim, normalization_status = normalize_candidate_claim_text(source_claim)
-    confidence, confidence_status = coerce_candidate_confidence(candidate.get("confidence", 0.5))
+    normalized_claim, normalization_status = normalize_candidate_claim_text(
+        source_claim
+    )
+    confidence, confidence_status = coerce_candidate_confidence(
+        candidate.get("confidence", 0.5)
+    )
     return CandidateClaim(
         candidate_id=str(candidate.get("candidate_id", f"{row_id}_candidate_{index}")),
         claim=normalized_claim,
@@ -192,7 +204,9 @@ def run_tensionlm_export_row(row: TensionLMExportRow) -> dict[str, Any]:
     return payload
 
 
-def run_tensionlm_export_rows(rows: Iterable[TensionLMExportRow]) -> list[dict[str, Any]]:
+def run_tensionlm_export_rows(
+    rows: Iterable[TensionLMExportRow],
+) -> list[dict[str, Any]]:
     return [run_tensionlm_export_row(row) for row in rows]
 
 

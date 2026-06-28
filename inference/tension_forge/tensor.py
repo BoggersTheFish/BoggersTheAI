@@ -28,9 +28,7 @@ class DeviceTensor:
         host_array = np.ascontiguousarray(array)
 
         if host_array.size == 0:
-            raise ValueError(
-                "DeviceTensor cannot contain zero elements"
-            )
+            raise ValueError("DeviceTensor cannot contain zero elements")
 
         buffer = runtime.buffer_from_host(
             host_array,
@@ -54,14 +52,10 @@ class DeviceTensor:
         access: str = "read_write",
     ) -> DeviceTensor:
         if not shape:
-            raise ValueError(
-                "DeviceTensor shape cannot be empty"
-            )
+            raise ValueError("DeviceTensor shape cannot be empty")
 
         if any(dimension <= 0 for dimension in shape):
-            raise ValueError(
-                "Every DeviceTensor dimension must be positive"
-            )
+            raise ValueError("Every DeviceTensor dimension must be positive")
 
         resolved_dtype = np.dtype(dtype)
 

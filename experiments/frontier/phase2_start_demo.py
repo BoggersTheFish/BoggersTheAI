@@ -26,23 +26,25 @@ This is the foundation for verifiable agents that outperform probabilistic LLMs 
 Extends previous demos with verifier + language + execution layer.
 """
 
-import json
 import hashlib
+import json
 import time
-from dataclasses import dataclass, field, asdict
-from pathlib import Path
 from collections import deque
-from typing import List, Dict, Any, Optional
+from pathlib import Path
+from typing import Any, Dict, List
 
 # --- Real components from ts_reasoner (Phase 2 language + verifier) ---
 # We use excerpts + direct logic for demo robustness (monorepo import quirks in some envs).
 # In full system these are imported from reasoner/ts_reasoner/
 
+
 def canonical_json(payload: Any) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
+
 def canonical_hash(payload: Any) -> str:
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()[:12]
+
 
 # From typed_support + support_path_verifier + proof_chain
 class ParsedClaim:
@@ -51,10 +53,13 @@ class ParsedClaim:
         self.subject = subject
         self.predicate = predicate
 
+
 ALL_RE = None  # would be compiled regex in real
+
+
 # Simplified parser for demo (real is in support_path_verifier)
 def parse_claim(text: str) -> ParsedClaim | None:
-    t = text.lower().strip().rstrip('.')
+    t = text.lower().strip().rstrip(".")
     if t.startswith("all ") and " are " in t:
         parts = t[4:].split(" are ", 1)
         return ParsedClaim("all", parts[0].strip(), parts[1].strip())
@@ -63,7 +68,10 @@ def parse_claim(text: str) -> ParsedClaim | None:
         return ParsedClaim("no", parts[0].strip(), parts[1].strip())
     return None
 
-def _all_path(premises: List[ParsedClaim], source: str, target: str) -> List[ParsedClaim] | None:
+
+def _all_path(
+    premises: List[ParsedClaim], source: str, target: str
+) -> List[ParsedClaim] | None:
     edges = {}
     for p in premises:
         if p.quantifier == "all":
@@ -73,7 +81,8 @@ def _all_path(premises: List[ParsedClaim], source: str, target: str) -> List[Par
     while queue:
         node, path = queue.popleft()
         for nxt, premise in edges.get(node, []):
-            if nxt in seen: continue
+            if nxt in seen:
+                continue
             new_path = path + [premise]
             if nxt == target:
                 return new_path
@@ -81,11 +90,16 @@ def _all_path(premises: List[ParsedClaim], source: str, target: str) -> List[Par
             queue.append((nxt, new_path))
     return None
 
+
 def verify_support_path(premises: List[str], claim: str) -> Dict[str, Any]:
     parsed_premises = [p for p in (parse_claim(x) for x in premises) if p]
     parsed_claim = parse_claim(claim)
     if not parsed_claim or parsed_claim.quantifier != "all":
-        return {"verifier_passed": False, "reason": "unsupported claim form", "trace_hash": ""}
+        return {
+            "verifier_passed": False,
+            "reason": "unsupported claim form",
+            "trace_hash": "",
+        }
     path = _all_path(parsed_premises, parsed_claim.subject, parsed_claim.predicate)
     passed = path is not None
     trace = [f"{p.quantifier} {p.subject} are {p.predicate}" for p in (path or [])]
@@ -96,19 +110,23 @@ def verify_support_path(premises: List[str], claim: str) -> Dict[str, Any]:
         "derived_claim": claim,
         "verifier_passed": passed,
         "trace": trace,
-        "trace_hash": canonical_hash({"claim": claim, "path": trace})
+        "trace_hash": canonical_hash({"claim": claim, "path": trace}),
     }
     return support
 
-def make_typed_support(channel: str, premises: List[str], derived_claim: str, verifier_passed: bool) -> Dict[str, Any]:
+
+def make_typed_support(
+    channel: str, premises: List[str], derived_claim: str, verifier_passed: bool
+) -> Dict[str, Any]:
     return {
         "support_type": "typed_verifier_trace",
         "channel": channel,
         "premises": tuple(premises),
         "derived_claim": derived_claim,
         "verifier_passed": verifier_passed,
-        "trace_hash": canonical_hash({"premises": premises, "claim": derived_claim})
+        "trace_hash": canonical_hash({"premises": premises, "claim": derived_claim}),
     }
+
 
 # From ts_chat style (deterministic language)
 def parse_to_premises(text: str) -> List[str]:
@@ -118,14 +136,16 @@ def parse_to_premises(text: str) -> List[str]:
     if "all " in lower and " are " in lower:
         # crude but effective for demo
         import re
-        matches = re.findall(r'all ([^,.!?]+?) are ([^,.!?]+)', text, re.IGNORECASE)
+
+        matches = re.findall(r"all ([^,.!?]+?) are ([^,.!?]+)", text, re.IGNORECASE)
         for subj, pred in matches:
             premises.append(f"all {subj.strip()} are {pred.strip()}")
     if "no " in lower and " are " in lower:
-        matches = re.findall(r'no ([^,.!?]+?) are ([^,.!?]+)', text, re.IGNORECASE)
+        matches = re.findall(r"no ([^,.!?]+?) are ([^,.!?]+)", text, re.IGNORECASE)
         for subj, pred in matches:
             premises.append(f"no {subj.strip()} are {pred.strip()}")
     return premises or [text]  # fallback
+
 
 # --- Phase 1/2 Graph + Waves (from previous work, enhanced for verifier) ---
 class Phase2Graph:
@@ -140,9 +160,20 @@ class Phase2Graph:
             if parsed:
                 sid = f"node:{parsed.subject}"
                 pid = f"node:{parsed.predicate}"
-                self.nodes.setdefault(sid, {"content": parsed.subject, "activation": 0.3})
-                self.nodes.setdefault(pid, {"content": parsed.predicate, "activation": 0.3})
-                self.edges.append({"source": sid, "target": pid, "relation": parsed.quantifier, "weight": 0.9})
+                self.nodes.setdefault(
+                    sid, {"content": parsed.subject, "activation": 0.3}
+                )
+                self.nodes.setdefault(
+                    pid, {"content": parsed.predicate, "activation": 0.3}
+                )
+                self.edges.append(
+                    {
+                        "source": sid,
+                        "target": pid,
+                        "relation": parsed.quantifier,
+                        "weight": 0.9,
+                    }
+                )
 
     def run_waves(self, steps: int = 4) -> List[dict]:
         trace = []
@@ -155,13 +186,30 @@ class Phase2Graph:
                     delta = src["activation"] * e["weight"] * 0.15
                     updates[e["target"]] = updates.get(e["target"], 0) + delta
             for nid, d in updates.items():
-                self.nodes[nid]["activation"] = min(1.0, self.nodes[nid].get("activation", 0.2) + d)
-            max_t = max((abs(n.get("activation", 0.2) - 0.2) for n in self.nodes.values()), default=0)
-            trace.append({"step": s, "max_tension": round(max_t, 4), "nodes": len(self.nodes)})
+                self.nodes[nid]["activation"] = min(
+                    1.0, self.nodes[nid].get("activation", 0.2) + d
+                )
+            max_t = max(
+                (abs(n.get("activation", 0.2) - 0.2) for n in self.nodes.values()),
+                default=0,
+            )
+            trace.append(
+                {"step": s, "max_tension": round(max_t, 4), "nodes": len(self.nodes)}
+            )
         return trace
 
     def snapshot(self):
-        return {"nodes": len(self.nodes), "strongest": max(self.nodes.values(), key=lambda x: x.get("activation",0))["content"] if self.nodes else None}
+        return {
+            "nodes": len(self.nodes),
+            "strongest": (
+                max(self.nodes.values(), key=lambda x: x.get("activation", 0))[
+                    "content"
+                ]
+                if self.nodes
+                else None
+            ),
+        }
+
 
 # --- BOGVM Execution Stub (grounded planning / verifier for code) ---
 def execute_plan_via_bogvm_stub(plan: str, inputs: dict) -> dict:
@@ -176,7 +224,9 @@ def execute_plan_via_bogvm_stub(plan: str, inputs: dict) -> dict:
         b = inputs.get("b", 0)
         result["output"] = a + b
         result["success"] = True
-        result["verifier_note"] = "BOGVM-like execution: sum computed, matches even claim if applicable"
+        result["verifier_note"] = (
+            "BOGVM-like execution: sum computed, matches even claim if applicable"
+        )
     elif "even" in lower or "parity" in lower:
         val = inputs.get("val", 0)
         result["output"] = val % 2 == 0
@@ -186,11 +236,14 @@ def execute_plan_via_bogvm_stub(plan: str, inputs: dict) -> dict:
         result["verifier_note"] = "Plan not executable in this stub; verifier abstains"
     return result
 
+
 # --- Main Phase 2 Demo ---
 def main():
     print("=" * 72)
     print("PHASE 2 START DEMO: Verifier + Language Stack + Grounded Execution")
-    print("TS-native: deterministic compilation → waves → verifier → BOGVM exec → receipt")
+    print(
+        "TS-native: deterministic compilation → waves → verifier → BOGVM exec → receipt"
+    )
     print("=" * 72)
 
     # 1. Language Stack: Compile input to premises (ts_chat / TSLC style)
@@ -203,7 +256,7 @@ def main():
     g = Phase2Graph()
     g.add_premises(premises)
     wave_trace = g.run_waves(steps=5)
-    print(f"\n[Waves] Settled graph (tension exploration):")
+    print("\n[Waves] Settled graph (tension exploration):")
     for t in wave_trace:
         print(f"  step {t['step']}: tension={t['max_tension']}, nodes={t['nodes']}")
 
@@ -214,9 +267,13 @@ def main():
     claim = "4 is even"
     print(f"\n[Verifier Stack] Checking claim: '{claim}'")
     support = verify_support_path(premises, claim)
-    typed = make_typed_support("transitive_all", premises, claim, support.get("verifier_passed", False))
+    typed = make_typed_support(
+        "transitive_all", premises, claim, support.get("verifier_passed", False)
+    )
     print(f"  Proof path: {support.get('trace', [])}")
-    print(f"  Typed support passed: {typed['verifier_passed']} (hash {typed['trace_hash']})")
+    print(
+        f"  Typed support passed: {typed['verifier_passed']} (hash {typed['trace_hash']})"
+    )
 
     # 4. Grounded Planning + BOGVM Execution
     plan = "add 2+2 then check even"
@@ -232,15 +289,17 @@ def main():
         "language_premises": premises,
         "wave_trace": wave_trace,
         "graph_snapshot": snapshot,
-        "verifier": {
-            "claim": claim,
-            "support": support,
-            "typed": typed
-        },
+        "verifier": {"claim": claim, "support": support, "typed": typed},
         "execution": exec_result,
-        "final_verdict": "VERIFIED" if (support.get("verifier_passed") and exec_result["success"]) else "REJECTED/ABSTAINED",
+        "final_verdict": (
+            "VERIFIED"
+            if (support.get("verifier_passed") and exec_result["success"])
+            else "REJECTED/ABSTAINED"
+        ),
         "timestamp": time.time(),
-        "receipt_hash": canonical_hash({"claim": claim, "exec": exec_result.get("output")})
+        "receipt_hash": canonical_hash(
+            {"claim": claim, "exec": exec_result.get("output")}
+        ),
     }
 
     print("\n" + "=" * 72)
@@ -262,6 +321,7 @@ def main():
     print("- Higher reliability: either proves+executes or abstains transparently.")
     print("This is the start of a verifiable agent stack on the TS foundation.")
     print("=" * 72)
+
 
 if __name__ == "__main__":
     main()

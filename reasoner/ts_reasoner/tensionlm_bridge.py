@@ -12,7 +12,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional, Protocol
 
-from .generator import DeterministicHeuristicGenerator, extract_relations, infer_query_relation
+from .generator import (
+    DeterministicHeuristicGenerator,
+    extract_relations,
+    infer_query_relation,
+)
 from .pipeline import run_reasoner
 from .types import ReasonerOutput, ReasoningChain, ReasoningStep
 
@@ -32,7 +36,9 @@ class CompletionProposer(Protocol):
 class StaticCompletionProposer:
     """Deterministic proposer for tests and offline receipt examples."""
 
-    def __init__(self, completions: Iterable[str], source: str = "StaticCompletionProposer") -> None:
+    def __init__(
+        self, completions: Iterable[str], source: str = "StaticCompletionProposer"
+    ) -> None:
         self.completions = [completion for completion in completions]
         self.source = source
 
@@ -80,7 +86,9 @@ class PublicTensionLMProposer:
         if self._model is None or self._tokenizer is None:
             torch = runner.torch
             if self.device_name == "cuda" and not torch.cuda.is_available():
-                raise RuntimeError("CUDA requested but not available; rerun bridge with --device cpu.")
+                raise RuntimeError(
+                    "CUDA requested but not available; rerun bridge with --device cpu."
+                )
             self._device = torch.device(self.device_name)
             torch.set_num_threads(max(1, min(8, torch.get_num_threads())))
             self._model, self._tokenizer, self._weight_file = runner.load_public_model(
@@ -115,7 +123,9 @@ class PublicTensionLMProposer:
         runner_path = self.tensionlm_path / "scripts" / "run_public_tensionlm.py"
         if not runner_path.exists():
             raise FileNotFoundError(f"Expected public runner at {runner_path}")
-        spec = importlib.util.spec_from_file_location("public_tensionlm_runner", runner_path)
+        spec = importlib.util.spec_from_file_location(
+            "public_tensionlm_runner", runner_path
+        )
         if spec is None or spec.loader is None:
             raise RuntimeError(f"Could not import public runner from {runner_path}")
         module = importlib.util.module_from_spec(spec)
@@ -134,12 +144,16 @@ class TensionLMBridgeGenerator:
         self.proposals = list(proposals)
         self.proposal_metadata: List[dict] = []
 
-    def generate(self, question: str, premises: Optional[Iterable[str]] = None) -> List[ReasoningChain]:
+    def generate(
+        self, question: str, premises: Optional[Iterable[str]] = None
+    ) -> List[ReasoningChain]:
         premise_list = [p.strip() for p in premises or [] if p.strip()]
         candidates = self.base_generator.generate(question, premise_list)
         self.proposal_metadata = []
         for index, proposal in enumerate(self.proposals):
-            chain, parse_status = self._proposal_to_chain(index + 1, proposal, question, premise_list)
+            chain, parse_status = self._proposal_to_chain(
+                index + 1, proposal, question, premise_list
+            )
             candidates.append(chain)
             self.proposal_metadata.append(
                 {
@@ -163,7 +177,9 @@ class TensionLMBridgeGenerator:
             ReasoningStep(f"p{premise_index + 1}", premise, "premise", [], 0.9)
             for premise_index, premise in enumerate(premises)
         ]
-        conclusion, final_answer, parse_status = _completion_to_conclusion(question, proposal.text)
+        conclusion, final_answer, parse_status = _completion_to_conclusion(
+            question, proposal.text
+        )
         premise_ids = [step.step_id for step in premise_steps]
         steps = premise_steps + [
             ReasoningStep(
@@ -192,12 +208,24 @@ def _completion_to_conclusion(question: str, completion: str) -> tuple[str, str,
     if relations:
         relation = relations[-1]
         conclusion = f"Therefore {relation.quantifier} {relation.subject} are {relation.predicate}."
-        return conclusion, f"{relation.quantifier} {relation.subject} are {relation.predicate}.", "parsed_relation"
-    if re.search(r"\bnot enough|insufficient|cannot derive|does not follow\b", completion, re.IGNORECASE):
+        return (
+            conclusion,
+            f"{relation.quantifier} {relation.subject} are {relation.predicate}.",
+            "parsed_relation",
+        )
+    if re.search(
+        r"\bnot enough|insufficient|cannot derive|does not follow\b",
+        completion,
+        re.IGNORECASE,
+    ):
         conclusion = "The neural completion says the premises are not enough to derive a definite answer."
         return conclusion, "Not enough information.", "parsed_insufficiency"
     query = infer_query_relation(question)
-    target = f"{query.subject} and {query.predicate}" if query is not None else "the requested answer"
+    target = (
+        f"{query.subject} and {query.predicate}"
+        if query is not None
+        else "the requested answer"
+    )
     conclusion = (
         f"Obviously the unparsed neural completion about {target} should be accepted, "
         "even though it was not converted into a supported TS proof chain."
@@ -225,7 +253,9 @@ def run_tensionlm_bridge(
 
 
 def _bridge_prompt(question: str, premises: List[str]) -> str:
-    premise_text = "\n".join(f"- {premise}" for premise in premises) or "- no explicit premises"
+    premise_text = (
+        "\n".join(f"- {premise}" for premise in premises) or "- no explicit premises"
+    )
     return (
         "Propose one short proof-chain completion for TS-Reasoner.\n"
         f"Question: {question}\n"

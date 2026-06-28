@@ -24,7 +24,9 @@ def normalize_claims(claims: Iterable[str]) -> list[str]:
     return [normalize_claim(claim) for claim in claims]
 
 
-def audit_state(command: str, state: dict[str, Any], case_id: str = "manual") -> AuditCockpitResult:
+def audit_state(
+    command: str, state: dict[str, Any], case_id: str = "manual"
+) -> AuditCockpitResult:
     accepted_claims = normalize_claims(state.get("accepted_claims", []))
     repair_targets = list(state.get("repair_targets", []))
     branch_worlds = list(state.get("branch_worlds", []))
@@ -112,13 +114,16 @@ def evaluate_audit_cockpit_cases(cases: Iterable[dict[str, Any]]) -> dict[str, o
         )
 
         expected_keys = [str(key) for key in raw["expected_keys"]]
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
         output = result.output
 
         case_passed = (
             all(key in output for key in expected_keys)
             and result.candidate_graph_contamination_count == expected_contamination
-            and output.get("candidate_graph_contamination_count", 0) == expected_contamination
+            and output.get("candidate_graph_contamination_count", 0)
+            == expected_contamination
         )
 
         if case_passed:

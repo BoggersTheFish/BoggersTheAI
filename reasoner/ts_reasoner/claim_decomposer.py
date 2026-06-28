@@ -53,7 +53,9 @@ def choose_relation_for_question(
     return None, "unparsed"
 
 
-def decompose_candidate_answer(text: str, question: str | None = None) -> DecomposedClaim:
+def decompose_candidate_answer(
+    text: str, question: str | None = None
+) -> DecomposedClaim:
     answer_type = classify_answer(text)
     question_relation = extract_question_relation(question) if question else None
 
@@ -66,7 +68,9 @@ def decompose_candidate_answer(text: str, question: str | None = None) -> Decomp
         )
 
     relations = extract_all_relations(text)
-    chosen_relation, relation_status = choose_relation_for_question(relations, question_relation)
+    chosen_relation, relation_status = choose_relation_for_question(
+        relations, question_relation
+    )
 
     # Negative answers are still decomposed for audit, but cannot become proof support.
     if answer_type == "no":
@@ -133,10 +137,12 @@ def decomposed_claim_to_dict(claim: DecomposedClaim) -> dict[str, Any]:
         "answer_type": claim.answer_type,
         "extraction_status": claim.extraction_status,
         "reason": claim.reason,
-        "extracted_relation": None
-        if claim.extracted_relation is None
-        else {
-            "subject": claim.extracted_relation.subject,
-            "object": claim.extracted_relation.object,
-        },
+        "extracted_relation": (
+            None
+            if claim.extracted_relation is None
+            else {
+                "subject": claim.extracted_relation.subject,
+                "object": claim.extracted_relation.object,
+            }
+        ),
     }

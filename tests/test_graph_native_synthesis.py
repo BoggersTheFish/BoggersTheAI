@@ -48,9 +48,7 @@ def test_source_stability_tracker_links() -> None:
     graph.add_node("n1", "hello", topics=["t"], activation=0.5)
     tr = SourceStabilityTracker(graph)
     tr.link_ingestion("wikipedia", "n1")
-    assert any(
-        e.relation == "source_stability" and e.dst == "n1" for e in graph.edges
-    )
+    assert any(e.relation == "source_stability" and e.dst == "n1" for e in graph.edges)
 
 
 def test_meta_critique_writes_file(tmp_path) -> None:

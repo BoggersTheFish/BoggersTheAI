@@ -20,13 +20,11 @@ Boundary:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from ts_reasoner.answer_arena import Relation
 from ts_reasoner.ts_chat import TSChatSession, receipt_to_dict
-
 
 RELEASE = "v7.6.0"
 SCHEMA = "ts_reasoner_knowledge_pack_library_v1"
@@ -54,7 +52,9 @@ def _load_json(path: str | Path) -> Any:
 def _write_json(path: str | Path, payload: Any) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out
 
 
@@ -68,8 +68,7 @@ def relation_text(relation: dict[str, Any]) -> str:
 
 def _sorted_relation_dicts(edges: set[tuple[str, str]]) -> list[dict[str, str]]:
     return [
-        {"subject": subject, "object": object_}
-        for subject, object_ in sorted(edges)
+        {"subject": subject, "object": object_} for subject, object_ in sorted(edges)
     ]
 
 
@@ -82,7 +81,10 @@ def pack_accepted_edges(pack: dict[str, Any]) -> set[tuple[str, str]]:
 
     # v6.7/v7.1 pack forms may also carry full records.
     for record in pack.get("records", []):
-        if record.get("kind") == "asserted_premise" and record.get("status") == "accepted":
+        if (
+            record.get("kind") == "asserted_premise"
+            and record.get("status") == "accepted"
+        ):
             relation = record.get("relation")
             if relation:
                 edges.add(relation_key(relation))
@@ -144,10 +146,7 @@ class KnowledgePackLibrary:
     def _load_index(self) -> None:
         payload = _load_json(self.index_path)
         entries = payload.get("entries", {})
-        self.entries = {
-            label: PackEntry(**entry)
-            for label, entry in entries.items()
-        }
+        self.entries = {label: PackEntry(**entry) for label, entry in entries.items()}
 
     def save_index(self) -> Path:
         payload = {
@@ -156,8 +155,7 @@ class KnowledgePackLibrary:
             "library_dir": str(self.library_dir),
             "pack_count": len(self.entries),
             "entries": {
-                label: asdict(entry)
-                for label, entry in sorted(self.entries.items())
+                label: asdict(entry) for label, entry in sorted(self.entries.items())
             },
             "external_llm_used": False,
             "pack_import_is_proof": False,
@@ -190,8 +188,7 @@ class KnowledgePackLibrary:
             "release": RELEASE,
             "pack_count": len(self.entries),
             "entries": {
-                label: asdict(entry)
-                for label, entry in sorted(self.entries.items())
+                label: asdict(entry) for label, entry in sorted(self.entries.items())
             },
             "external_llm_used": False,
             "candidate_graph_contamination_count": 0,
@@ -245,7 +242,9 @@ class KnowledgePackLibrary:
             "candidate_graph_contamination_count": 0,
         }
 
-    def audit_merge_into_session(self, label: str, session: TSChatSession) -> dict[str, Any]:
+    def audit_merge_into_session(
+        self, label: str, session: TSChatSession
+    ) -> dict[str, Any]:
         pack = self.load_pack(label)
         pack_edges = pack_accepted_edges(pack)
         pack_rejected = pack_rejected_relations(pack)
@@ -282,7 +281,9 @@ class KnowledgePackLibrary:
             "candidate_graph_contamination_count": 0,
         }
 
-    def merge_pack_into_session(self, label: str, session: TSChatSession) -> dict[str, Any]:
+    def merge_pack_into_session(
+        self, label: str, session: TSChatSession
+    ) -> dict[str, Any]:
         audit = self.audit_merge_into_session(label, session)
 
         if not audit["safe_to_merge"]:
@@ -441,9 +442,9 @@ def run_knowledge_pack_library_demo(out_dir: str | Path) -> dict[str, Any]:
     )
 
     library = KnowledgePackLibrary(library_dir)
-    register_animals = library.register_pack("animals", animals_pack_path)
-    register_machines = library.register_pack("machines", machines_pack_path)
-    register_unsafe = library.register_pack("unsafe_direct_robots", unsafe_pack_path)
+    library.register_pack("animals", animals_pack_path)
+    library.register_pack("machines", machines_pack_path)
+    library.register_pack("unsafe_direct_robots", unsafe_pack_path)
 
     listing = library.list_packs()
     compare = library.compare_packs("animals", "machines")
@@ -487,12 +488,17 @@ def run_knowledge_pack_library_demo(out_dir: str | Path) -> dict[str, Any]:
     gates = {
         "library_state_valid": knowledge_pack_library_state_valid(listing),
         "three_packs_registered": listing["pack_count"] == 3,
-        "pack_compare_available": compare["schema"] == "ts_reasoner_knowledge_pack_compare_v1",
-        "unsafe_merge_blocked": unsafe_merge["blocked"] is True and unsafe_merge["merged"] is False,
-        "safe_merge_allowed": machines_merge["merged"] is True and machines_merge["blocked"] is False,
+        "pack_compare_available": compare["schema"]
+        == "ts_reasoner_knowledge_pack_compare_v1",
+        "unsafe_merge_blocked": unsafe_merge["blocked"] is True
+        and unsafe_merge["merged"] is False,
+        "safe_merge_allowed": machines_merge["merged"] is True
+        and machines_merge["blocked"] is False,
         "safe_merge_added_edges": machines_merge["merged_edge_count"] == 2,
         "post_merge_answer_accepted": bool(post_merge_accepted),
-        "rejected_pack_relations_not_promoted": isinstance(machines_audit["rejected_pack_relations_not_promoted"], list),
+        "rejected_pack_relations_not_promoted": isinstance(
+            machines_audit["rejected_pack_relations_not_promoted"], list
+        ),
         "pack_import_is_not_proof": machines_merge["pack_import_is_proof"] is False,
         "pack_merge_is_not_proof": machines_merge["pack_merge_is_proof"] is False,
         "candidate_graph_contamination_count_is_zero": (

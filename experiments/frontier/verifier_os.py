@@ -9,31 +9,42 @@ Produces TypedSupportObject style receipts.
 
 import sys
 from pathlib import Path
-import json
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 try:
     from reasoner.ts_reasoner.runtime_kernel import VerifierFirstRuntimeKernel
-    from reasoner.ts_reasoner.typed_support import make_typed_support, validate_typed_support
+    from reasoner.ts_reasoner.typed_support import (
+        make_typed_support,
+        validate_typed_support,
+    )
 except Exception:
     # Fallback for demo
     class VerifierFirstRuntimeKernel:
         def process_event(self, event, state, case_id="demo"):
-            from dataclasses import dataclass, asdict
+            from dataclasses import asdict, dataclass
+
             @dataclass
             class R:
                 action: str = "accept"
                 explanation: str = "fallback accept"
                 state: dict = None
-                def to_dict(self): return asdict(self)
-            if state is None: state = {}
+
+                def to_dict(self):
+                    return asdict(self)
+
+            if state is None:
+                state = {}
             r = R(state=state or {})
             return r
+
     def make_typed_support(**kw):
         return {"support_type": "fallback", "verifier_passed": True, **kw}
-    def validate_typed_support(*a, **k): return {"valid": True}
+
+    def validate_typed_support(*a, **k):
+        return {"valid": True}
+
 
 class VerifierOS:
     def __init__(self):
@@ -57,13 +68,13 @@ class VerifierOS:
             channel="kernel",
             premises=premises,
             derived_claim=claim,
-            verifier_passed=result.action in ("accept", "record")
+            verifier_passed=result.action in ("accept", "record"),
         )
         return {
             "action": result.action,
             "explanation": result.explanation,
             "support": support,
-            "kernel_result": result.to_dict()
+            "kernel_result": result.to_dict(),
         }
 
     def arithmetic_property_check(self, expr: str, expected: bool):
@@ -77,7 +88,7 @@ class VerifierOS:
                 channel="arithmetic",
                 premises=[expr],
                 derived_claim=f"{expr} == {expected}",
-                verifier_passed=passed
+                verifier_passed=passed,
             )
             return {"passed": passed, "result": result, "support": support}
         except Exception as e:

@@ -17,7 +17,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 RELEASE = "v8.0.0"
 SCHEMA = "ts_reasoner_v8_local_verifier_first_reasoning_os_v1"
 
@@ -96,7 +95,9 @@ def _load_json(path: str | Path) -> dict[str, Any]:
 def _write_json(path: str | Path, payload: Any) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out
 
 
@@ -131,10 +132,17 @@ def _proof_boundary_flags(receipt: dict[str, Any]) -> dict[str, bool]:
     boundary = receipt.get("boundary", {})
 
     return {
-        "no_broad_natural_language_understanding_claim": boundary.get("broad_natural_language_understanding") is False,
+        "no_broad_natural_language_understanding_claim": boundary.get(
+            "broad_natural_language_understanding"
+        )
+        is False,
         "no_neural_training_claim": boundary.get("neural_training") is False,
-        "no_live_tensionlm_runtime_claim": boundary.get("live_tensionlm_runtime") is False,
-        "no_external_benchmark_victory_claim": boundary.get("external_benchmark_victory") is False,
+        "no_live_tensionlm_runtime_claim": boundary.get("live_tensionlm_runtime")
+        is False,
+        "no_external_benchmark_victory_claim": boundary.get(
+            "external_benchmark_victory"
+        )
+        is False,
         "typed_verifier_remains_proof_authority": (
             receipt.get("typed_verifier_remains_proof_authority") is True
             or boundary.get("typed_verifier_remains_proof_authority") is True
@@ -152,14 +160,12 @@ def _component_summary(component: dict[str, str]) -> dict[str, Any]:
     receipt: dict[str, Any] = _load_json(receipt_path) if receipt_exists else {}
     report: dict[str, Any] = _load_json(report_path) if report_exists else {}
 
-    candidate_graph_contamination_count = (
-        _int_from(receipt, "candidate_graph_contamination_count", 0)
-        + _int_from(report, "candidate_graph_contamination_count", 0)
-    )
+    candidate_graph_contamination_count = _int_from(
+        receipt, "candidate_graph_contamination_count", 0
+    ) + _int_from(report, "candidate_graph_contamination_count", 0)
 
-    external_llm_used = (
-        _bool_from(receipt, "external_llm_used", False)
-        or _bool_from(report, "external_llm_used", False)
+    external_llm_used = _bool_from(receipt, "external_llm_used", False) or _bool_from(
+        report, "external_llm_used", False
     )
 
     gates_passed = (
@@ -218,25 +224,26 @@ def build_v8_milestone_payload() -> dict[str, Any]:
     ]
 
     total_candidate_graph_contamination_count = sum(
-        component["candidate_graph_contamination_count"]
-        for component in components
+        component["candidate_graph_contamination_count"] for component in components
     )
-    external_llm_used_any = any(component["external_llm_used"] for component in components)
+    external_llm_used_any = any(
+        component["external_llm_used"] for component in components
+    )
 
     component_count = len(components)
-    component_gate_pass_count = sum(1 for component in components if component["component_gates_passed"])
+    component_gate_pass_count = sum(
+        1 for component in components if component["component_gates_passed"]
+    )
     boundary_ok_count = sum(1 for component in components if component["boundary_ok"])
 
-    capabilities = [
-        component["capability"]
-        for component in COMPONENTS
-    ]
+    capabilities = [component["capability"] for component in COMPONENTS]
 
     gates = {
         "all_assets_present": len(missing_assets) == 0,
         "all_component_gates_passed": component_gate_pass_count == component_count,
         "all_boundaries_ok": boundary_ok_count == component_count,
-        "candidate_graph_contamination_count_is_zero": total_candidate_graph_contamination_count == 0,
+        "candidate_graph_contamination_count_is_zero": total_candidate_graph_contamination_count
+        == 0,
         "external_llm_used_false": external_llm_used_any is False,
         "component_count_is_nine": component_count == 9,
         "typed_verifier_remains_proof_authority": True,
@@ -306,7 +313,9 @@ def run_v8_milestone(out_dir: str | Path) -> dict[str, Any]:
         "component_count": payload["component_count"],
         "component_gate_pass_count": payload["component_gate_pass_count"],
         "boundary_ok_count": payload["boundary_ok_count"],
-        "total_candidate_graph_contamination_count": payload["total_candidate_graph_contamination_count"],
+        "total_candidate_graph_contamination_count": payload[
+            "total_candidate_graph_contamination_count"
+        ],
         "external_llm_used": payload["external_llm_used"],
         "missing_asset_count": len(payload["missing_assets"]),
         "failed_component_count": len(payload["failed_components"]),

@@ -6,7 +6,6 @@ from typing import Any
 
 from ts_reasoner.runtime_kernel import normalize_claim
 
-
 BELONGS_TO_RE = re.compile(r"^(.+?) belongs to (.+)$")
 BELONG_TO_RE = re.compile(r"^(.+?) belong to (.+)$")
 KIND_OF_RE = re.compile(r"^(.+?) (?:is|are) (?:a |an )?kind of (.+)$")
@@ -51,7 +50,7 @@ def _strip_article(text: str) -> str:
     text = " ".join(text.strip().split())
     for prefix in ("a ", "an ", "the "):
         if text.startswith(prefix):
-            return text[len(prefix):]
+            return text[len(prefix) :]
     return text
 
 
@@ -100,7 +99,9 @@ def _result(
 def parse_relation_phrase(text: str) -> dict[str, Any]:
     surface = _clean(text)
     if not surface:
-        return RelationPhraseParse("", "", "unparsed", "", "", "", "", "empty_claim").to_dict()
+        return RelationPhraseParse(
+            "", "", "unparsed", "", "", "", "", "empty_claim"
+        ).to_dict()
 
     positive_patterns: list[tuple[str, re.Pattern[str]]] = [
         ("belongs_to", BELONGS_TO_RE),

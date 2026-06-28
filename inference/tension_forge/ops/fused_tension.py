@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 FUSED_TENSION_LINEAR_SOURCE = r"""
 #ifndef TILE_SIZE
 #define TILE_SIZE 16
@@ -187,15 +186,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def fused_tension_linear_device(
@@ -212,14 +206,10 @@ def fused_tension_linear_device(
     tile_size: int = 16,
 ) -> tuple[DeviceTensor, dict[str, Any]]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     if tile_size not in {8, 16}:
-        raise ValueError(
-            "tile_size must currently be 8 or 16"
-        )
+        raise ValueError("tile_size must currently be 8 or 16")
 
     tensors = (
         ("features", features),
@@ -238,54 +228,35 @@ def fused_tension_linear_device(
         )
 
     if features.ndim != 2:
-        raise ValueError(
-            "features must be two-dimensional"
-        )
+        raise ValueError("features must be two-dimensional")
 
     if state.ndim != 2:
-        raise ValueError(
-            "state must be two-dimensional"
-        )
+        raise ValueError("state must be two-dimensional")
 
     if proposal_weights.ndim != 2:
-        raise ValueError(
-            "proposal_weights must be "
-            "two-dimensional"
-        )
+        raise ValueError("proposal_weights must be " "two-dimensional")
 
     if gate_weights.ndim != 2:
-        raise ValueError(
-            "gate_weights must be "
-            "two-dimensional"
-        )
+        raise ValueError("gate_weights must be " "two-dimensional")
 
     if proposal_bias.ndim != 1:
-        raise ValueError(
-            "proposal_bias must be one-dimensional"
-        )
+        raise ValueError("proposal_bias must be one-dimensional")
 
     if gate_bias.ndim != 1:
-        raise ValueError(
-            "gate_bias must be one-dimensional"
-        )
+        raise ValueError("gate_bias must be one-dimensional")
 
     batch_size, feature_count = features.shape
     state_batch, hidden_size = state.shape
 
     if state_batch != batch_size:
-        raise ValueError(
-            "features and state batch dimensions "
-            "must match"
-        )
+        raise ValueError("features and state batch dimensions " "must match")
 
     expected_weight_shape = (
         feature_count,
         hidden_size,
     )
 
-    if proposal_weights.shape != (
-        expected_weight_shape
-    ):
+    if proposal_weights.shape != (expected_weight_shape):
         raise ValueError(
             "proposal_weights shape is incorrect. "
             f"Expected {expected_weight_shape}, "
@@ -339,16 +310,12 @@ def fused_tension_linear_device(
 
         if output is state:
             raise ValueError(
-                "In-place state updates are not "
-                "supported by the timed fused API"
+                "In-place state updates are not " "supported by the timed fused API"
             )
 
     local_work_items = tile_size * tile_size
 
-    if (
-        local_work_items
-        > runtime.device.max_work_group_size
-    ):
+    if local_work_items > runtime.device.max_work_group_size:
         raise ValueError(
             f"Tile size {tile_size} requires "
             f"{local_work_items} work items, but "
@@ -356,9 +323,7 @@ def fused_tension_linear_device(
             f"{runtime.device.max_work_group_size}"
         )
 
-    compile_options = (
-        f"-DTILE_SIZE={tile_size}",
-    )
+    compile_options = (f"-DTILE_SIZE={tile_size}",)
 
     kernel = runtime.kernel(
         FUSED_TENSION_LINEAR_SOURCE,
@@ -421,30 +386,18 @@ def fused_tension_linear_device(
         if elapsed_ms is not None:
             timings_ms.append(elapsed_ms)
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
-    floating_point_operations = (
-        4
-        * batch_size
-        * feature_count
-        * hidden_size
-    )
+    floating_point_operations = 4 * batch_size * feature_count * hidden_size
 
     gflops = (
-        floating_point_operations
-        / (median_ms * 1e-3)
-        / 1e9
+        floating_point_operations / (median_ms * 1e-3) / 1e9
         if median_ms is not None
         else None
     )
 
     metadata: dict[str, Any] = {
-        "operation":
-            "fused_tension_linear_device_fp32",
+        "operation": "fused_tension_linear_device_fp32",
         "feature_shape": list(features.shape),
         "state_shape": list(state.shape),
         "output_shape": list(output.shape),
@@ -461,15 +414,10 @@ def fused_tension_linear_device(
         ],
         "kernel_launches_per_iteration": 1,
         "unfused_launches_per_iteration": 5,
-        "output_buffer_reused":
-            output_was_reused,
+        "output_buffer_reused": output_was_reused,
         "host_transfers_during_repetitions": 0,
-        "source_sha256":
-            runtime.source_hash(
-                FUSED_TENSION_LINEAR_SOURCE
-            ),
-        "compile_options":
-            list(compile_options),
+        "source_sha256": runtime.source_hash(FUSED_TENSION_LINEAR_SOURCE),
+        "compile_options": list(compile_options),
     }
 
     return output, metadata

@@ -8,7 +8,6 @@ from ts_reasoner.runtime_policy_contracts import policy_contract_document
 from ts_reasoner.runtime_recovery_drill import run_recovery_drill
 from ts_reasoner.runtime_replay import replay_events
 
-
 RUNTIME_OS_SCHEMA = "ts_reasoner_v10_runtime_session_v1"
 
 
@@ -34,7 +33,9 @@ def run_runtime_session(
     events: list[dict[str, Any]],
 ) -> RuntimeSessionResult:
     replay = replay_events(case_id=case_id, initial_state=initial_state, events=events)
-    checkpoint_result = build_checkpoint(case_id=case_id, initial_state=initial_state, events=events)
+    checkpoint_result = build_checkpoint(
+        case_id=case_id, initial_state=initial_state, events=events
+    )
     restored_state = restore_checkpoint(checkpoint_result.checkpoint)
 
     receipt = {
@@ -74,7 +75,9 @@ def run_runtime_os_suite(
     events: list[dict[str, Any]],
     continuation_events: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    session = run_runtime_session(case_id=case_id, initial_state=initial_state, events=events)
+    session = run_runtime_session(
+        case_id=case_id, initial_state=initial_state, events=events
+    )
     recovery = run_recovery_drill(
         case_id=f"{case_id}__recovery",
         initial_state=initial_state,
@@ -119,7 +122,9 @@ def evaluate_runtime_os_cases(cases: Iterable[dict[str, Any]]) -> dict[str, obje
             case_id=str(raw["case_id"]),
             initial_state=dict(raw["initial_state"]),
             events=[dict(event) for event in raw["events"]],
-            continuation_events=[dict(event) for event in raw.get("continuation_events", [])],
+            continuation_events=[
+                dict(event) for event in raw.get("continuation_events", [])
+            ],
         )
 
         expected_actions = [str(action) for action in raw["expected_actions"]]
@@ -129,7 +134,8 @@ def evaluate_runtime_os_cases(cases: Iterable[dict[str, Any]]) -> dict[str, obje
             suite["all_gates_passed"] is True
             and session["actions"] == expected_actions
             and session["schema"] == RUNTIME_OS_SCHEMA
-            and case_contamination == int(raw["expected_candidate_graph_contamination_count"])
+            and case_contamination
+            == int(raw["expected_candidate_graph_contamination_count"])
         )
 
         if case_passed:

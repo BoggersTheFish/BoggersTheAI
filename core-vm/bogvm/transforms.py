@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 TRANSFORM_ORDER = (
     "identity",
     "xor_previous",
@@ -126,8 +125,12 @@ def _mtf_decode(data: bytes) -> bytes:
 def _bwt_encode(data: bytes) -> tuple[bytes, int]:
     if not data:
         return b"", 0
-    rotations = sorted((data[index:] + data[:index], index) for index in range(len(data)))
-    primary_index = next(rank for rank, (_, index) in enumerate(rotations) if index == 0)
+    rotations = sorted(
+        (data[index:] + data[:index], index) for index in range(len(data))
+    )
+    primary_index = next(
+        rank for rank, (_, index) in enumerate(rotations) if index == 0
+    )
     return bytes(rotation[-1] for rotation, _ in rotations), primary_index
 
 

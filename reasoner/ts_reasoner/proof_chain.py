@@ -27,9 +27,15 @@ def universal_bridge_path(
     predicate_key = predicate.lower()
     edges: dict[str, list[tuple[str, UniversalRelation]]] = {}
     for relation in relations:
-        if relation.quantifier != "all" or not relation.subject or not relation.predicate:
+        if (
+            relation.quantifier != "all"
+            or not relation.subject
+            or not relation.predicate
+        ):
             continue
-        edges.setdefault(relation.subject.lower(), []).append((relation.predicate.lower(), relation))
+        edges.setdefault(relation.subject.lower(), []).append(
+            (relation.predicate.lower(), relation)
+        )
 
     queue: deque[tuple[str, list[UniversalRelation]]] = deque([(subject_key, [])])
     seen = {subject_key}

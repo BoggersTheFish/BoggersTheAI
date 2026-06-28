@@ -12,14 +12,17 @@ Integrated with graph for tension-aware verification.
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import json
+import re
+import subprocess
+import tempfile
 
 from reasoner.ts_reasoner.runtime_kernel import VerifierFirstRuntimeKernel
 from reasoner.ts_reasoner.typed_support import make_typed_support
-import json
-import subprocess
-import tempfile
-import re
+
 
 class VerifierOS:
     """Production foundation verifier stack."""
@@ -46,13 +49,13 @@ class VerifierOS:
             channel="kernel",
             premises=premises,
             derived_claim=claim,
-            verifier_passed=result.action in ("accept", "record")
+            verifier_passed=result.action in ("accept", "record"),
         )
         return {
             "action": result.action,
             "explanation": result.explanation,
             "support": support,
-            "kernel_result": result.to_dict()
+            "kernel_result": result.to_dict(),
         }
 
     def arithmetic_verify(self, expr: str, expected: bool = True) -> dict:
@@ -60,16 +63,26 @@ class VerifierOS:
         expr_l = expr.lower().strip()
         try:
             # Direct support for "N is even" style
-            m = re.search(r'(\d+)\s+is\s+(even|odd)', expr_l)
+            m = re.search(r"(\d+)\s+is\s+(even|odd)", expr_l)
             if m:
                 n = int(m.group(1))
-                want_even = m.group(2) == 'even'
+                want_even = m.group(2) == "even"
                 passed = (n % 2 == 0) == want_even
-                support = make_typed_support(channel="arithmetic", premises=[expr], derived_claim=expr, verifier_passed=passed)
-                return {"passed": passed, "computed": n % 2 == 0, "support": support, "claim": expr}
+                support = make_typed_support(
+                    channel="arithmetic",
+                    premises=[expr],
+                    derived_claim=expr,
+                    verifier_passed=passed,
+                )
+                return {
+                    "passed": passed,
+                    "computed": n % 2 == 0,
+                    "support": support,
+                    "claim": expr,
+                }
             # Fallback eval for = and simple
-            if '=' in expr:
-                left, right = expr.split('=', 1)
+            if "=" in expr:
+                left, right = expr.split("=", 1)
                 passed = eval(left.strip()) == eval(right.strip())
             else:
                 computed = eval(expr)
@@ -78,30 +91,39 @@ class VerifierOS:
                 channel="arithmetic",
                 premises=[expr],
                 derived_claim=expr,
-                verifier_passed=passed
+                verifier_passed=passed,
             )
-            return {"passed": passed, "computed": computed if 'computed' in dir() else None, "support": support, "action": "accept" if passed else "open_repair"}
+            return {
+                "passed": passed,
+                "computed": computed if "computed" in dir() else None,
+                "support": support,
+                "action": "accept" if passed else "open_repair",
+            }
         except Exception as e:
             return {"passed": False, "error": str(e)}
 
     def code_property_verify(self, plan: str, inputs: dict) -> dict:
         """BOGVM-backed code property checker for Wave 0."""
         # Generate minimal BOGBIN for the property
-        asm = f"""
+        asm = """
 CREATE_NODE input
 CREATE_NODE output
 CREATE_CLAIM prop input output
 VERIFY prop
 HALT
 """
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.asm', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".asm", delete=False) as f:
             f.write(asm)
             asm_path = f.name
-        bogbin = asm_path.replace('.asm', '.bogbin')
-        receipt = asm_path.replace('.asm', '_receipt.json')
+        bogbin = asm_path.replace(".asm", ".bogbin")
+        receipt = asm_path.replace(".asm", "_receipt.json")
         try:
-            subprocess.check_call(["python3", "-m", "core-vm.bogvm", "assemble", asm_path, bogbin])
-            subprocess.check_call(["python3", "-m", "core-vm.bogvm", "run", bogbin, "--receipt", receipt])
+            subprocess.check_call(
+                ["python3", "-m", "core-vm.bogvm", "assemble", asm_path, bogbin]
+            )
+            subprocess.check_call(
+                ["python3", "-m", "core-vm.bogvm", "run", bogbin, "--receipt", receipt]
+            )
             with open(receipt) as f:
                 bog_receipt = json.load(f)
             # For demo, assume success if no error
@@ -110,7 +132,7 @@ HALT
                 "passed": passed,
                 "plan": plan,
                 "inputs": inputs,
-                "bogvm_receipt": bog_receipt
+                "bogvm_receipt": bog_receipt,
             }
         except Exception as e:
             return {"passed": False, "error": str(e)}

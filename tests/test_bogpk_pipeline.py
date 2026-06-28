@@ -15,10 +15,16 @@ sys.path.insert(0, str(ROOT / "core-vm"))
 
 
 def test_serialize_and_deserialize_json_artifact(tmp_path):
-    from shared.artifacts import ArtifactKind, deserialize_artifact, serialize_json_payload
+    from shared.artifacts import (
+        ArtifactKind,
+        deserialize_artifact,
+        serialize_json_payload,
+    )
 
     payload = {"layer": "test", "tension": 0.42, "opcode": "WAVE"}
-    path = serialize_json_payload(payload, tmp_path / "test_receipt", kind=ArtifactKind.VM_STATE)
+    path = serialize_json_payload(
+        payload, tmp_path / "test_receipt", kind=ArtifactKind.VM_STATE
+    )
     assert path.suffix == ".bogpk"
     assert path.exists()
 
@@ -59,7 +65,9 @@ def test_tension_field_export_schema_validation(tmp_path):
     from inference.artifact_export import export_tension_field, verify_exported_artifact
 
     matrix = np.random.randn(4, 8).astype(np.float32)
-    path = export_tension_field(matrix, layer=2, prompt="the cat sat", artifacts_root=tmp_path)
+    path = export_tension_field(
+        matrix, layer=2, prompt="the cat sat", artifacts_root=tmp_path
+    )
     container = verify_exported_artifact(path, expected_shape=[4, 8])
     assert container["artifact_kind"] == "tension_field"
     meta = container["artifact_metadata"]

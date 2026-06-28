@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from pathlib import Path
 
 from .bases import BASIS_ORDER, synthesize_basis
-from .optimizer import optimize_chunked_residual_plan, optimize_transformed_chunked_residual_plan
-from .transforms import BWT_TRANSFORMS, TRANSFORM_ORDER, invert_transform
+from .optimizer import (
+    optimize_chunked_residual_plan,
+    optimize_transformed_chunked_residual_plan,
+)
 from .schema import validate_schema
+from .transforms import BWT_TRANSFORMS, TRANSFORM_ORDER, invert_transform
 
 
 class ContainerError(Exception):
@@ -50,8 +53,12 @@ REQUIRED_CHUNK_FIELDS = (
 )
 
 
-def build_bog_container(data: bytes, chunk_size: int = 64, auto_chunk: bool = False) -> dict:
-    return build_bog_container_v1(data, chunk_size=chunk_size, auto_chunk=auto_chunk, transform_tournament=False)
+def build_bog_container(
+    data: bytes, chunk_size: int = 64, auto_chunk: bool = False
+) -> dict:
+    return build_bog_container_v1(
+        data, chunk_size=chunk_size, auto_chunk=auto_chunk, transform_tournament=False
+    )
 
 
 def build_bog_container_v1(
@@ -76,7 +83,9 @@ def build_bog_container_v1(
     )
 
 
-def optimize_adaptive_chunked_residual_plan(data: bytes, transform_tournament: bool = False) -> tuple[dict, list[dict]]:
+def optimize_adaptive_chunked_residual_plan(
+    data: bytes, transform_tournament: bool = False
+) -> tuple[dict, list[dict]]:
     best_plan = None
     tournament_results = []
 
@@ -121,22 +130,24 @@ def build_bog_container_from_plan(
     chunks = []
 
     for chunk in plan["chunks"]:
-        chunks.append({
-            "index": chunk["index"],
-            "name": f"payload_chunk_{chunk['index']:04d}",
-            "offset": chunk["offset"],
-            "length": chunk["length"],
-            "basis": chunk["basis"],
-            "start_byte": chunk["start_byte"],
-            "delta": chunk.get("delta", 0),
-            "transform": chunk.get("transform", "identity"),
-            "transform_param": chunk.get("transform_param", 0),
-            "residual_count": chunk["residual_count"],
-            "residuals": chunk["residuals"],
-            "chunk_sha256": chunk["sha256"],
-            "transformed_sha256": chunk.get("transformed_sha256", chunk["sha256"]),
-            "original_chunk_sha256": chunk.get("original_sha256", chunk["sha256"]),
-        })
+        chunks.append(
+            {
+                "index": chunk["index"],
+                "name": f"payload_chunk_{chunk['index']:04d}",
+                "offset": chunk["offset"],
+                "length": chunk["length"],
+                "basis": chunk["basis"],
+                "start_byte": chunk["start_byte"],
+                "delta": chunk.get("delta", 0),
+                "transform": chunk.get("transform", "identity"),
+                "transform_param": chunk.get("transform_param", 0),
+                "residual_count": chunk["residual_count"],
+                "residuals": chunk["residuals"],
+                "chunk_sha256": chunk["sha256"],
+                "transformed_sha256": chunk.get("transformed_sha256", chunk["sha256"]),
+                "original_chunk_sha256": chunk.get("original_sha256", chunk["sha256"]),
+            }
+        )
 
     container = {
         "format": BOG_FORMAT,
@@ -149,13 +160,19 @@ def build_bog_container_from_plan(
         "chunks": chunks,
     }
     container["chunk_tournament_enabled"] = auto_chunk
-    container["candidate_chunk_sizes"] = list(CANDIDATE_CHUNK_SIZES) if auto_chunk else [plan["chunk_size"]]
+    container["candidate_chunk_sizes"] = (
+        list(CANDIDATE_CHUNK_SIZES) if auto_chunk else [plan["chunk_size"]]
+    )
     container["selected_chunk_size"] = plan["chunk_size"]
     container["selected_total_residual_count"] = plan["total_residual_count"]
-    container["selected_residual_density"] = _residual_density(plan["total_residual_count"], plan["length"])
+    container["selected_residual_density"] = _residual_density(
+        plan["total_residual_count"], plan["length"]
+    )
     container["chunk_tournament_results"] = tournament_results
     container["transform_tournament_enabled"] = transform_tournament
-    container["candidate_transforms"] = list(TRANSFORM_ORDER) if transform_tournament else ["identity"]
+    container["candidate_transforms"] = (
+        list(TRANSFORM_ORDER) if transform_tournament else ["identity"]
+    )
     container["selected_transform_counts"] = plan.get(
         "transform_counts",
         {"identity": plan["chunk_count"]},
@@ -215,7 +232,9 @@ def encode_bogpk_container(container: dict) -> bytes:
             flags |= BOGPK_FLAG_ZERO_RESIDUAL_RUNS
             descriptor_bytes.append(BOGPK_DESCRIPTOR_SENTINEL)
             descriptor_bytes.extend(_encode_varuint(run_length))
-            descriptor_bytes.append(_encode_descriptor(chunk, residual_encoding="delta"))
+            descriptor_bytes.append(
+                _encode_descriptor(chunk, residual_encoding="delta")
+            )
             descriptor_bytes.append(chunk["start_byte"])
             descriptor_bytes.append(chunk.get("delta", 0))
             _append_transform_param(descriptor_bytes, chunk)
@@ -223,13 +242,17 @@ def encode_bogpk_container(container: dict) -> bytes:
             continue
 
         residual_encoding = _best_residual_encoding(chunk)
-        descriptor_bytes.append(_encode_descriptor(chunk, residual_encoding=residual_encoding))
+        descriptor_bytes.append(
+            _encode_descriptor(chunk, residual_encoding=residual_encoding)
+        )
         descriptor_bytes.append(chunk["start_byte"])
         descriptor_bytes.append(chunk.get("delta", 0))
         _append_transform_param(descriptor_bytes, chunk)
         descriptor_bytes.extend(_encode_varuint(chunk["residual_count"]))
         if residual_encoding == "bitmask":
-            _append_bitmask_residuals(residual_bytes, chunk["length"], chunk["residuals"])
+            _append_bitmask_residuals(
+                residual_bytes, chunk["length"], chunk["residuals"]
+            )
         else:
             _append_residuals(residual_bytes, chunk["residuals"])
         index += 1
@@ -259,10 +282,16 @@ def decode_bogpk_container(data: bytes) -> dict:
         raise ContainerError(f"Unsupported BOGPK version: {version}")
 
     flags = reader.read_byte()
-    if flags & ~(BOGPK_FLAG_TRANSFORMED_HASHES | BOGPK_FLAG_ORIGINAL_HASHES | BOGPK_FLAG_ZERO_RESIDUAL_RUNS):
+    if flags & ~(
+        BOGPK_FLAG_TRANSFORMED_HASHES
+        | BOGPK_FLAG_ORIGINAL_HASHES
+        | BOGPK_FLAG_ZERO_RESIDUAL_RUNS
+    ):
         raise ContainerError("Unsupported BOGPK flags")
     if flags & (BOGPK_FLAG_TRANSFORMED_HASHES | BOGPK_FLAG_ORIGINAL_HASHES):
-        raise ContainerError("BOGPK optional chunk hash streams are not implemented yet")
+        raise ContainerError(
+            "BOGPK optional chunk hash streams are not implemented yet"
+        )
 
     chunk_size_code = reader.read_byte()
     try:
@@ -279,9 +308,15 @@ def decode_bogpk_container(data: bytes) -> dict:
         raise ContainerError("BOGPK zero original_length requires zero chunk_count")
     if original_length > 0 and chunk_count == 0:
         raise ContainerError("BOGPK nonzero original_length requires chunks")
-    expected_chunk_count = 0 if original_length == 0 else ((original_length + chunk_size - 1) // chunk_size)
+    expected_chunk_count = (
+        0
+        if original_length == 0
+        else ((original_length + chunk_size - 1) // chunk_size)
+    )
     if chunk_count != expected_chunk_count:
-        raise ContainerError("BOGPK chunk_count does not match original_length and chunk_size")
+        raise ContainerError(
+            "BOGPK chunk_count does not match original_length and chunk_size"
+        )
     if total_residual_count > original_length:
         raise ContainerError("BOGPK residual total exceeds original_length")
 
@@ -293,7 +328,9 @@ def decode_bogpk_container(data: bytes) -> dict:
                 raise ContainerError("BOGPK zero-run sentinel without zero-run flag")
             run_length = _decode_varuint(reader)
             if run_length < 2:
-                raise ContainerError("BOGPK zero-residual run length must be at least 2")
+                raise ContainerError(
+                    "BOGPK zero-residual run length must be at least 2"
+                )
             descriptor = reader.read_byte()
             start_byte = reader.read_byte()
             delta = reader.read_byte()
@@ -301,14 +338,22 @@ def decode_bogpk_container(data: bytes) -> dict:
             if len(descriptors) + run_length > chunk_count:
                 raise ContainerError("BOGPK zero-residual run exceeds chunk_count")
             for _ in range(run_length):
-                descriptors.append(_decode_descriptor(descriptor, start_byte, delta, transform_param, 0))
+                descriptors.append(
+                    _decode_descriptor(
+                        descriptor, start_byte, delta, transform_param, 0
+                    )
+                )
             continue
 
         start_byte = reader.read_byte()
         delta = reader.read_byte()
         transform_param = _read_transform_param(reader, marker)
         residual_count = _decode_varuint(reader)
-        descriptors.append(_decode_descriptor(marker, start_byte, delta, transform_param, residual_count))
+        descriptors.append(
+            _decode_descriptor(
+                marker, start_byte, delta, transform_param, residual_count
+            )
+        )
 
     chunks = []
     residual_total = 0
@@ -316,7 +361,9 @@ def decode_bogpk_container(data: bytes) -> dict:
     for index, descriptor in enumerate(descriptors):
         length = _decoded_chunk_length(index, chunk_count, chunk_size, original_length)
         if descriptor["residual_encoding"] == "bitmask":
-            residuals = _read_bitmask_residuals(reader, descriptor["residual_count"], length)
+            residuals = _read_bitmask_residuals(
+                reader, descriptor["residual_count"], length
+            )
         else:
             residuals = _read_residuals(reader, descriptor["residual_count"], length)
         residual_total += len(residuals)
@@ -328,26 +375,30 @@ def decode_bogpk_container(data: bytes) -> dict:
             residuals,
         )
         try:
-            original = invert_transform(descriptor["transform"], transformed, descriptor["transform_param"])
+            original = invert_transform(
+                descriptor["transform"], transformed, descriptor["transform_param"]
+            )
         except ValueError as exc:
             raise ContainerError(f"BOGPK transform inversion failed: {exc}") from exc
         reconstructed_chunks.append(original)
-        chunks.append({
-            "index": index,
-            "name": f"payload_chunk_{index:04d}",
-            "offset": index * chunk_size,
-            "length": length,
-            "basis": descriptor["basis"],
-            "start_byte": descriptor["start_byte"],
-            "delta": descriptor["delta"],
-            "transform": descriptor["transform"],
-            "transform_param": descriptor["transform_param"],
-            "residual_count": len(residuals),
-            "residuals": residuals,
-            "chunk_sha256": hashlib.sha256(transformed).hexdigest(),
-            "transformed_sha256": hashlib.sha256(transformed).hexdigest(),
-            "original_chunk_sha256": hashlib.sha256(original).hexdigest(),
-        })
+        chunks.append(
+            {
+                "index": index,
+                "name": f"payload_chunk_{index:04d}",
+                "offset": index * chunk_size,
+                "length": length,
+                "basis": descriptor["basis"],
+                "start_byte": descriptor["start_byte"],
+                "delta": descriptor["delta"],
+                "transform": descriptor["transform"],
+                "transform_param": descriptor["transform_param"],
+                "residual_count": len(residuals),
+                "residuals": residuals,
+                "chunk_sha256": hashlib.sha256(transformed).hexdigest(),
+                "transformed_sha256": hashlib.sha256(transformed).hexdigest(),
+                "original_chunk_sha256": hashlib.sha256(original).hexdigest(),
+            }
+        )
 
     if residual_total != total_residual_count:
         raise ContainerError("BOGPK residual total mismatch")
@@ -377,7 +428,9 @@ def decode_bogpk_container(data: bytes) -> dict:
         "candidate_chunk_sizes": [chunk_size],
         "selected_chunk_size": chunk_size,
         "selected_total_residual_count": total_residual_count,
-        "selected_residual_density": _residual_density(total_residual_count, original_length),
+        "selected_residual_density": _residual_density(
+            total_residual_count, original_length
+        ),
         "chunk_tournament_results": [],
         "transform_tournament_enabled": True,
         "candidate_transforms": list(TRANSFORM_ORDER),
@@ -402,26 +455,32 @@ def compile_bog_container_to_bogasm(container: dict) -> str:
 
     for chunk in container["chunks"]:
         name = chunk["name"]
-        lines.extend([
-            f"DATA_BLOCK {name}",
-            f"DECLARE_BASIS {chunk['basis']}",
-            f"LOAD_COEFFICIENTS {name} {chunk['start_byte']} {chunk['length']} {chunk.get('delta', 0)}",
-            f"SYNTHESIZE {name}",
-        ])
+        lines.extend(
+            [
+                f"DATA_BLOCK {name}",
+                f"DECLARE_BASIS {chunk['basis']}",
+                f"LOAD_COEFFICIENTS {name} {chunk['start_byte']} {chunk['length']} {chunk.get('delta', 0)}",
+                f"SYNTHESIZE {name}",
+            ]
+        )
 
         for patch in chunk["residuals"]:
             lines.append(f"STORE_RESIDUAL {name} {patch['offset']} {patch['byte']}")
 
-        lines.extend([
-            f"APPLY_RESIDUAL {name}",
-            f"VERIFY_HASH {name} {chunk['chunk_sha256']}",
-            f"ACCEPT_DATA {name}",
-        ])
+        lines.extend(
+            [
+                f"APPLY_RESIDUAL {name}",
+                f"VERIFY_HASH {name} {chunk['chunk_sha256']}",
+                f"ACCEPT_DATA {name}",
+            ]
+        )
 
-    lines.extend([
-        "EMIT_RECEIPT",
-        "HALT",
-    ])
+    lines.extend(
+        [
+            "EMIT_RECEIPT",
+            "HALT",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -441,12 +500,14 @@ def reconstruct_bog_container_bytes(container: dict) -> bytes:
     reconstructed_chunks = []
     for index in range(container["chunk_count"]):
         chunk = chunks_by_index[index]
-        data = bytearray(synthesize_basis(
-            chunk["basis"],
-            chunk["start_byte"],
-            chunk["length"],
-            delta=chunk.get("delta", 0),
-        ))
+        data = bytearray(
+            synthesize_basis(
+                chunk["basis"],
+                chunk["start_byte"],
+                chunk["length"],
+                delta=chunk.get("delta", 0),
+            )
+        )
 
         for patch in chunk["residuals"]:
             offset = patch["offset"]
@@ -467,7 +528,9 @@ def reconstruct_bog_container_bytes(container: dict) -> bytes:
             chunk.get("transform_param", 0),
         )
         original_chunk_hash = hashlib.sha256(original_chunk).hexdigest()
-        expected_original_hash = chunk.get("original_chunk_sha256", chunk["chunk_sha256"])
+        expected_original_hash = chunk.get(
+            "original_chunk_sha256", chunk["chunk_sha256"]
+        )
         if original_chunk_hash != expected_original_hash:
             raise ContainerError(f"chunk {index} original SHA-256 mismatch")
         reconstructed_chunks.append(original_chunk)
@@ -497,7 +560,10 @@ def validate_bog_container(container: dict) -> None:
         raise ContainerError("chunk_size must be a positive integer")
     if not isinstance(container["chunk_count"], int) or container["chunk_count"] < 0:
         raise ContainerError("chunk_count must be a non-negative integer")
-    if not isinstance(container["total_residual_count"], int) or container["total_residual_count"] < 0:
+    if (
+        not isinstance(container["total_residual_count"], int)
+        or container["total_residual_count"] < 0
+    ):
         raise ContainerError("total_residual_count must be a non-negative integer")
     if not _is_sha256(container["whole_sha256"]):
         raise ContainerError("whole_sha256 must be a SHA-256 hex string")
@@ -519,7 +585,9 @@ def validate_bog_container(container: dict) -> None:
     _validate_transform_metadata(container)
 
 
-def _validate_chunk(chunk: dict, expected_index: int, expected_offset: int, chunk_size: int) -> None:
+def _validate_chunk(
+    chunk: dict, expected_index: int, expected_offset: int, chunk_size: int
+) -> None:
     if not isinstance(chunk, dict):
         raise ContainerError("chunk must be a JSON object")
     for field in REQUIRED_CHUNK_FIELDS:
@@ -533,19 +601,31 @@ def _validate_chunk(chunk: dict, expected_index: int, expected_offset: int, chun
         raise ContainerError(f"chunk name must be {expected_name}")
     if chunk["offset"] != expected_offset:
         raise ContainerError("chunk offset ordering is not deterministic")
-    if not isinstance(chunk["length"], int) or chunk["length"] < 0 or chunk["length"] > chunk_size:
+    if (
+        not isinstance(chunk["length"], int)
+        or chunk["length"] < 0
+        or chunk["length"] > chunk_size
+    ):
         raise ContainerError("chunk length is invalid")
     if chunk["length"] == 0:
         raise ContainerError("empty chunks are not allowed")
     if chunk["basis"] not in BASIS_ORDER:
         raise ContainerError(f"Unsupported deterministic basis: {chunk['basis']}")
     if chunk.get("transform", "identity") not in TRANSFORM_ORDER:
-        raise ContainerError(f"Unsupported reversible transform: {chunk.get('transform')}")
-    if not isinstance(chunk.get("transform_param", 0), int) or chunk.get("transform_param", 0) < 0:
+        raise ContainerError(
+            f"Unsupported reversible transform: {chunk.get('transform')}"
+        )
+    if (
+        not isinstance(chunk.get("transform_param", 0), int)
+        or chunk.get("transform_param", 0) < 0
+    ):
         raise ContainerError("transform_param must be a non-negative integer")
     if not isinstance(chunk["start_byte"], int) or not 0 <= chunk["start_byte"] <= 255:
         raise ContainerError("start_byte must be 0..255")
-    if not isinstance(chunk.get("delta", 0), int) or not 0 <= chunk.get("delta", 0) <= 255:
+    if (
+        not isinstance(chunk.get("delta", 0), int)
+        or not 0 <= chunk.get("delta", 0) <= 255
+    ):
         raise ContainerError("delta must be 0..255")
     if not isinstance(chunk["residual_count"], int) or chunk["residual_count"] < 0:
         raise ContainerError("residual_count must be a non-negative integer")
@@ -557,7 +637,9 @@ def _validate_chunk(chunk: dict, expected_index: int, expected_offset: int, chun
         raise ContainerError("chunk_sha256 must be a SHA-256 hex string")
     if "transformed_sha256" in chunk and not _is_sha256(chunk["transformed_sha256"]):
         raise ContainerError("transformed_sha256 must be a SHA-256 hex string")
-    if "original_chunk_sha256" in chunk and not _is_sha256(chunk["original_chunk_sha256"]):
+    if "original_chunk_sha256" in chunk and not _is_sha256(
+        chunk["original_chunk_sha256"]
+    ):
         raise ContainerError("original_chunk_sha256 must be a SHA-256 hex string")
 
     previous_offset = -1
@@ -566,7 +648,10 @@ def _validate_chunk(chunk: dict, expected_index: int, expected_offset: int, chun
             raise ContainerError("residual patch must be a JSON object")
         if set(patch.keys()) != {"offset", "byte"}:
             raise ContainerError("residual patch must contain offset and byte")
-        if not isinstance(patch["offset"], int) or not 0 <= patch["offset"] < chunk["length"]:
+        if (
+            not isinstance(patch["offset"], int)
+            or not 0 <= patch["offset"] < chunk["length"]
+        ):
             raise ContainerError("residual offset out of range")
         if patch["offset"] <= previous_offset:
             raise ContainerError("residual offsets must be strictly increasing")
@@ -576,7 +661,9 @@ def _validate_chunk(chunk: dict, expected_index: int, expected_offset: int, chun
 
 
 def _canonical_json(container: dict) -> str:
-    return json.dumps(container, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return json.dumps(
+        container, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    )
 
 
 def _validate_tournament_metadata(container: dict) -> None:
@@ -585,18 +672,29 @@ def _validate_tournament_metadata(container: dict) -> None:
         raise ContainerError("chunk_tournament_enabled must be boolean")
 
     candidate_sizes = container.get("candidate_chunk_sizes", [container["chunk_size"]])
-    if not isinstance(candidate_sizes, list) or not all(isinstance(size, int) and size > 0 for size in candidate_sizes):
+    if not isinstance(candidate_sizes, list) or not all(
+        isinstance(size, int) and size > 0 for size in candidate_sizes
+    ):
         raise ContainerError("candidate_chunk_sizes must be positive integers")
 
     selected_chunk_size = container.get("selected_chunk_size", container["chunk_size"])
-    selected_total_residual_count = container.get("selected_total_residual_count", container["total_residual_count"])
-    selected_residual_density = container.get("selected_residual_density", _residual_density(container["total_residual_count"], _container_length(container)))
+    selected_total_residual_count = container.get(
+        "selected_total_residual_count", container["total_residual_count"]
+    )
+    selected_residual_density = container.get(
+        "selected_residual_density",
+        _residual_density(
+            container["total_residual_count"], _container_length(container)
+        ),
+    )
     tournament_results = container.get("chunk_tournament_results", [])
 
     if selected_chunk_size != container["chunk_size"]:
         raise ContainerError("selected_chunk_size must match chunk_size")
     if selected_total_residual_count != container["total_residual_count"]:
-        raise ContainerError("selected_total_residual_count must match total_residual_count")
+        raise ContainerError(
+            "selected_total_residual_count must match total_residual_count"
+        )
     if not isinstance(selected_residual_density, float):
         raise ContainerError("selected_residual_density must be a float")
     if not isinstance(tournament_results, list):
@@ -611,19 +709,29 @@ def _validate_transform_metadata(container: dict) -> None:
         raise ContainerError("transform_tournament_enabled must be boolean")
 
     candidate_transforms = container.get("candidate_transforms", ["identity"])
-    if not isinstance(candidate_transforms, list) or not all(transform in TRANSFORM_ORDER for transform in candidate_transforms):
-        raise ContainerError("candidate_transforms must be supported reversible transforms")
+    if not isinstance(candidate_transforms, list) or not all(
+        transform in TRANSFORM_ORDER for transform in candidate_transforms
+    ):
+        raise ContainerError(
+            "candidate_transforms must be supported reversible transforms"
+        )
     if enabled and candidate_transforms != list(TRANSFORM_ORDER):
-        raise ContainerError("transform tournament candidates must match deterministic order")
+        raise ContainerError(
+            "transform tournament candidates must match deterministic order"
+        )
 
-    selected_counts = container.get("selected_transform_counts", {"identity": container["chunk_count"]})
+    selected_counts = container.get(
+        "selected_transform_counts", {"identity": container["chunk_count"]}
+    )
     if not isinstance(selected_counts, dict):
         raise ContainerError("selected_transform_counts must be an object")
     if sum(selected_counts.values()) != container["chunk_count"]:
         raise ContainerError("selected_transform_counts must sum to chunk_count")
 
 
-def _optimize_chunked_plan(data: bytes, chunk_size: int, transform_tournament: bool) -> dict:
+def _optimize_chunked_plan(
+    data: bytes, chunk_size: int, transform_tournament: bool
+) -> dict:
     if transform_tournament:
         return optimize_transformed_chunked_residual_plan(data, chunk_size)
     return optimize_chunked_residual_plan(data, chunk_size)
@@ -658,8 +766,12 @@ def _encode_descriptor(chunk: dict, residual_encoding: str = "delta") -> int:
     return (transform_id << 5) | (basis_id << 1) | flag
 
 
-def _decode_descriptor(value: int, start_byte: int, delta: int, transform_param: int, residual_count: int) -> dict:
-    residual_encoding = "bitmask" if value & BOGPK_DESCRIPTOR_BITMASK_RESIDUALS else "delta"
+def _decode_descriptor(
+    value: int, start_byte: int, delta: int, transform_param: int, residual_count: int
+) -> dict:
+    residual_encoding = (
+        "bitmask" if value & BOGPK_DESCRIPTOR_BITMASK_RESIDUALS else "delta"
+    )
     transform_id = (value >> 5) & 0b111
     basis_id = (value >> 1) & 0b1111
     if transform_id >= len(TRANSFORM_ORDER):
@@ -687,7 +799,7 @@ def _zero_residual_run_length(chunks: list[dict], index: int) -> int:
     if first["residual_count"] != 0:
         return 0
     length = 1
-    for candidate in chunks[index + 1:]:
+    for candidate in chunks[index + 1 :]:
         if candidate["residual_count"] != 0:
             break
         if (
@@ -724,12 +836,18 @@ def _append_residuals(output: bytearray, residuals: list[dict]) -> None:
     previous_offset = -1
     for patch in residuals:
         offset = patch["offset"]
-        output.extend(_encode_varuint(offset if previous_offset < 0 else offset - previous_offset - 1))
+        output.extend(
+            _encode_varuint(
+                offset if previous_offset < 0 else offset - previous_offset - 1
+            )
+        )
         output.append(patch["byte"])
         previous_offset = offset
 
 
-def _append_bitmask_residuals(output: bytearray, length: int, residuals: list[dict]) -> None:
+def _append_bitmask_residuals(
+    output: bytearray, length: int, residuals: list[dict]
+) -> None:
     mask = bytearray((length + 7) // 8)
     residuals_by_offset = {patch["offset"]: patch["byte"] for patch in residuals}
     for offset in residuals_by_offset:
@@ -739,14 +857,18 @@ def _append_bitmask_residuals(output: bytearray, length: int, residuals: list[di
         output.append(residuals_by_offset[offset])
 
 
-def _read_residuals(reader: "_ByteReader", residual_count: int, length: int) -> list[dict]:
+def _read_residuals(
+    reader: "_ByteReader", residual_count: int, length: int
+) -> list[dict]:
     if residual_count > length:
         raise ContainerError("BOGPK residual count exceeds chunk length")
     residuals = []
     previous_offset = -1
     for _ in range(residual_count):
         offset_delta = _decode_varuint(reader)
-        offset = offset_delta if previous_offset < 0 else previous_offset + 1 + offset_delta
+        offset = (
+            offset_delta if previous_offset < 0 else previous_offset + 1 + offset_delta
+        )
         if not 0 <= offset < length:
             raise ContainerError("BOGPK residual offset out of range")
         residuals.append({"offset": offset, "byte": reader.read_byte()})
@@ -754,7 +876,9 @@ def _read_residuals(reader: "_ByteReader", residual_count: int, length: int) -> 
     return residuals
 
 
-def _read_bitmask_residuals(reader: "_ByteReader", residual_count: int, length: int) -> list[dict]:
+def _read_bitmask_residuals(
+    reader: "_ByteReader", residual_count: int, length: int
+) -> list[dict]:
     if residual_count > length:
         raise ContainerError("BOGPK residual count exceeds chunk length")
     mask = reader.read_bytes((length + 7) // 8)
@@ -763,16 +887,11 @@ def _read_bitmask_residuals(reader: "_ByteReader", residual_count: int, length: 
         if mask and (mask[-1] & unused_mask):
             raise ContainerError("BOGPK bitmask has offsets outside chunk length")
     offsets = [
-        offset
-        for offset in range(length)
-        if mask[offset // 8] & (1 << (offset % 8))
+        offset for offset in range(length) if mask[offset // 8] & (1 << (offset % 8))
     ]
     if len(offsets) != residual_count:
         raise ContainerError("BOGPK bitmask residual count mismatch")
-    return [
-        {"offset": offset, "byte": reader.read_byte()}
-        for offset in offsets
-    ]
+    return [{"offset": offset, "byte": reader.read_byte()} for offset in offsets]
 
 
 def _best_residual_encoding(chunk: dict) -> str:
@@ -790,14 +909,18 @@ def _encoded_delta_residuals(residuals: list[dict]) -> bytes:
     return bytes(output)
 
 
-def _synthesize_residual_chunk(basis: str, start_byte: int, delta: int, length: int, residuals: list[dict]) -> bytes:
+def _synthesize_residual_chunk(
+    basis: str, start_byte: int, delta: int, length: int, residuals: list[dict]
+) -> bytes:
     data = bytearray(synthesize_basis(basis, start_byte, length, delta=delta))
     for patch in residuals:
         data[patch["offset"]] = patch["byte"]
     return bytes(data)
 
 
-def _decoded_chunk_length(index: int, chunk_count: int, chunk_size: int, original_length: int) -> int:
+def _decoded_chunk_length(
+    index: int, chunk_count: int, chunk_size: int, original_length: int
+) -> int:
     if chunk_count == 0:
         raise ContainerError("BOGPK chunk length requested for empty container")
     if index < chunk_count - 1:
@@ -855,7 +978,7 @@ class _ByteReader:
     def read_bytes(self, length: int) -> bytes:
         if self.offset + length > len(self.data):
             raise ContainerError("Unexpected end of BOGPK data")
-        value = self.data[self.offset:self.offset + length]
+        value = self.data[self.offset : self.offset + length]
         self.offset += length
         return value
 

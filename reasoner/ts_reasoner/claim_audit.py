@@ -23,8 +23,10 @@ from ts_reasoner.answer_arena import (
     premise_edges,
     transitive_closure,
 )
-from ts_reasoner.claim_decomposer import decompose_candidate_answer, decomposed_claim_to_dict
-
+from ts_reasoner.claim_decomposer import (
+    decompose_candidate_answer,
+    decomposed_claim_to_dict,
+)
 
 CLAUSE_RELATION_RE = re.compile(
     r"\ball\s+(.+?)\s+(?:are|is)\s+(.+?)(?:[.?!,;:]|$)",
@@ -42,7 +44,9 @@ def split_relation_clauses(text: str) -> str:
     """
 
     normalized = re.sub(r"\s+(?:and|,)\s+(?=all\s+)", ". ", text, flags=re.IGNORECASE)
-    normalized = re.sub(r"\s+(?:so|therefore)\s+(?=all\s+)", ". ", normalized, flags=re.IGNORECASE)
+    normalized = re.sub(
+        r"\s+(?:so|therefore)\s+(?=all\s+)", ". ", normalized, flags=re.IGNORECASE
+    )
     return normalized
 
 
@@ -175,7 +179,9 @@ def evaluate_audited_case(case: dict[str, Any]) -> dict[str, Any]:
             decision["selected"] = idx == selected_index
 
     selected = next((d for d in decisions if d["selected"]), None)
-    confidence_top = max(decisions, key=lambda d: d["confidence"]) if decisions else None
+    confidence_top = (
+        max(decisions, key=lambda d: d["confidence"]) if decisions else None
+    )
 
     expected_answer = case.get("expected_answer_type")
     expected_status = case.get("expected_selected_status")
@@ -200,27 +206,42 @@ def evaluate_audited_case(case: dict[str, Any]) -> dict[str, Any]:
         "selected_answer_type": selected["answer_type"] if selected else None,
         "selected_status": selected["status"] if selected else None,
         "selected_correct": selected_correct,
-        "selected_explanation_audit_passed": selected["explanation_audit_passed"] if selected else None,
-        "confidence_top_candidate_id": confidence_top["candidate_id"] if confidence_top else None,
+        "selected_explanation_audit_passed": (
+            selected["explanation_audit_passed"] if selected else None
+        ),
+        "confidence_top_candidate_id": (
+            confidence_top["candidate_id"] if confidence_top else None
+        ),
         "confidence_top_source": confidence_top["source"] if confidence_top else None,
-        "confidence_top_answer_type": confidence_top["answer_type"] if confidence_top else None,
+        "confidence_top_answer_type": (
+            confidence_top["answer_type"] if confidence_top else None
+        ),
         "confidence_top_correct": confidence_top_correct,
         "verifier_overrode_confidence": (
             selected is not None
             and confidence_top is not None
             and selected["candidate_id"] != confidence_top["candidate_id"]
         ),
-        "wrong_accept": bool(selected and selected["status"] == "accepted" and not selected["typed_support"]),
+        "wrong_accept": bool(
+            selected
+            and selected["status"] == "accepted"
+            and not selected["typed_support"]
+        ),
         "accepted_without_typed_support": sum(
-            1 for decision in decisions if decision["status"] == "accepted" and not decision["typed_support"]
+            1
+            for decision in decisions
+            if decision["status"] == "accepted" and not decision["typed_support"]
         ),
         "accepted_with_unsupported_claims": sum(
             1
             for decision in decisions
-            if decision["status"] == "accepted" and not decision["explanation_audit_passed"]
+            if decision["status"] == "accepted"
+            and not decision["explanation_audit_passed"]
         ),
         "unsupported_claim_candidate_count": sum(
-            1 for decision in decisions if decision["claim_audit"]["unsupported_claim_count"] > 0
+            1
+            for decision in decisions
+            if decision["claim_audit"]["unsupported_claim_count"] > 0
         ),
         "candidate_graph_contamination": 0,
         "decisions": decisions,
@@ -241,8 +262,12 @@ def evaluate_claim_audit_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
 
     case_count = len(case_results)
     candidate_count = sum(len(result["decisions"]) for result in case_results)
-    selected_correct_count = sum(1 for result in case_results if result["selected_correct"])
-    confidence_correct_count = sum(1 for result in case_results if result["confidence_top_correct"])
+    selected_correct_count = sum(
+        1 for result in case_results if result["selected_correct"]
+    )
+    confidence_correct_count = sum(
+        1 for result in case_results if result["confidence_top_correct"]
+    )
     verifier_overrode_confidence_count = sum(
         1 for result in case_results if result["verifier_overrode_confidence"]
     )
@@ -269,13 +294,21 @@ def evaluate_claim_audit_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
         "case_count": case_count,
         "candidate_count": candidate_count,
         "unsupported_claim_candidate_count": unsupported_claim_candidate_count,
-        "arena_selection_accuracy": selected_correct_count / case_count if case_count else 0.0,
-        "confidence_top_accuracy": confidence_correct_count / case_count if case_count else 0.0,
+        "arena_selection_accuracy": (
+            selected_correct_count / case_count if case_count else 0.0
+        ),
+        "confidence_top_accuracy": (
+            confidence_correct_count / case_count if case_count else 0.0
+        ),
         "verifier_overrode_confidence_count": verifier_overrode_confidence_count,
         "verifier_beats_confidence_rate": (
-            (selected_correct_count - confidence_correct_count) / case_count if case_count else 0.0
+            (selected_correct_count - confidence_correct_count) / case_count
+            if case_count
+            else 0.0
         ),
-        "wrong_accept_count": sum(1 for result in case_results if result["wrong_accept"]),
+        "wrong_accept_count": sum(
+            1 for result in case_results if result["wrong_accept"]
+        ),
         "accepted_without_typed_support_count": sum(
             result["accepted_without_typed_support"] for result in case_results
         ),
@@ -291,10 +324,17 @@ def evaluate_claim_audit_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
 
     report["gates"] = {
         "selection_accuracy_gate": report["arena_selection_accuracy"] == 1.0,
-        "unsupported_claim_stress_present_gate": report["unsupported_claim_candidate_count"] > 0,
+        "unsupported_claim_stress_present_gate": report[
+            "unsupported_claim_candidate_count"
+        ]
+        > 0,
         "wrong_accept_gate": report["wrong_accept_count"] == 0,
-        "accepted_without_support_gate": report["accepted_without_typed_support_count"] == 0,
-        "accepted_with_unsupported_claims_gate": report["accepted_with_unsupported_claims_count"] == 0,
+        "accepted_without_support_gate": report["accepted_without_typed_support_count"]
+        == 0,
+        "accepted_with_unsupported_claims_gate": report[
+            "accepted_with_unsupported_claims_count"
+        ]
+        == 0,
         "contamination_gate": report["candidate_graph_contamination_count"] == 0,
         "claim_boundary_gate": (
             report["confidence_is_not_proof"]

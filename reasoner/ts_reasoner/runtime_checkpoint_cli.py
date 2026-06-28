@@ -70,7 +70,9 @@ def restore_checkpoint_payload(checkpoint: Any) -> tuple[int, dict[str, Any]]:
     return 0, {
         "action": "checkpoint_restored",
         "restored_state": restored_state,
-        "candidate_graph_contamination_count": checkpoint.get("candidate_graph_contamination_count", 0),
+        "candidate_graph_contamination_count": checkpoint.get(
+            "candidate_graph_contamination_count", 0
+        ),
     }
 
 
@@ -90,11 +92,16 @@ def main(argv: list[str] | None = None) -> int:
         try:
             session = load_json_arg(args.session)
         except Exception as exc:
-            print(json.dumps({
-                "action": "invalid_input",
-                "error": str(exc),
-                "candidate_graph_contamination_count": 0,
-            }, sort_keys=True))
+            print(
+                json.dumps(
+                    {
+                        "action": "invalid_input",
+                        "error": str(exc),
+                        "candidate_graph_contamination_count": 0,
+                    },
+                    sort_keys=True,
+                )
+            )
             return 2
 
         exit_code, payload = checkpoint_session(session)
@@ -105,22 +112,32 @@ def main(argv: list[str] | None = None) -> int:
         try:
             checkpoint_payload = load_json_arg(args.checkpoint)
         except Exception as exc:
-            print(json.dumps({
-                "action": "invalid_input",
-                "error": str(exc),
-                "candidate_graph_contamination_count": 0,
-            }, sort_keys=True))
+            print(
+                json.dumps(
+                    {
+                        "action": "invalid_input",
+                        "error": str(exc),
+                        "candidate_graph_contamination_count": 0,
+                    },
+                    sort_keys=True,
+                )
+            )
             return 2
 
         exit_code, payload = restore_checkpoint_payload(checkpoint_payload)
         print(json.dumps(payload, indent=2, sort_keys=True))
         return exit_code
 
-    print(json.dumps({
-        "action": "invalid_input",
-        "error": "unknown_command",
-        "candidate_graph_contamination_count": 0,
-    }, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "action": "invalid_input",
+                "error": "unknown_command",
+                "candidate_graph_contamination_count": 0,
+            },
+            sort_keys=True,
+        )
+    )
     return 2
 
 

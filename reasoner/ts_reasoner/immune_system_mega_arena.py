@@ -155,7 +155,9 @@ def evaluate_mega_arena_cases(cases: Iterable[dict[str, Any]]) -> dict[str, obje
         expected_repair_target_count = int(raw["expected_repair_target_count"])
         expected_quarantined_claim_count = int(raw["expected_quarantined_claim_count"])
         expected_patch_count = int(raw["expected_patch_count"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.action == expected_action
@@ -164,7 +166,8 @@ def evaluate_mega_arena_cases(cases: Iterable[dict[str, Any]]) -> dict[str, obje
             and len(result.quarantined_claims) == expected_quarantined_claim_count
             and len(result.patches) == expected_patch_count
             and result.candidate_graph_contamination_count == expected_contamination
-            and result.audit["candidate_graph_contamination_count"] == expected_contamination
+            and result.audit["candidate_graph_contamination_count"]
+            == expected_contamination
         )
 
         if case_passed:

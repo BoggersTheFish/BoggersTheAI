@@ -7,7 +7,6 @@ from typing import Any
 from ts_reasoner.generator import extract_relations, infer_premises_from_question
 from ts_reasoner.proof_chain import universal_bridge_path
 
-
 IDENTITY_RE = re.compile(
     r"\b(?P<subject>[A-Za-z][A-Za-z0-9_-]*)\s+(?:equals|=|is\s+identical\s+to)\s+"
     r"(?P<predicate>[A-Za-z][A-Za-z0-9_-]*)\b",
@@ -15,10 +14,17 @@ IDENTITY_RE = re.compile(
 )
 
 
-def extract_candidate_features(case: dict[str, Any], candidate: dict[str, Any]) -> dict[str, float]:
+def extract_candidate_features(
+    case: dict[str, Any], candidate: dict[str, Any]
+) -> dict[str, float]:
     input_text = str(case["input_text"])
-    premises = [str(item) for item in case.get("premises") or infer_premises_from_question(input_text)]
-    premise_relations = [relation for premise in premises for relation in extract_relations(premise)]
+    premises = [
+        str(item)
+        for item in case.get("premises") or infer_premises_from_question(input_text)
+    ]
+    premise_relations = [
+        relation for premise in premises for relation in extract_relations(premise)
+    ]
     claim = str(candidate["claim"])
     relations = extract_relations(claim)
     identity_pair = _identity_pair(claim)
@@ -42,16 +48,18 @@ def extract_candidate_features(case: dict[str, Any], candidate: dict[str, Any]) 
             relation.subject.lower() == relation.predicate.lower()
         )
         features["direct_support"] = float(direct_support)
-        path = universal_bridge_path(premise_relations, relation.subject, relation.predicate)
+        path = universal_bridge_path(
+            premise_relations, relation.subject, relation.predicate
+        )
         transitive_support = bool(path)
-        reverse_path = _has_path(premise_relations, relation.predicate, relation.subject)
+        reverse_path = _has_path(
+            premise_relations, relation.predicate, relation.subject
+        )
         contradiction_candidate = _contradicts(premise_relations, relation)
-        some_to_all_risk = (
-            relation.quantifier == "all"
-            and any(
-                item.quantifier == "some" and item.subject.lower() == relation.subject.lower()
-                for item in premise_relations
-            )
+        some_to_all_risk = relation.quantifier == "all" and any(
+            item.quantifier == "some"
+            and item.subject.lower() == relation.subject.lower()
+            for item in premise_relations
         )
         features["transitive_support"] = float(transitive_support)
         features["support_depth"] = float(len(path))
@@ -89,7 +97,9 @@ def extract_candidate_features(case: dict[str, Any], candidate: dict[str, Any]) 
         )
     if identity_pair is not None:
         subject, predicate = identity_pair
-        features["identity_path_exists"] = float(_has_path(premise_relations, subject, predicate))
+        features["identity_path_exists"] = float(
+            _has_path(premise_relations, subject, predicate)
+        )
     else:
         features["identity_path_exists"] = 0.0
     return features
@@ -117,7 +127,9 @@ def _has_path(relations, subject: str, predicate: str) -> bool:
     edges: dict[str, list[str]] = {}
     for relation in relations:
         if relation.quantifier == "all":
-            edges.setdefault(relation.subject.lower(), []).append(relation.predicate.lower())
+            edges.setdefault(relation.subject.lower(), []).append(
+                relation.predicate.lower()
+            )
     queue: deque[str] = deque([subject_key])
     seen = set()
     while queue:
@@ -141,8 +153,14 @@ def _contradicts(relations, candidate_relation) -> bool:
         )
         if not same_edge:
             continue
-        if candidate_relation.quantifier == "no" and relation.quantifier in {"all", "some"}:
+        if candidate_relation.quantifier == "no" and relation.quantifier in {
+            "all",
+            "some",
+        }:
             return True
-        if relation.quantifier == "no" and candidate_relation.quantifier in {"all", "some"}:
+        if relation.quantifier == "no" and candidate_relation.quantifier in {
+            "all",
+            "some",
+        }:
             return True
     return False

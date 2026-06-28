@@ -17,7 +17,6 @@ OPS = {
     "QUARANTINE": 0x0D,
     "LOG_RECEIPT": 0x0E,
     "EMIT_RECEIPT": 0x0F,
-
     # v0.2 generative storage opcodes
     "DECLARE_BASIS": 0x10,
     "LOAD_COEFFICIENTS": 0x11,

@@ -16,7 +16,9 @@ class ContradictionChannel(TensionChannel):
 
     def measure(self, graph: GraphState, context: dict) -> ChannelResult:
         pairs = self._pairs(context)
-        tension = 0.0 if context.get("contradiction_flagged") else (1.0 if pairs else 0.0)
+        tension = (
+            0.0 if context.get("contradiction_flagged") else (1.0 if pairs else 0.0)
+        )
         return ChannelResult(
             channel=self.name,
             activated=bool(pairs),

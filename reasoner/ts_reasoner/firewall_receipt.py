@@ -6,12 +6,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIREWALL_RECEIPT_PATH = ROOT / "artifacts/v5_0_reasoning_firewall_receipt.json"
 
 
-def load_firewall_receipt(path: str | Path = DEFAULT_FIREWALL_RECEIPT_PATH) -> dict[str, Any]:
+def load_firewall_receipt(
+    path: str | Path = DEFAULT_FIREWALL_RECEIPT_PATH,
+) -> dict[str, Any]:
     receipt_path = Path(path)
     if not receipt_path.exists():
         raise FileNotFoundError(f"reasoning firewall receipt not found: {receipt_path}")

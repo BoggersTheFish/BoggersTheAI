@@ -18,9 +18,7 @@ def write_receipt(
 
     receipt = {
         "schema": "tensionforge.receipt.v1",
-        "created_at_utc": datetime.now(
-            UTC
-        ).isoformat(),
+        "created_at_utc": datetime.now(UTC).isoformat(),
         **payload,
     }
 

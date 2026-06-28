@@ -26,7 +26,6 @@ from typing import Any
 
 from ts_reasoner.ts_chat import TSChatSession, receipt_to_dict
 
-
 SCHEMA = "ts_reasoner_branching_worlds_v1"
 RELEASE = "v7.3.0"
 
@@ -59,7 +58,9 @@ def _edge_to_dict(edge: Edge) -> dict[str, str]:
 
 
 def _relation_to_edge(relation: dict[str, Any]) -> Edge:
-    return Edge(subject=str(relation.get("subject")), object=str(relation.get("object")))
+    return Edge(
+        subject=str(relation.get("subject")), object=str(relation.get("object"))
+    )
 
 
 def _edge_key(edge: Edge) -> tuple[str, str]:
@@ -79,7 +80,10 @@ def accepted_premise_edges(session: TSChatSession) -> set[tuple[str, str]]:
     edges: set[tuple[str, str]] = set()
 
     for record in ground.get("records", []):
-        if record.get("kind") == "asserted_premise" and record.get("status") == "accepted":
+        if (
+            record.get("kind") == "asserted_premise"
+            and record.get("status") == "accepted"
+        ):
             relation = record.get("relation", {})
             edge = _relation_to_edge(relation)
             edges.add(_edge_key(edge))
@@ -278,7 +282,9 @@ class BranchingWorldManager:
             "blocked": False,
             "reason": "no unsafe direct rejected-edge conflicts found",
             "merged_edge_count": len(edges_to_merge),
-            "merged_edges": [_edge_to_dict(_edge_from_key(edge)) for edge in edges_to_merge],
+            "merged_edges": [
+                _edge_to_dict(_edge_from_key(edge)) for edge in edges_to_merge
+            ],
             "created_receipts": created_receipts,
             "external_llm_used": False,
             "merge_is_proof": False,
@@ -368,7 +374,9 @@ def run_branching_worlds_demo(out_dir: str | Path) -> dict[str, Any]:
 
     # Unsafe branch: tries to add the directly rejected edge as a premise.
     unsafe_fork = manager.fork("direct_robots_world", from_branch="main")
-    unsafe_receipt = manager.process("all cats are robots", branch="direct_robots_world")
+    unsafe_receipt = manager.process(
+        "all cats are robots", branch="direct_robots_world"
+    )
     unsafe_compare = manager.compare("main", "direct_robots_world")
     unsafe_merge = manager.merge_if_consistent("direct_robots_world", target="main")
 
@@ -380,7 +388,9 @@ def run_branching_worlds_demo(out_dir: str | Path) -> dict[str, Any]:
         "are all cats robots?",
         "why?",
     ]
-    safe_receipts = [manager.process(turn, branch="machine_bridge_world") for turn in safe_turns]
+    safe_receipts = [
+        manager.process(turn, branch="machine_bridge_world") for turn in safe_turns
+    ]
     safe_compare_before_merge = manager.compare("main", "machine_bridge_world")
     safe_merge = manager.merge_if_consistent("machine_bridge_world", target="main")
     post_merge_question = manager.process("are all cats robots?", branch="main")
@@ -393,23 +403,22 @@ def run_branching_worlds_demo(out_dir: str | Path) -> dict[str, Any]:
     receipt_path = out / "branching_worlds_receipt.json"
     report_path = out / "branching_worlds_report.json"
 
-    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    state_path.write_text(
+        json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     safe_merge_resolved_repair = any(
         "Resolved repair targets:" in receipt.get("response", "")
         for receipt in safe_merge.get("created_receipts", [])
     ) or "No open repair targets." in final_repairs.get("response", "")
 
-    post_merge_answer_accepted = (
-        post_merge_question.get("records_created")
-        and any(
-            record.get("kind") == "question"
-            and record.get("status") == "accepted"
-            and record.get("relation", {}).get("subject") == "cats"
-            and record.get("relation", {}).get("object") == "robots"
-            for record in post_merge_question.get("records_created", [])
-            if isinstance(record, dict)
-        )
+    post_merge_answer_accepted = post_merge_question.get("records_created") and any(
+        record.get("kind") == "question"
+        and record.get("status") == "accepted"
+        and record.get("relation", {}).get("subject") == "cats"
+        and record.get("relation", {}).get("object") == "robots"
+        for record in post_merge_question.get("records_created", [])
+        if isinstance(record, dict)
     )
 
     gates = {
@@ -417,12 +426,17 @@ def run_branching_worlds_demo(out_dir: str | Path) -> dict[str, Any]:
         "main_branch_exists": "main" in state["branch_names"],
         "unsafe_branch_exists": "direct_robots_world" in state["branch_names"],
         "safe_branch_exists": "machine_bridge_world" in state["branch_names"],
-        "unsafe_merge_blocked": unsafe_merge["blocked"] is True and unsafe_merge["merged"] is False,
-        "safe_merge_allowed": safe_merge["merged"] is True and safe_merge["blocked"] is False,
+        "unsafe_merge_blocked": unsafe_merge["blocked"] is True
+        and unsafe_merge["merged"] is False,
+        "safe_merge_allowed": safe_merge["merged"] is True
+        and safe_merge["blocked"] is False,
         "safe_merge_added_edges": safe_merge["merged_edge_count"] >= 2,
         "safe_merge_resolved_repair": safe_merge_resolved_repair,
         "post_merge_answer_accepted": bool(post_merge_answer_accepted),
-        "candidate_graph_contamination_count_is_zero": state["candidate_graph_contamination_count"] == 0,
+        "candidate_graph_contamination_count_is_zero": state[
+            "candidate_graph_contamination_count"
+        ]
+        == 0,
         "external_llm_used_false": state["external_llm_used"] is False,
     }
 
@@ -448,7 +462,9 @@ def run_branching_worlds_demo(out_dir: str | Path) -> dict[str, Any]:
         "post_merge_question": post_merge_question,
         "post_merge_why": post_merge_why,
         "final_repairs": final_repairs,
-        "candidate_graph_contamination_count": state["candidate_graph_contamination_count"],
+        "candidate_graph_contamination_count": state[
+            "candidate_graph_contamination_count"
+        ],
         "branching_worlds_are_not_proof": True,
         "merge_is_not_proof": True,
         "typed_verifier_remains_proof_authority": True,
@@ -475,20 +491,27 @@ def run_branching_worlds_demo(out_dir: str | Path) -> dict[str, Any]:
         "safe_merge_added_edges": safe_merge["merged_edge_count"],
         "safe_merge_resolved_repair": gates["safe_merge_resolved_repair"],
         "post_merge_answer_accepted": gates["post_merge_answer_accepted"],
-        "candidate_graph_contamination_count": receipt["candidate_graph_contamination_count"],
+        "candidate_graph_contamination_count": receipt[
+            "candidate_graph_contamination_count"
+        ],
         "external_llm_used": False,
         "all_gates_passed": receipt["all_gates_passed"],
     }
 
-    receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    receipt_path.write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    report_path.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     receipt["receipt_path"] = str(receipt_path)
     return receipt
 
+
 # --- v8.4.0 Branching Worlds Runtime compatibility extension ---
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from typing import Iterable
 
 
@@ -614,7 +637,9 @@ def apply_branching_policy(
     )
 
 
-def evaluate_branching_world_cases(cases: Iterable[dict[str, object]]) -> dict[str, object]:
+def evaluate_branching_world_cases(
+    cases: Iterable[dict[str, object]],
+) -> dict[str, object]:
     results = []
     passed = 0
     total = 0
@@ -633,7 +658,9 @@ def evaluate_branching_world_cases(cases: Iterable[dict[str, object]]) -> dict[s
 
         expected_world_count = int(raw["expected_world_count"])
         expected_base_preserved = bool(raw["expected_base_preserved"])
-        expected_branch_contains_incoming = bool(raw["expected_branch_contains_incoming"])
+        expected_branch_contains_incoming = bool(
+            raw["expected_branch_contains_incoming"]
+        )
         expected_auto_merge = bool(raw["expected_auto_merge"])
 
         case_passed = (

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 BASIS_ORDER = (
     "zero_block",
     "repeat_byte",
@@ -59,7 +58,8 @@ def synthesize_basis(basis: str, start_byte: int, length: int, delta: int = 0) -
                 start_byte
                 + ((delta * SINE8_U8_OFFSETS[i % 8]) // 127)
                 + ((cosine_delta * COSINE8_U8_OFFSETS[i % 8]) // 127)
-            ) % 256
+            )
+            % 256
             for i in range(length)
         )
 

@@ -9,13 +9,12 @@ state updates; typed verifier support remains the acceptance boundary.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
 import hashlib
 import json
+from dataclasses import asdict, dataclass, field
 from typing import Any, Iterable
 
 from ts_metacompute.spectral.signed_graph import SignedEdge, SignedGraph
-
 
 ENGINE_NAME = "TS-OS Cognitive Physics Engine"
 PROOF_BOUNDARY = "substrates_expose_tension_typed_verifier_decides"
@@ -63,7 +62,9 @@ class FrequencyState:
 class PhotonicStateLedger:
     """Encode logical edges as deterministic frequency-slot state records."""
 
-    def __init__(self, base_frequency_thz: float = 430.0, slot_width_thz: float = 7.5) -> None:
+    def __init__(
+        self, base_frequency_thz: float = 430.0, slot_width_thz: float = 7.5
+    ) -> None:
         self.base_frequency_thz = base_frequency_thz
         self.slot_width_thz = slot_width_thz
         self.entries: list[FrequencyState] = []
@@ -79,7 +80,12 @@ class PhotonicStateLedger:
                     source=edge.source,
                     target=edge.target,
                     relation=edge.relation,
-                    frequency_thz=round(self.base_frequency_thz + index * self.slot_width_thz + relation_offset, 6),
+                    frequency_thz=round(
+                        self.base_frequency_thz
+                        + index * self.slot_width_thz
+                        + relation_offset,
+                        6,
+                    ),
                     phase_degrees=phase,
                     amplitude=_edge_amplitude(edge),
                     proof_status=edge.status,
@@ -103,13 +109,27 @@ class PhotonicStateLedger:
         if not self.entries:
             self.encode_graph(graph)
 
-        constructive = round(sum(entry.amplitude for entry in self.entries if entry.phase_degrees == 0.0), 6)
-        destructive = round(sum(entry.amplitude for entry in self.entries if entry.phase_degrees == 180.0), 6)
+        constructive = round(
+            sum(
+                entry.amplitude for entry in self.entries if entry.phase_degrees == 0.0
+            ),
+            6,
+        )
+        destructive = round(
+            sum(
+                entry.amplitude
+                for entry in self.entries
+                if entry.phase_degrees == 180.0
+            ),
+            6,
+        )
         total = round(constructive + destructive, 6)
         cancelled = round(min(constructive, destructive), 6)
         cancellation_ratio = round(cancelled / total, 6) if total else 0.0
         residual_tension = round(destructive / total, 6) if total else 0.0
-        contradiction_detected = _graph_has_contradiction(graph) and cancellation_ratio > 0.0
+        contradiction_detected = (
+            _graph_has_contradiction(graph) and cancellation_ratio > 0.0
+        )
         energy_estimate = {
             "binary_cpu_cycles": max(1, len(graph.edges)) * 100,
             "simulated_interference_operations": max(1, len(graph.edges)),
@@ -126,7 +146,11 @@ class PhotonicStateLedger:
             "residual_tension": residual_tension,
             "contradiction_detected": contradiction_detected,
             "energy_estimate": energy_estimate,
-            "reader_decision": "contradiction_candidate" if contradiction_detected else "coherent_candidate",
+            "reader_decision": (
+                "contradiction_candidate"
+                if contradiction_detected
+                else "coherent_candidate"
+            ),
             "accepted_truth": False,
             "verifier_required_for_acceptance": True,
             "accepted_without_verifier_support_count": 0,
@@ -158,7 +182,9 @@ class TemporalTensionBridge:
             edge.edge_id: 0.8 if edge.sign > 0 else 0.55 for edge in graph.edges
         }
         late_step = contradiction_step or max(2, len(graph.edges) + 1)
-        conflict_weight = sum(_edge_amplitude(edge) for edge in graph.edges if edge.sign < 0)
+        conflict_weight = sum(
+            _edge_amplitude(edge) for edge in graph.edges if edge.sign < 0
+        )
         total_weight = sum(_edge_amplitude(edge) for edge in graph.edges) or 1.0
         propagated_tension = round(conflict_weight / total_weight, 6)
 
@@ -166,7 +192,9 @@ class TemporalTensionBridge:
         for index, (assumption_id, prior) in enumerate(sorted(priors.items()), start=1):
             temporal_distance = max(1, late_step - index)
             attenuation = 1.0 / temporal_distance
-            posterior = max(0.0, min(1.0, prior * (1.0 - propagated_tension * attenuation)))
+            posterior = max(
+                0.0, min(1.0, prior * (1.0 - propagated_tension * attenuation))
+            )
             updates.append(
                 TemporalUpdate(
                     assumption_id=assumption_id,
@@ -212,7 +240,9 @@ class RetrocausalFuzzer:
 
     def fuzz(self, graph: SignedGraph) -> dict[str, Any]:
         bridge = TemporalTensionBridge()
-        temporal = bridge.propagate(graph, contradiction_step=max(3, len(graph.edges) + 2))
+        temporal = bridge.propagate(
+            graph, contradiction_step=max(3, len(graph.edges) + 2)
+        )
         decreased = [
             update
             for update in temporal["assumption_updates"]
@@ -222,7 +252,9 @@ class RetrocausalFuzzer:
             "artifact": "retrocausal_fuzzer",
             "architecture": "Retrocausal_Fuzzer",
             "case_id": graph.case_id,
-            "late_contradiction_case_count": 1 if _graph_has_contradiction(graph) else 0,
+            "late_contradiction_case_count": (
+                1 if _graph_has_contradiction(graph) else 0
+            ),
             "probability_updates_decreased_count": len(decreased),
             "temporal_bridge": temporal,
             "future_memory_is_simulated": True,
@@ -247,11 +279,15 @@ class ResonanceNode:
 class SpectralCouplingTelepathy:
     """Share solved constraint shape telemetry across bounded nodes."""
 
-    def align(self, nodes: Iterable[ResonanceNode], solved_node_id: str, graph: SignedGraph) -> dict[str, Any]:
+    def align(
+        self, nodes: Iterable[ResonanceNode], solved_node_id: str, graph: SignedGraph
+    ) -> dict[str, Any]:
         node_list = list(nodes)
         if not node_list:
             raise ValueError("at least one resonance node is required")
-        solved_node = next((node for node in node_list if node.node_id == solved_node_id), node_list[0])
+        solved_node = next(
+            (node for node in node_list if node.node_id == solved_node_id), node_list[0]
+        )
         shape = {
             "case_id": graph.case_id,
             "node_count": len(graph.nodes),
@@ -273,7 +309,9 @@ class SpectralCouplingTelepathy:
                 }
             )
             if node.node_id != solved_node.node_id:
-                node.coupling_matrix.setdefault("resonance", {})["shape_alignment"] = 1.0 if shape["equilibrium"] else 0.5
+                node.coupling_matrix.setdefault("resonance", {})["shape_alignment"] = (
+                    1.0 if shape["equilibrium"] else 0.5
+                )
             transmissions.append(
                 {
                     "target_node": node.node_id,
@@ -303,13 +341,17 @@ class SpectralCouplingTelepathy:
 class UnifiedFieldKernel:
     """Merge generator, fuzzer, and firewall roles behind one verifier gate."""
 
-    def resolve(self, question: str, graph: SignedGraph, candidate_text: str | None = None) -> dict[str, Any]:
+    def resolve(
+        self, question: str, graph: SignedGraph, candidate_text: str | None = None
+    ) -> dict[str, Any]:
         photonic = PhotonicStateLedger()
         ledger = photonic.encode_graph(graph)
         gate = photonic.interference_gate(graph)
         verifier_support = _graph_has_verifier_support(graph)
         contradiction = gate["contradiction_detected"]
-        zero_tension = verifier_support and not contradiction and gate["residual_tension"] == 0.0
+        zero_tension = (
+            verifier_support and not contradiction and gate["residual_tension"] == 0.0
+        )
         emitted = zero_tension
         output = candidate_text or f"Resolved zero-tension candidate for: {question}"
         return {
@@ -324,10 +366,14 @@ class UnifiedFieldKernel:
             "typed_verifier_support_present": verifier_support,
             "emitted": emitted,
             "blocked_before_emission": not emitted,
-            "block_reason": None if emitted else "non_zero_tension_or_missing_verifier_support",
+            "block_reason": (
+                None if emitted else "non_zero_tension_or_missing_verifier_support"
+            ),
             "accepted_truth": emitted,
             "verifier_required_for_acceptance": True,
-            "accepted_without_verifier_support_count": 1 if emitted and not verifier_support else 0,
+            "accepted_without_verifier_support_count": (
+                1 if emitted and not verifier_support else 0
+            ),
         }
 
 
@@ -340,18 +386,34 @@ class LazyUniverseEngine:
         gate = photonic.interference_gate(graph)
         temporal = RetrocausalFuzzer().fuzz(graph)
         nodes = [
-            ResonanceNode("node_london", "London", {"logic": {"logic": 1.0}}, harmonic_frequency=1.0),
-            ResonanceNode("node_tokyo", "Tokyo", {"logic": {"logic": 0.7}}, harmonic_frequency=1.0),
+            ResonanceNode(
+                "node_london",
+                "London",
+                {"logic": {"logic": 1.0}},
+                harmonic_frequency=1.0,
+            ),
+            ResonanceNode(
+                "node_tokyo", "Tokyo", {"logic": {"logic": 0.7}}, harmonic_frequency=1.0
+            ),
         ]
         resonance = SpectralCouplingTelepathy().align(nodes, "node_london", graph)
         unified = UnifiedFieldKernel().resolve(question, graph)
-        answer = unified["candidate_text"] if unified["emitted"] else "Abstain: no zero-tension verifier-supported state formed."
+        answer = (
+            unified["candidate_text"]
+            if unified["emitted"]
+            else "Abstain: no zero-tension verifier-supported state formed."
+        )
         gates = {
             "photonic_state_ledger_ready": bool(ledger["entries"]),
-            "interference_gate_ready": gate["accepted_without_verifier_support_count"] == 0,
-            "temporal_bridge_ready": temporal["accepted_without_verifier_support_count"] == 0,
+            "interference_gate_ready": gate["accepted_without_verifier_support_count"]
+            == 0,
+            "temporal_bridge_ready": temporal["accepted_without_verifier_support_count"]
+            == 0,
             "resonance_shape_only": resonance["answer_transmitted"] is False,
-            "unified_field_boundary_preserved": unified["accepted_without_verifier_support_count"] == 0,
+            "unified_field_boundary_preserved": unified[
+                "accepted_without_verifier_support_count"
+            ]
+            == 0,
             "typed_verifier_required": unified["verifier_required_for_acceptance"],
         }
         return {
@@ -380,8 +442,12 @@ def build_demo_graphs() -> dict[str, SignedGraph]:
     coherent = SignedGraph.from_edges(
         "coherent_zero_tension",
         [
-            SignedEdge("support_ab", "A", "B", "support", weight=1.0, status="accepted"),
-            SignedEdge("support_bc", "B", "C", "support", weight=1.0, status="accepted"),
+            SignedEdge(
+                "support_ab", "A", "B", "support", weight=1.0, status="accepted"
+            ),
+            SignedEdge(
+                "support_bc", "B", "C", "support", weight=1.0, status="accepted"
+            ),
         ],
         nodes=["A", "B", "C"],
         metadata={"expected": "zero_tension"},
@@ -389,16 +455,26 @@ def build_demo_graphs() -> dict[str, SignedGraph]:
     contradiction = SignedGraph.from_edges(
         "late_contradiction",
         [
-            SignedEdge("support_ab", "A", "B", "support", weight=1.0, status="accepted"),
-            SignedEdge("support_bc", "B", "C", "support", weight=1.0, status="accepted"),
-            SignedEdge("conflict_ac", "A", "C", "conflict", weight=1.0, status="accepted"),
+            SignedEdge(
+                "support_ab", "A", "B", "support", weight=1.0, status="accepted"
+            ),
+            SignedEdge(
+                "support_bc", "B", "C", "support", weight=1.0, status="accepted"
+            ),
+            SignedEdge(
+                "conflict_ac", "A", "C", "conflict", weight=1.0, status="accepted"
+            ),
         ],
         nodes=["A", "B", "C"],
         metadata={"expected": "contradiction"},
     )
     unsupported = SignedGraph.from_edges(
         "unsupported_candidate",
-        [SignedEdge("candidate_ab", "A", "B", "support", weight=1.0, status="candidate")],
+        [
+            SignedEdge(
+                "candidate_ab", "A", "B", "support", weight=1.0, status="candidate"
+            )
+        ],
         nodes=["A", "B"],
         metadata={"expected": "missing_verifier_support"},
     )
@@ -409,7 +485,9 @@ def build_demo_graphs() -> dict[str, SignedGraph]:
     }
 
 
-def evaluate_cognitive_physics_engine(question: str = "Does A resolve to C?") -> dict[str, Any]:
+def evaluate_cognitive_physics_engine(
+    question: str = "Does A resolve to C?",
+) -> dict[str, Any]:
     graphs = build_demo_graphs()
     coherent = graphs["coherent_zero_tension"]
     contradiction = graphs["late_contradiction"]
@@ -421,8 +499,18 @@ def evaluate_cognitive_physics_engine(question: str = "Does A resolve to C?") ->
     temporal = RetrocausalFuzzer().fuzz(contradiction)
     resonance = SpectralCouplingTelepathy().align(
         [
-            ResonanceNode("node_london", "London", {"logic": {"logic": 1.0}}, harmonic_frequency=1.0),
-            ResonanceNode("node_tokyo", "Tokyo", {"logic": {"logic": 0.25}}, harmonic_frequency=1.0),
+            ResonanceNode(
+                "node_london",
+                "London",
+                {"logic": {"logic": 1.0}},
+                harmonic_frequency=1.0,
+            ),
+            ResonanceNode(
+                "node_tokyo",
+                "Tokyo",
+                {"logic": {"logic": 0.25}},
+                harmonic_frequency=1.0,
+            ),
         ],
         "node_london",
         coherent,
@@ -433,13 +521,19 @@ def evaluate_cognitive_physics_engine(question: str = "Does A resolve to C?") ->
     lazy = LazyUniverseEngine().run(question, coherent)
 
     gates = {
-        "photonic_frequency_slots_present": len(photonic_ledger["entries"]) == len(contradiction.edges),
+        "photonic_frequency_slots_present": len(photonic_ledger["entries"])
+        == len(contradiction.edges),
         "interference_detects_contradiction": photonic_gate["contradiction_detected"],
-        "temporal_updates_prior_probabilities": temporal["probability_updates_decreased_count"] > 0,
-        "resonance_transmits_shape_not_answer": resonance["answer_transmitted"] is False,
+        "temporal_updates_prior_probabilities": temporal[
+            "probability_updates_decreased_count"
+        ]
+        > 0,
+        "resonance_transmits_shape_not_answer": resonance["answer_transmitted"]
+        is False,
         "unified_good_emits": unified_good["emitted"] is True,
         "unified_bad_blocks": unified_bad["blocked_before_emission"] is True,
-        "unified_unsupported_blocks": unified_unsupported["blocked_before_emission"] is True,
+        "unified_unsupported_blocks": unified_unsupported["blocked_before_emission"]
+        is True,
         "lazy_engine_passes": lazy["all_gates_passed"] is True,
         "accepted_without_verifier_support_zero": sum(
             payload["accepted_without_verifier_support_count"]
@@ -496,7 +590,11 @@ def build_cognitive_physics_receipt(report: dict[str, Any]) -> dict[str, Any]:
         ],
         "verification_summary": report["gates"],
         "non_claims": COGNITIVE_PHYSICS_NON_CLAIMS,
-        "accepted_without_verifier_support_count": report["accepted_without_verifier_support_count"],
-        "candidate_graph_contamination_count": report["candidate_graph_contamination_count"],
+        "accepted_without_verifier_support_count": report[
+            "accepted_without_verifier_support_count"
+        ],
+        "candidate_graph_contamination_count": report[
+            "candidate_graph_contamination_count"
+        ],
         "all_gates_passed": report["all_gates_passed"],
     }

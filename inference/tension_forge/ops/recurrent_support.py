@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 RECURRENT_SUPPORT_SOURCE = r"""
 __kernel void concatenate_rows_fp32(
     __global const float *left,
@@ -121,15 +120,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def _one_dimensional_launch(
@@ -160,14 +154,10 @@ def concatenate_rows_device(
     _validate_tensor(runtime, right, "right")
 
     if left.ndim != 2 or right.ndim != 2:
-        raise ValueError(
-            "left and right must be two-dimensional"
-        )
+        raise ValueError("left and right must be two-dimensional")
 
     if left.shape[0] != right.shape[0]:
-        raise ValueError(
-            "left and right row counts must match"
-        )
+        raise ValueError("left and right row counts must match")
 
     rows = left.shape[0]
     left_columns = left.shape[1]
@@ -205,11 +195,9 @@ def concatenate_rows_device(
         "concatenate_rows_fp32",
     )
 
-    global_size, local_size = (
-        _one_dimensional_launch(
-            runtime,
-            output.size,
-        )
+    global_size, local_size = _one_dimensional_launch(
+        runtime,
+        output.size,
     )
 
     elapsed_ms = runtime.run_kernel(
@@ -227,18 +215,13 @@ def concatenate_rows_device(
     )
 
     return output, {
-        "operation":
-            "concatenate_rows_device_fp32",
+        "operation": "concatenate_rows_device_fp32",
         "left_shape": list(left.shape),
         "right_shape": list(right.shape),
         "output_shape": list(output.shape),
-        "output_buffer_reused":
-            output_reused,
+        "output_buffer_reused": output_reused,
         "kernel_ms": elapsed_ms,
-        "source_sha256":
-            runtime.source_hash(
-                RECURRENT_SUPPORT_SOURCE
-            ),
+        "source_sha256": runtime.source_hash(RECURRENT_SUPPORT_SOURCE),
     }
 
 
@@ -258,11 +241,9 @@ def fill_device(
         "fill_fp32",
     )
 
-    global_size, local_size = (
-        _one_dimensional_launch(
-            runtime,
-            destination.size,
-        )
+    global_size, local_size = _one_dimensional_launch(
+        runtime,
+        destination.size,
     )
 
     elapsed_ms = runtime.run_kernel(
@@ -302,21 +283,16 @@ def add_inplace_device(
     )
 
     if destination.shape != source.shape:
-        raise ValueError(
-            "destination and source shapes "
-            "must match"
-        )
+        raise ValueError("destination and source shapes " "must match")
 
     kernel = runtime.kernel(
         RECURRENT_SUPPORT_SOURCE,
         "add_inplace_fp32",
     )
 
-    global_size, local_size = (
-        _one_dimensional_launch(
-            runtime,
-            destination.size,
-        )
+    global_size, local_size = _one_dimensional_launch(
+        runtime,
+        destination.size,
     )
 
     elapsed_ms = runtime.run_kernel(
@@ -331,8 +307,7 @@ def add_inplace_device(
     )
 
     return {
-        "operation":
-            "add_inplace_device_fp32",
+        "operation": "add_inplace_device_fp32",
         "shape": list(destination.shape),
         "kernel_ms": elapsed_ms,
     }
@@ -368,50 +343,24 @@ def merge_recurrent_state_gradient_device(
         )
 
     if proposal_feature_gradient.ndim != 2:
-        raise ValueError(
-            "proposal_feature_gradient must be "
-            "two-dimensional"
-        )
+        raise ValueError("proposal_feature_gradient must be " "two-dimensional")
 
-    if (
-        gate_feature_gradient.shape
-        != proposal_feature_gradient.shape
-    ):
-        raise ValueError(
-            "proposal and gate feature-gradient "
-            "shapes must match"
-        )
+    if gate_feature_gradient.shape != proposal_feature_gradient.shape:
+        raise ValueError("proposal and gate feature-gradient " "shapes must match")
 
     if direct_state_gradient.ndim != 2:
-        raise ValueError(
-            "direct_state_gradient must be "
-            "two-dimensional"
-        )
+        raise ValueError("direct_state_gradient must be " "two-dimensional")
 
-    batch_size = (
-        proposal_feature_gradient.shape[0]
-    )
+    batch_size = proposal_feature_gradient.shape[0]
 
-    if (
-        direct_state_gradient.shape[0]
-        != batch_size
-    ):
-        raise ValueError(
-            "gradient batch dimensions must match"
-        )
+    if direct_state_gradient.shape[0] != batch_size:
+        raise ValueError("gradient batch dimensions must match")
 
-    hidden_size = (
-        direct_state_gradient.shape[1]
-    )
+    hidden_size = direct_state_gradient.shape[1]
 
-    expected_combined_columns = (
-        input_features + hidden_size
-    )
+    expected_combined_columns = input_features + hidden_size
 
-    if (
-        proposal_feature_gradient.shape[1]
-        != expected_combined_columns
-    ):
+    if proposal_feature_gradient.shape[1] != expected_combined_columns:
         raise ValueError(
             "feature-gradient width is incorrect. "
             f"Expected {expected_combined_columns}, "
@@ -434,25 +383,17 @@ def merge_recurrent_state_gradient_device(
             "output",
         )
 
-        if (
-            output.shape
-            != direct_state_gradient.shape
-        ):
-            raise ValueError(
-                "output shape must match direct "
-                "state gradient"
-            )
+        if output.shape != direct_state_gradient.shape:
+            raise ValueError("output shape must match direct " "state gradient")
 
     kernel = runtime.kernel(
         RECURRENT_SUPPORT_SOURCE,
         "merge_recurrent_state_gradient_fp32",
     )
 
-    global_size, local_size = (
-        _one_dimensional_launch(
-            runtime,
-            output.size,
-        )
+    global_size, local_size = _one_dimensional_launch(
+        runtime,
+        output.size,
     )
 
     elapsed_ms = runtime.run_kernel(
@@ -471,12 +412,10 @@ def merge_recurrent_state_gradient_device(
     )
 
     return output, {
-        "operation":
-            "merge_recurrent_state_gradient_fp32",
+        "operation": "merge_recurrent_state_gradient_fp32",
         "batch_size": batch_size,
         "input_features": input_features,
         "hidden_size": hidden_size,
-        "output_buffer_reused":
-            output_reused,
+        "output_buffer_reused": output_reused,
         "kernel_ms": elapsed_ms,
     }

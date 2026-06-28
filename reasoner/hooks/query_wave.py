@@ -5,6 +5,7 @@ Usage:
   python scripts/query_wave.py --wave-id <id> [--live]
   python scripts/query_wave.py --list [--live]   # list recent waves, then pick one
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,10 +21,18 @@ from src.graph.client import NebulaGraphClient
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Query concepts in a wave.")
-    parser.add_argument("--wave-id", help="Wave ID (e.g. from list_waves or ingestion).")
-    parser.add_argument("--list", action="store_true", help="List recent waves (up to 20) and exit.")
-    parser.add_argument("--live", action="store_true", help="Query live NebulaGraph (default: dry-run).")
-    parser.add_argument("--limit", type=int, default=500, help="Max concepts to return (default 500).")
+    parser.add_argument(
+        "--wave-id", help="Wave ID (e.g. from list_waves or ingestion)."
+    )
+    parser.add_argument(
+        "--list", action="store_true", help="List recent waves (up to 20) and exit."
+    )
+    parser.add_argument(
+        "--live", action="store_true", help="Query live NebulaGraph (default: dry-run)."
+    )
+    parser.add_argument(
+        "--limit", type=int, default=500, help="Max concepts to return (default 500)."
+    )
     args = parser.parse_args()
 
     client = NebulaGraphClient(

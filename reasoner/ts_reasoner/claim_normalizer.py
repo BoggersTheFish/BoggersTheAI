@@ -7,7 +7,6 @@ from typing import Any
 from ts_reasoner.relation_phrase_parser import parse_relation_phrase
 from ts_reasoner.runtime_kernel import normalize_claim
 
-
 ALL_ARE_RE = re.compile(r"^all (.+?) are (.+)$")
 ALL_IS_RE = re.compile(r"^all (.+?) is (.+)$")
 EVERY_RE = re.compile(r"^(every|each|any) (.+?) (is|are) (.+)$")

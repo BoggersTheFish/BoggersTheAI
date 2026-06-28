@@ -37,7 +37,9 @@ def repair_to_dict(repair: RepairTarget) -> dict[str, Any]:
         "kind": repair.kind,
         "status": repair.status,
         "message": repair.message,
-        "relation": None if repair.relation is None else relation_to_dict(repair.relation),
+        "relation": (
+            None if repair.relation is None else relation_to_dict(repair.relation)
+        ),
         "missing_support_hint": repair.missing_support_hint or [],
         "source_turn_id": repair.source_turn_id,
         "resolved_turn_id": repair.resolved_turn_id,
@@ -95,7 +97,6 @@ def parse_repair_target(
             }
         ],
     )
-
 
 
 def resolve_repair_target(

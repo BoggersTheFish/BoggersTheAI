@@ -17,8 +17,8 @@ import argparse
 import sys
 
 import torch
-
-from model import TensionConfig, TensionLM, generate as _generate, show_tensions
+from model import TensionConfig, TensionLM, show_tensions
+from model import generate as _generate
 
 
 def get_args():
@@ -26,25 +26,44 @@ def get_args():
         description="TensionLM text generation",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--checkpoint",  required=True, help="Path to .pt checkpoint")
-    p.add_argument("--prompt",      default=None,  nargs="+", help="Input prompt (interactive if omitted)")
-    p.add_argument("--max_new",     default=200,   type=int,   help="Max tokens to generate")
-    p.add_argument("--temp",        default=0.80,  type=float, help="Sampling temperature (lower = more conservative)")
-    p.add_argument("--top_p",       default=0.92,  type=float, help="Nucleus sampling probability")
-    p.add_argument("--rep_penalty", default=1.30,  type=float, help="Repetition penalty (1.0 = off)")
-    p.add_argument("--show_tension",action="store_true",       help="Show tension field for each prompt")
-    p.add_argument("--layer",       default=0,     type=int,   help="Layer to visualise tensions for")
+    p.add_argument("--checkpoint", required=True, help="Path to .pt checkpoint")
+    p.add_argument(
+        "--prompt",
+        default=None,
+        nargs="+",
+        help="Input prompt (interactive if omitted)",
+    )
+    p.add_argument("--max_new", default=200, type=int, help="Max tokens to generate")
+    p.add_argument(
+        "--temp",
+        default=0.80,
+        type=float,
+        help="Sampling temperature (lower = more conservative)",
+    )
+    p.add_argument(
+        "--top_p", default=0.92, type=float, help="Nucleus sampling probability"
+    )
+    p.add_argument(
+        "--rep_penalty", default=1.30, type=float, help="Repetition penalty (1.0 = off)"
+    )
+    p.add_argument(
+        "--show_tension", action="store_true", help="Show tension field for each prompt"
+    )
+    p.add_argument(
+        "--layer", default=0, type=int, help="Layer to visualise tensions for"
+    )
     return p.parse_args()
 
 
 def load_model_and_tokenizer(ckpt_path: str):
     print(f"Loading {ckpt_path} ...")
-    ckpt  = torch.load(ckpt_path, map_location="cpu", weights_only=False)
-    cfg   = TensionConfig(**ckpt["cfg"])
-    arch  = ckpt.get("arch", "tension")
+    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    cfg = TensionConfig(**ckpt["cfg"])
+    arch = ckpt.get("arch", "tension")
 
     if arch == "transformer":
         from baseline import TransformerLM
+
         model = TransformerLM(cfg)
     else:
         model = TensionLM(cfg)
@@ -57,6 +76,7 @@ def load_model_and_tokenizer(ckpt_path: str):
     tok_path = ckpt["tok_path"]
     try:
         from tokenizers import Tokenizer
+
         tokenizer = Tokenizer.from_file(tok_path)
     except Exception as e:
         sys.exit(f"Could not load tokenizer from {tok_path}: {e}")
@@ -65,9 +85,10 @@ def load_model_and_tokenizer(ckpt_path: str):
 
 
 def do_generate(model, tokenizer, prompt: str, args) -> str:
-    enc     = tokenizer.encode(prompt)
+    enc = tokenizer.encode(prompt)
     ids_out = _generate(
-        model, enc.ids,
+        model,
+        enc.ids,
         max_new=args.max_new,
         temp=args.temp,
         top_p=args.top_p,
@@ -78,12 +99,14 @@ def do_generate(model, tokenizer, prompt: str, args) -> str:
 
 def print_model_info(model, ckpt):
     cfg = model.cfg
-    np  = model.num_params
+    np = model.num_params
     ppl = ckpt.get("val_ppl", "?")
     ppl_str = f"{ppl:.2f}" if isinstance(ppl, float) else str(ppl)
     print(f"Model  : {np:,} params  |  val ppl {ppl_str}")
-    print(f"Config : dim={cfg.dim}  layers={cfg.num_layers}  heads={cfg.num_heads}  "
-          f"window={cfg.window}  vocab={cfg.vocab_size}")
+    print(
+        f"Config : dim={cfg.dim}  layers={cfg.num_layers}  heads={cfg.num_heads}  "
+        f"window={cfg.window}  vocab={cfg.vocab_size}"
+    )
     print(f"Step   : {ckpt.get('step', '?')}")
     print()
 
@@ -103,7 +126,9 @@ def main():
 
     # Interactive mode
     print("Interactive generation  (empty line to quit)")
-    print(f"temp={args.temp}  top_p={args.top_p}  rep_penalty={args.rep_penalty}  max_new={args.max_new}")
+    print(
+        f"temp={args.temp}  top_p={args.top_p}  rep_penalty={args.rep_penalty}  max_new={args.max_new}"
+    )
     print("─" * 60)
     while True:
         try:

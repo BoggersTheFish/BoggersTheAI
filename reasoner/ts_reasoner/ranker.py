@@ -16,12 +16,21 @@ class HeuristicTensionRanker:
     def __init__(self) -> None:
         self.cig_checker = CIGChecker()
 
-    def score(self, chain: ReasoningChain, cig_check: CIGCheck | None = None) -> TensionScore:
+    def score(
+        self, chain: ReasoningChain, cig_check: CIGCheck | None = None
+    ) -> TensionScore:
         cig = cig_check or self.cig_checker.check(chain)
         local: Dict[str, float] = {step.step_id: 0.0 for step in chain.steps}
         issues: List[TensionIssue] = []
 
-        def add(step_id: str, kind: str, severity: float, message: str, evidence: List[str], suggestion: str) -> None:
+        def add(
+            step_id: str,
+            kind: str,
+            severity: float,
+            message: str,
+            evidence: List[str],
+            suggestion: str,
+        ) -> None:
             local[step_id] = min(1.0, local.get(step_id, 0.0) + severity)
             issues.append(
                 TensionIssue(
@@ -90,7 +99,11 @@ class HeuristicTensionRanker:
             )
 
     def _check_quantifier_jumps(self, chain: ReasoningChain, add) -> None:
-        premise_relations = [relation for premise in chain.premises for relation in extract_relations(premise)]
+        premise_relations = [
+            relation
+            for premise in chain.premises
+            for relation in extract_relations(premise)
+        ]
         conclusion_steps = [step for step in chain.steps if step.kind == "conclusion"]
         for step in conclusion_steps:
             conclusion_relations = extract_relations(step.text)
@@ -102,7 +115,9 @@ class HeuristicTensionRanker:
                     and relation.subject.lower() == conclusion.subject.lower()
                     for relation in premise_relations
                 )
-                has_all_support = self._has_all_support(premise_relations, conclusion.subject, conclusion.predicate)
+                has_all_support = self._has_all_support(
+                    premise_relations, conclusion.subject, conclusion.predicate
+                )
                 if has_some_source and not has_all_support:
                     add(
                         step.step_id,
@@ -129,7 +144,9 @@ class HeuristicTensionRanker:
 
     def _check_overconfidence(self, chain: ReasoningChain, add) -> None:
         markers = ("definitely", "certainly", "always", "obviously", "must be true")
-        unsupported_targets = {issue.step_id for issue in self.score_unsupported_only(chain)}
+        unsupported_targets = {
+            issue.step_id for issue in self.score_unsupported_only(chain)
+        }
         for step in chain.steps:
             lower = step.text.lower()
             if any(marker in lower for marker in markers) and (

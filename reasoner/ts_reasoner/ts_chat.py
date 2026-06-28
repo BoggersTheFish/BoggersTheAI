@@ -21,19 +21,26 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ts_reasoner.answer_arena import Relation, extract_all_relation, extract_question_relation, normalize_term
-from ts_reasoner.common_ground import CommonGround, human_relation
-from ts_reasoner.live_contradiction_firewall import negative_relation_text, parse_no_relation, record_negative_claim_result
-from ts_reasoner.repair_planner import generate_repair_plans, render_repair_plan_bundle
-from ts_reasoner.proof_repair_search import render_search_result, run_search_command
-from ts_reasoner.self_audit import audit_common_ground, render_self_audit
-from ts_reasoner.chat_repair import parse_repair_target, repair_to_dict
+from ts_reasoner.answer_arena import (
+    Relation,
+    extract_all_relation,
+    extract_question_relation,
+    normalize_term,
+)
 from ts_reasoner.candidate_language import (
     candidate_selection_to_dict,
     generate_response_candidates,
     select_response_candidate,
 )
-
+from ts_reasoner.chat_repair import parse_repair_target, repair_to_dict
+from ts_reasoner.common_ground import CommonGround
+from ts_reasoner.live_contradiction_firewall import (
+    parse_no_relation,
+    record_negative_claim_result,
+)
+from ts_reasoner.proof_repair_search import render_search_result, run_search_command
+from ts_reasoner.repair_planner import generate_repair_plans, render_repair_plan_bundle
+from ts_reasoner.self_audit import audit_common_ground, render_self_audit
 
 ASK_RE = re.compile(r"\b(?:are|is)\s+all\s+.+?[?]", re.IGNORECASE)
 REQUEST_RE = re.compile(
@@ -130,27 +137,81 @@ class TSChatSession:
 
         if parsed.command == "summary":
             response = self.common_ground.summary()
-            candidate_selection = {"selected": {"rule_id": "command_summary", "text": response, "score": 1.0, "reasons": ["summary command"]}, "candidates": []}
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_summary",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["summary command"],
+                },
+                "candidates": [],
+            }
         elif parsed.command == "unsupported":
             response = self.common_ground.unsupported_summary()
-            candidate_selection = {"selected": {"rule_id": "command_unsupported", "text": response, "score": 1.0, "reasons": ["unsupported command"]}, "candidates": []}
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_unsupported",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["unsupported command"],
+                },
+                "candidates": [],
+            }
         elif parsed.command == "why":
             response = self.common_ground.why_summary()
-            candidate_selection = {"selected": {"rule_id": "command_why", "text": response, "score": 1.0, "reasons": ["why command"]}, "candidates": []}
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_why",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["why command"],
+                },
+                "candidates": [],
+            }
         elif parsed.command == "graph":
-            response = json.dumps(self.common_ground.to_dict(), indent=2, sort_keys=True)
-            candidate_selection = {"selected": {"rule_id": "command_graph", "text": response, "score": 1.0, "reasons": ["graph command"]}, "candidates": []}
+            response = json.dumps(
+                self.common_ground.to_dict(), indent=2, sort_keys=True
+            )
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_graph",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["graph command"],
+                },
+                "candidates": [],
+            }
         elif parsed.command == "audit":
             audit = audit_common_ground(self.common_ground)
             response = render_self_audit(audit)
-            candidate_selection = {"selected": {"rule_id": "command_audit", "text": response, "score": 1.0, "reasons": ["self-audit command"]}, "candidates": []}
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_audit",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["self-audit command"],
+                },
+                "candidates": [],
+            }
         elif parsed.command == "repairs":
             response = self.common_ground.repair_summary()
-            candidate_selection = {"selected": {"rule_id": "command_repairs", "text": response, "score": 1.0, "reasons": ["repairs command"]}, "candidates": []}
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_repairs",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["repairs command"],
+                },
+                "candidates": [],
+            }
         elif parsed.command and parsed.command.startswith("plan:"):
             repair_id = parsed.command.split(":", 1)[1]
             if not repair_id:
-                open_repairs = [repair for repair in self.common_ground.repair_targets if repair.status == "open"]
+                open_repairs = [
+                    repair
+                    for repair in self.common_ground.repair_targets
+                    if repair.status == "open"
+                ]
                 repair_id = open_repairs[0].repair_id if open_repairs else ""
 
             if repair_id:
@@ -173,7 +234,10 @@ class TSChatSession:
                             "rule_id": "command_repair_plan_missing",
                             "text": response,
                             "score": 1.0,
-                            "reasons": ["repair planner command", "unknown repair target"],
+                            "reasons": [
+                                "repair planner command",
+                                "unknown repair target",
+                            ],
                         },
                         "candidates": [],
                     }
@@ -221,7 +285,15 @@ class TSChatSession:
             self.common_ground = CommonGround()
             self.common_ground.turn_id = turn_id
             response = "Common ground cleared."
-            candidate_selection = {"selected": {"rule_id": "command_clear", "text": response, "score": 1.0, "reasons": ["clear command"]}, "candidates": []}
+            candidate_selection = {
+                "selected": {
+                    "rule_id": "command_clear",
+                    "text": response,
+                    "score": 1.0,
+                    "reasons": ["clear command"],
+                },
+                "candidates": [],
+            }
         else:
             for premise in parsed.premises:
                 before_resolved_count = len(self.common_ground.last_resolved_repairs)
@@ -231,7 +303,9 @@ class TSChatSession:
                 )
                 created_records.append(record_to_dict(record))
                 # Add any repairs resolved by this new premise/support path.
-                for repair in self.common_ground.last_resolved_repairs[before_resolved_count:]:
+                for repair in self.common_ground.last_resolved_repairs[
+                    before_resolved_count:
+                ]:
                     created_records.append({"repair_target": repair_to_dict(repair)})
 
             for question in parsed.questions:
@@ -262,7 +336,9 @@ class TSChatSession:
                     created_records.append({"repair_target": repair_to_dict(repair)})
 
             for warning in parsed.parse_warnings:
-                raw_warning_text = warning.removeprefix("Could not parse bounded TS-Chat structure: ")
+                raw_warning_text = warning.removeprefix(
+                    "Could not parse bounded TS-Chat structure: "
+                )
                 repair = parse_repair_target(
                     self.common_ground._next_repair_id(),
                     raw_warning_text,
@@ -273,7 +349,11 @@ class TSChatSession:
 
             fallback_response = compose_response(parsed, created_records)
             claim_records = [record for record in created_records if "kind" in record]
-            repair_records = [record["repair_target"] for record in created_records if "repair_target" in record]
+            repair_records = [
+                record["repair_target"]
+                for record in created_records
+                if "repair_target" in record
+            ]
             candidates = generate_response_candidates(
                 parsed_command=parsed.command,
                 records=claim_records,
@@ -308,7 +388,12 @@ class TSChatSession:
         out = Path(path)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(
-            json.dumps([receipt_to_dict(r) for r in self.turn_receipts], indent=2, sort_keys=True) + "\n",
+            json.dumps(
+                [receipt_to_dict(r) for r in self.turn_receipts],
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
             encoding="utf-8",
         )
         return out
@@ -364,7 +449,11 @@ def detect_command(text: str) -> str | None:
 
 def detect_discourse_markers(text: str) -> list[str]:
     lowered = text.lower()
-    return [marker for marker in DISCOURSE_MARKERS if re.search(rf"\b{re.escape(marker)}\b", lowered)]
+    return [
+        marker
+        for marker in DISCOURSE_MARKERS
+        if re.search(rf"\b{re.escape(marker)}\b", lowered)
+    ]
 
 
 def parse_requested_claim(sentence: str) -> Relation | None:
@@ -385,7 +474,11 @@ def parse_turn(user_text: str) -> ParsedTurn:
     sentences = split_sentences(user_text)
 
     for sentence in sentences:
-        question = extract_question_relation(sentence) if "?" in sentence or ASK_RE.search(sentence) else None
+        question = (
+            extract_question_relation(sentence)
+            if "?" in sentence or ASK_RE.search(sentence)
+            else None
+        )
         if question:
             parsed.questions.append(question)
             continue
@@ -409,10 +502,20 @@ def parse_turn(user_text: str) -> ParsedTurn:
         if lowered in {"exit", "quit", "q"}:
             continue
 
-        parsed.parse_warnings.append(f"Could not parse bounded TS-Chat structure: {sentence}")
+        parsed.parse_warnings.append(
+            f"Could not parse bounded TS-Chat structure: {sentence}"
+        )
 
-    if not parsed.premises and not parsed.questions and not parsed.requested_claims and not parsed.negative_claims and not parsed.parse_warnings:
-        parsed.parse_warnings.append("No bounded premise, question, or requested claim detected.")
+    if (
+        not parsed.premises
+        and not parsed.questions
+        and not parsed.requested_claims
+        and not parsed.negative_claims
+        and not parsed.parse_warnings
+    ):
+        parsed.parse_warnings.append(
+            "No bounded premise, question, or requested claim detected."
+        )
 
     return parsed
 
@@ -421,8 +524,12 @@ def compose_response(parsed: ParsedTurn, records: list[dict[str, Any]]) -> str:
     lines: list[str] = []
 
     claim_records = [record for record in records if "kind" in record]
-    repair_records = [record["repair_target"] for record in records if "repair_target" in record]
-    accepted_premises = [record for record in claim_records if record["kind"] == "asserted_premise"]
+    repair_records = [
+        record["repair_target"] for record in records if "repair_target" in record
+    ]
+    accepted_premises = [
+        record for record in claim_records if record["kind"] == "asserted_premise"
+    ]
     if accepted_premises:
         if len(accepted_premises) == 1:
             rel = accepted_premises[0]["relation"]
@@ -437,7 +544,9 @@ def compose_response(parsed: ParsedTurn, records: list[dict[str, Any]]) -> str:
 
         if record["kind"] == "contradiction_claim":
             lines.append(f"Rejected contradiction: {negative_text}.")
-            lines.append("Verifier: rejected; negative claim conflicts with accepted common-ground support.")
+            lines.append(
+                "Verifier: rejected; negative claim conflicts with accepted common-ground support."
+            )
             if record.get("support_path"):
                 lines.append("Contradiction path:")
                 for edge in record["support_path"]:
@@ -445,14 +554,18 @@ def compose_response(parsed: ParsedTurn, records: list[dict[str, Any]]) -> str:
 
         if record["kind"] == "negative_claim":
             lines.append(f"I cannot accept the negative claim: {negative_text}.")
-            lines.append("Verifier: abstained; negative claims are not added to common ground.")
+            lines.append(
+                "Verifier: abstained; negative claims are not added to common ground."
+            )
 
         if record["kind"] == "question":
             if record["status"] == "accepted":
                 lines.append(f"Yes — {relation_text}.")
                 lines.append("Verifier: accepted from common-ground support.")
             else:
-                lines.append(f"I cannot determine that {relation_text} from the current common ground.")
+                lines.append(
+                    f"I cannot determine that {relation_text} from the current common ground."
+                )
                 lines.append("Verifier: abstained; support is missing.")
 
         if record["kind"] == "requested_claim":
@@ -461,11 +574,17 @@ def compose_response(parsed: ParsedTurn, records: list[dict[str, Any]]) -> str:
                 lines.append("Verifier: accepted from common-ground support.")
             else:
                 lines.append(f"I cannot support the requested claim: {relation_text}.")
-                lines.append("Verifier: rejected; unsupported requested claim was not added to common ground.")
+                lines.append(
+                    "Verifier: rejected; unsupported requested claim was not added to common ground."
+                )
 
     if repair_records:
-        open_repairs = [repair for repair in repair_records if repair.get("status") == "open"]
-        resolved_repairs = [repair for repair in repair_records if repair.get("status") == "resolved"]
+        open_repairs = [
+            repair for repair in repair_records if repair.get("status") == "open"
+        ]
+        resolved_repairs = [
+            repair for repair in repair_records if repair.get("status") == "resolved"
+        ]
         if open_repairs:
             lines.append("Repair targets:")
             for repair in open_repairs:
@@ -477,7 +596,9 @@ def compose_response(parsed: ParsedTurn, records: list[dict[str, Any]]) -> str:
                 lines.append(f"  resolved: {repair.get('resolution_reason')}")
 
     if parsed.discourse_markers:
-        lines.append(f"Discourse markers noticed: {', '.join(parsed.discourse_markers)}.")
+        lines.append(
+            f"Discourse markers noticed: {', '.join(parsed.discourse_markers)}."
+        )
 
     if parsed.parse_warnings:
         lines.append("Parse notes:")
@@ -494,10 +615,16 @@ def run_chat(trace_path: str = "artifacts/ts_chat_v0_2_latest_session.json") -> 
     session = TSChatSession()
 
     print("TS-Chat v7.1")
-    print("Unified verifier-first bounded chat with common-ground, repair resolution, and compilable session receipts. Type 'exit' to quit.")
+    print(
+        "Unified verifier-first bounded chat with common-ground, repair resolution, and compilable session receipts. Type 'exit' to quit."
+    )
     print("Try: all dogs are mammals. all mammals are animals. are all dogs animals?")
-    print("Commands: what do we know? | why? | what is unsupported? | /repairs | /plan <repair_id> | /prove <claim> | /missing <claim> | /cut <claim> | /audit | /graph | /clear")
-    print("After exit: python3 -m ts_reasoner.cli compile-session --session artifacts/ts_chat_v0_2_latest_session.json")
+    print(
+        "Commands: what do we know? | why? | what is unsupported? | /repairs | /plan <repair_id> | /prove <claim> | /missing <claim> | /cut <claim> | /audit | /graph | /clear"
+    )
+    print(
+        "After exit: python3 -m ts_reasoner.cli compile-session --session artifacts/ts_chat_v0_2_latest_session.json"
+    )
     print()
 
     while True:
@@ -517,7 +644,6 @@ def run_chat(trace_path: str = "artifacts/ts_chat_v0_2_latest_session.json") -> 
     saved = session.save_receipts(trace_path)
     print(f"Trace: {saved}")
     return 0
-
 
 
 def demo_v0_2_common_ground() -> dict[str, Any]:
@@ -575,6 +701,7 @@ def demo_v0_3_repair_targets() -> dict[str, Any]:
         "receipts": [receipt_to_dict(r) for r in receipts],
     }
 
+
 def demo_v0_4_repair_resolution() -> dict[str, Any]:
     session = TSChatSession()
     turns = [
@@ -594,8 +721,8 @@ def demo_v0_4_repair_resolution() -> dict[str, Any]:
         "claim": "bounded scratch TS-native chat loop with common-ground claim records",
         "external_llm_used": False,
         "turn_count": len(receipts),
-"repair_target_count": len(session.common_ground.repair_targets),
-"has_repairs_command": any(r.command == "repairs" for r in receipts),
+        "repair_target_count": len(session.common_ground.repair_targets),
+        "has_repairs_command": any(r.command == "repairs" for r in receipts),
         "record_count": len(session.common_ground.records),
         "accepted_edge_count": len(session.common_ground.accepted_edges),
         "has_why_command": any(r.command == "why" for r in receipts),
@@ -603,7 +730,6 @@ def demo_v0_4_repair_resolution() -> dict[str, Any]:
         "has_unsupported_command": any(r.command == "unsupported" for r in receipts),
         "receipts": [receipt_to_dict(r) for r in receipts],
     }
-
 
 
 def demo_v0_1() -> dict[str, Any]:
@@ -625,8 +751,8 @@ def demo_v0_1() -> dict[str, Any]:
         "claim": "bounded scratch TS-native chat loop over a working relation graph",
         "external_llm_used": False,
         "turn_count": len(receipts),
-"repair_target_count": len(session.common_ground.repair_targets),
-"has_repairs_command": any(r.command == "repairs" for r in receipts),
+        "repair_target_count": len(session.common_ground.repair_targets),
+        "has_repairs_command": any(r.command == "repairs" for r in receipts),
         "graph_edge_count": len(session.edges),
         "receipts": [receipt_to_dict(r) for r in receipts],
     }
@@ -680,7 +806,9 @@ def demo_v0_5_candidate_language_rules() -> dict[str, Any]:
         "repair_target_count": len(session.common_ground.repair_targets),
         "selected_rule_count": len([rule for rule in selected_rules if rule]),
         "selected_rules": selected_rules,
-        "has_candidate_selection": all(bool(receipt.candidate_selection) for receipt in receipts),
+        "has_candidate_selection": all(
+            bool(receipt.candidate_selection) for receipt in receipts
+        ),
         "has_reject_rule": (
             "reject_unsupported_requested_claim" in selected_rules
             or "discourse_marker_append" in selected_rules
@@ -693,6 +821,7 @@ def demo_v0_5_candidate_language_rules() -> dict[str, Any]:
 def demo_v0_5() -> dict[str, Any]:
     """Alias for v0.5 candidate-language demo."""
     return demo_v0_5_candidate_language_rules()
+
 
 def main() -> int:
     return run_chat()

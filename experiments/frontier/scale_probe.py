@@ -6,11 +6,13 @@ Measures time, tension convergence, memory for large synthetic graphs.
 Reports bottlenecks.
 """
 
+import sys
 import time
 import tracemalloc
-import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 
 class ScaleGraph:
     def __init__(self):
@@ -33,17 +35,20 @@ class ScaleGraph:
                     delta = self.nodes[s]["activation"] * 0.1
                     updates[t] = updates.get(t, 0) + delta
             for nid, d in updates.items():
-                self.nodes[nid]["activation"] = min(1.0, self.nodes[nid]["activation"] + d)
+                self.nodes[nid]["activation"] = min(
+                    1.0, self.nodes[nid]["activation"] + d
+                )
 
     def detect_tensions(self):
         return {nid: abs(n["activation"] - 0.2) for nid, n in self.nodes.items()}
 
+
 def probe(max_nodes=10000):
     g = ScaleGraph()
     for i in range(max_nodes):
-        nid = g.add_node(f"node_{i}")
+        g.add_node(f"node_{i}")
         if i > 0:
-            g.add_edge(i-1, i)
+            g.add_edge(i - 1, i)
     start = time.time()
     tracemalloc.start()
     g.run_waves(5)
@@ -55,7 +60,13 @@ def probe(max_nodes=10000):
     print(f"Time for 5 waves: {elapsed:.2f}s")
     print(f"Peak mem: {peak / 1024 / 1024:.2f} MB")
     print(f"Final max tension: {max_t:.4f}")
-    return {"nodes": max_nodes, "time": elapsed, "peak_mb": peak/1e6, "max_tension": max_t}
+    return {
+        "nodes": max_nodes,
+        "time": elapsed,
+        "peak_mb": peak / 1e6,
+        "max_tension": max_t,
+    }
+
 
 if __name__ == "__main__":
     for n in [1000, 5000, 10000, 20000]:

@@ -11,7 +11,6 @@ from .generator import extract_relations
 from .pipeline import run_reasoner
 from .proof_chain import has_universal_bridge
 
-
 FEATURE_NAMES = [
     "bias",
     "premise_count",
@@ -55,11 +54,11 @@ def build_examples() -> List[ProofStepExample]:
 def train_tiny_policy(examples: Sequence[ProofStepExample]) -> dict:
     buckets: Dict[str, List[Dict[str, float]]] = {label: [] for label in LABELS}
     for example in examples:
-        buckets[example.label].append(extract_state_features(example.question, example.premises))
+        buckets[example.label].append(
+            extract_state_features(example.question, example.premises)
+        )
     centroids = {
-        label: _mean_feature_vector(rows)
-        for label, rows in buckets.items()
-        if rows
+        label: _mean_feature_vector(rows) for label, rows in buckets.items() if rows
     }
     return {
         "model_type": "nearest_centroid_proof_step_smoke",
@@ -103,12 +102,16 @@ def evaluate_tensionproof_smoke(random_seed: int = 22) -> dict:
 
 def extract_state_features(question: str, premises: Iterable[str]) -> Dict[str, float]:
     premise_list = [premise for premise in premises]
-    relations = [relation for premise in premise_list for relation in extract_relations(premise)]
+    relations = [
+        relation for premise in premise_list for relation in extract_relations(premise)
+    ]
     query = extract_relations(question)
     query_relation = query[-1] if query else None
     has_bridge = bool(
         query_relation
-        and has_universal_bridge(relations, query_relation.subject, query_relation.predicate)
+        and has_universal_bridge(
+            relations, query_relation.subject, query_relation.predicate
+        )
     )
     has_contradiction = any(
         left.subject.lower() == right.subject.lower()
@@ -120,9 +123,15 @@ def extract_state_features(question: str, premises: Iterable[str]) -> Dict[str, 
     return {
         "bias": 1.0,
         "premise_count": float(len(premise_list)),
-        "all_count": float(sum(1 for relation in relations if relation.quantifier == "all")),
-        "some_count": float(sum(1 for relation in relations if relation.quantifier == "some")),
-        "no_count": float(sum(1 for relation in relations if relation.quantifier == "no")),
+        "all_count": float(
+            sum(1 for relation in relations if relation.quantifier == "all")
+        ),
+        "some_count": float(
+            sum(1 for relation in relations if relation.quantifier == "some")
+        ),
+        "no_count": float(
+            sum(1 for relation in relations if relation.quantifier == "no")
+        ),
         "has_universal_bridge": 1.0 if has_bridge else 0.0,
         "has_contradiction": 1.0 if has_contradiction else 0.0,
         "missing_premises": 1.0 if not premise_list else 0.0,
@@ -157,7 +166,11 @@ def _family(split: str, index: int, a: str, b: str, c: str) -> List[ProofStepExa
             premises=[f"Some {a} are {b}.", f"All {b} are {c}."],
             label="repair_or_abstain",
             target_step="Not enough information.",
-            acceptable_answers=["not enough information", "do not force", "more information"],
+            acceptable_answers=[
+                "not enough information",
+                "do not force",
+                "more information",
+            ],
         ),
         ProofStepExample(
             example_id=f"{prefix}_refuse",
@@ -223,7 +236,9 @@ def _evaluate_loop_projection(examples: Sequence[ProofStepExample]) -> dict:
                 "example_id": example.example_id,
                 "expected_label": example.label,
                 "predicted_label": predicted,
-                "answer_correct": answer_matches(output.final_answer, example.acceptable_answers),
+                "answer_correct": answer_matches(
+                    output.final_answer, example.acceptable_answers
+                ),
                 "trace_available": "operation_loop" in output.trace,
                 "global_tension": output.tension_score.global_tension,
             }
@@ -250,7 +265,9 @@ def _label_from_answer(answer: str) -> str:
 
 
 def _score_rows(rows: List[dict], parameter_count: int) -> dict:
-    label_correct = sum(1 for row in rows if row["predicted_label"] == row["expected_label"])
+    label_correct = sum(
+        1 for row in rows if row["predicted_label"] == row["expected_label"]
+    )
     answer_correct = sum(1 for row in rows if row["answer_correct"])
     total = len(rows)
     return {
@@ -260,11 +277,11 @@ def _score_rows(rows: List[dict], parameter_count: int) -> dict:
         "total": total,
         "parameter_count": parameter_count,
         "correct_steps_per_parameter": (
-            round(label_correct / parameter_count, 6)
-            if parameter_count > 0
-            else None
+            round(label_correct / parameter_count, 6) if parameter_count > 0 else None
         ),
-        "trace_coverage": round(sum(1 for row in rows if row["trace_available"]) / max(1, total), 4),
+        "trace_coverage": round(
+            sum(1 for row in rows if row["trace_available"]) / max(1, total), 4
+        ),
         "rows": rows,
     }
 
@@ -277,4 +294,6 @@ def _mean_feature_vector(rows: Sequence[Dict[str, float]]) -> Dict[str, float]:
 
 
 def _squared_distance(left: Dict[str, float], right: Dict[str, float]) -> float:
-    return sum((left.get(name, 0.0) - right.get(name, 0.0)) ** 2 for name in FEATURE_NAMES)
+    return sum(
+        (left.get(name, 0.0) - right.get(name, 0.0)) ** 2 for name in FEATURE_NAMES
+    )

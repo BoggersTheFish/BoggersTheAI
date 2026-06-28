@@ -19,15 +19,20 @@ This is the gate artifact for Wave 0.
 """
 
 import json
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from experiments.frontier.bogvm_graph_bridge import (
+    attach_bogvm_program,
+    run_attached_bogvm,
+)
 from experiments.frontier.language_compiler import LanguageCompiler
-from experiments.frontier.verifier_os import VerifierOS
-from experiments.frontier.bogvm_graph_bridge import attach_bogvm_program, run_attached_bogvm
 from experiments.frontier.self_data_generator import SelfDataGenerator
+from experiments.frontier.verifier_os import VerifierOS
+
 
 class MiniWaveGraph:
     def __init__(self):
@@ -50,7 +55,9 @@ class MiniWaveGraph:
                 if s in self.nodes:
                     updates[t] = updates.get(t, 0) + self.nodes[s]["activation"] * 0.12
             for nid, d in updates.items():
-                self.nodes[nid]["activation"] = min(1.0, self.nodes[nid]["activation"] + d)
+                self.nodes[nid]["activation"] = min(
+                    1.0, self.nodes[nid]["activation"] + d
+                )
 
     def detect_tensions(self):
         return {nid: abs(n["activation"] - 0.2) for nid, n in self.nodes.items()}
@@ -58,9 +65,11 @@ class MiniWaveGraph:
     def snapshot(self):
         return {"nodes": len(self.nodes)}
 
+
 def load_tasks():
     with open("experiments/frontier/hard_tasks.json") as f:
         return json.load(f)
+
 
 def main(task_id="t1"):
     print("=== Wave 0 Full Gate Demo ===")
@@ -97,7 +106,7 @@ def main(task_id="t1"):
 
     # 4. Proposer (self data stub)
     gen = SelfDataGenerator()
-    traces = gen.generate_synthetic(20)
+    gen.generate_synthetic(20)
     high = gen.filter_high_quality()
     rules = gen.train_proposer_stub(high)
     proposals = []
@@ -111,8 +120,18 @@ def main(task_id="t1"):
     try:
         # simple asm
         asm = "CREATE_NODE four\nCREATE_NODE even\nCREATE_CLAIM c1 four even\nVERIFY c1\nHALT\n"
-        with open("/tmp/gate.asm", "w") as f: f.write(asm)
-        subprocess.check_call(["python3", "-m", "core-vm.bogvm", "assemble", "/tmp/gate.asm", "/tmp/gate.bogbin"])
+        with open("/tmp/gate.asm", "w") as f:
+            f.write(asm)
+        subprocess.check_call(
+            [
+                "python3",
+                "-m",
+                "core-vm.bogvm",
+                "assemble",
+                "/tmp/gate.asm",
+                "/tmp/gate.bogbin",
+            ]
+        )
         attach_bogvm_program(g, 0, "/tmp/gate.bogbin")
         bog_r = run_attached_bogvm(g, 0)
         execution = {"executed": True, "bogvm_receipt": bog_r}
@@ -127,7 +146,7 @@ def main(task_id="t1"):
         "verifier_results": ver_results,
         "proposals": proposals,
         "execution": execution,
-        "receipt_hash": "wave0_full"
+        "receipt_hash": "wave0_full",
     }
     print("\n=== FULL GATE RECEIPT ===")
     print(json.dumps(receipt, indent=2))
@@ -135,6 +154,7 @@ def main(task_id="t1"):
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(receipt, indent=2))
     print(f"Saved to {out}")
+
 
 if __name__ == "__main__":
     main()

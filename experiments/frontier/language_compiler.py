@@ -12,7 +12,9 @@ Uses logic from ts_chat.
 import re
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 
 class LanguageCompiler:
     def __init__(self):
@@ -28,7 +30,7 @@ class LanguageCompiler:
         plan_steps = []
 
         # Extract "all X are Y" style
-        for match in re.finditer(r'all (.+?) are (.+?)(?:[.,]|$)', lower):
+        for match in re.finditer(r"all (.+?) are (.+?)(?:[.,]|$)", lower):
             subj = match.group(1).strip()
             pred = match.group(2).strip()
             premises.append(f"all {subj} are {pred}")
@@ -52,12 +54,12 @@ class LanguageCompiler:
         return {
             "graph_deltas": {"premises": premises},
             "verifier_obligations": obligations,
-            "plan_skeleton": plan_steps
+            "plan_skeleton": plan_steps,
         }
 
     def to_receipt(self):
         return {
             "premises": self.premises,
             "obligations": self.obligations,
-            "plan": self.plan
+            "plan": self.plan,
         }

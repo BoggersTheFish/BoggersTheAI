@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 TENSION_UPDATE_SOURCE = r"""
 __kernel void tension_update_fp32(
     __global const float *state,
@@ -41,15 +40,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def tension_update_device(
@@ -62,9 +56,7 @@ def tension_update_device(
     repetitions: int = 1,
 ) -> tuple[DeviceTensor, dict[str, Any]]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     for name, tensor in (
         ("state", state),
@@ -155,43 +147,24 @@ def tension_update_device(
         if elapsed_ms is not None:
             timings_ms.append(elapsed_ms)
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
-    bytes_processed = (
-        state.nbytes
-        + proposal.nbytes
-        + gate.nbytes
-        + output.nbytes
-    )
+    bytes_processed = state.nbytes + proposal.nbytes + gate.nbytes + output.nbytes
 
     bandwidth_gbps = (
-        bytes_processed
-        / (median_ms * 1e-3)
-        / 1e9
-        if median_ms is not None
-        else None
+        bytes_processed / (median_ms * 1e-3) / 1e9 if median_ms is not None else None
     )
 
     metadata: dict[str, Any] = {
-        "operation":
-            "tension_update_device_fp32",
+        "operation": "tension_update_device_fp32",
         "shape": list(state.shape),
         "element_count": state.size,
         "repetitions": repetitions,
         "median_kernel_ms": median_ms,
-        "approximate_bandwidth_gbps":
-            bandwidth_gbps,
-        "output_buffer_reused":
-            output_was_reused,
+        "approximate_bandwidth_gbps": bandwidth_gbps,
+        "output_buffer_reused": output_was_reused,
         "host_transfers_during_repetitions": 0,
-        "source_sha256":
-            runtime.source_hash(
-                TENSION_UPDATE_SOURCE
-            ),
+        "source_sha256": runtime.source_hash(TENSION_UPDATE_SOURCE),
     }
 
     return output, metadata

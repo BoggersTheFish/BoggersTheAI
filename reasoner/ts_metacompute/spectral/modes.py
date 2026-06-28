@@ -110,8 +110,12 @@ def jacobi_eigen_decomposition(
             a[row][pivot_col] = sine * arp + cosine * arq
             a[pivot_col][row] = a[row][pivot_col]
 
-        a[pivot_row][pivot_row] = cosine * cosine * app - 2.0 * sine * cosine * apq + sine * sine * aqq
-        a[pivot_col][pivot_col] = sine * sine * app + 2.0 * sine * cosine * apq + cosine * cosine * aqq
+        a[pivot_row][pivot_row] = (
+            cosine * cosine * app - 2.0 * sine * cosine * apq + sine * sine * aqq
+        )
+        a[pivot_col][pivot_col] = (
+            sine * sine * app + 2.0 * sine * cosine * apq + cosine * cosine * aqq
+        )
         a[pivot_row][pivot_col] = 0.0
         a[pivot_col][pivot_row] = 0.0
 
@@ -160,17 +164,29 @@ def _component_graph(graph: SignedGraph, nodes: list[str]) -> SignedGraph:
     return SignedGraph(
         case_id=graph.case_id,
         nodes=tuple(nodes),
-        edges=tuple(edge for edge in graph.edges if edge.source in node_set and edge.target in node_set),
+        edges=tuple(
+            edge
+            for edge in graph.edges
+            if edge.source in node_set and edge.target in node_set
+        ),
         metadata=dict(graph.metadata or {}),
     )
 
 
-def _component_read_basis(component: SignedGraph) -> tuple[float, list[str], list[float], list[float], list[list[float]]]:
+def _component_read_basis(
+    component: SignedGraph,
+) -> tuple[float, list[str], list[float], list[float], list[list[float]]]:
     nodes, matrix = signed_laplacian(component)
     eigenvalues, eigenvectors = jacobi_eigen_decomposition(matrix)
     if not eigenvalues:
         return 0.0, nodes, [0.0 for _ in nodes], [], []
-    return float(eigenvalues[0]), nodes, list(eigenvectors[0]), eigenvalues, eigenvectors
+    return (
+        float(eigenvalues[0]),
+        nodes,
+        list(eigenvectors[0]),
+        eigenvalues,
+        eigenvectors,
+    )
 
 
 def _same_pressure_ambiguous(component: SignedGraph) -> bool:
@@ -199,7 +215,9 @@ def read_spectral_tension(
 
     for component_nodes in _connected_components(graph):
         component = _component_graph(graph, component_nodes)
-        tension, nodes, vector, eigenvalues, eigenvectors = _component_read_basis(component)
+        tension, nodes, vector, eigenvalues, eigenvectors = _component_read_basis(
+            component
+        )
         if tension > selected_tension or not selected_eigenvalues:
             selected_tension = tension
             selected_graph = component
@@ -215,12 +233,17 @@ def read_spectral_tension(
     spectral_tension = round(float(selected_tension), 6)
 
     modes: list[SpectralMode] = []
-    for idx, (eigenvalue, vector) in enumerate(zip(selected_eigenvalues[:mode_count], selected_eigenvectors[:mode_count])):
+    for idx, (eigenvalue, vector) in enumerate(
+        zip(selected_eigenvalues[:mode_count], selected_eigenvectors[:mode_count])
+    ):
         modes.append(
             SpectralMode(
                 mode_index=idx,
                 eigenvalue=round(float(eigenvalue), 6),
-                node_values={node: round(float(value), 6) for node, value in zip(selected_nodes, vector)},
+                node_values={
+                    node: round(float(value), 6)
+                    for node, value in zip(selected_nodes, vector)
+                },
             )
         )
 

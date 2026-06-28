@@ -123,14 +123,23 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        input_arg = getattr(args, "session", None) or getattr(args, "scenario", None) or getattr(args, "pack", None)
+        input_arg = (
+            getattr(args, "session", None)
+            or getattr(args, "scenario", None)
+            or getattr(args, "pack", None)
+        )
         payload = load_json_arg(input_arg) if input_arg is not None else None
     except Exception as exc:
-        print(json.dumps({
-            "action": "invalid_input",
-            "error": str(exc),
-            "candidate_graph_contamination_count": 0,
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "action": "invalid_input",
+                    "error": str(exc),
+                    "candidate_graph_contamination_count": 0,
+                },
+                sort_keys=True,
+            )
+        )
         return 2
 
     if args.command == "session":
@@ -163,16 +172,33 @@ def main(argv: list[str] | None = None) -> int:
         output["candidate_graph_contamination_count"] = report.contamination_count
         exit_code = 0
     elif args.command == "export-pack":
-        initial_state = payload.get("initial_state", payload) if isinstance(payload, dict) else {}
+        initial_state = (
+            payload.get("initial_state", payload) if isinstance(payload, dict) else {}
+        )
         node = ProofGridNode(
-            node_id=str(payload.get("node_id", "local_node")) if isinstance(payload, dict) else "local_node",
-            issuer=str(payload.get("issuer", "local_issuer")) if isinstance(payload, dict) else "local_issuer",
+            node_id=(
+                str(payload.get("node_id", "local_node"))
+                if isinstance(payload, dict)
+                else "local_node"
+            ),
+            issuer=(
+                str(payload.get("issuer", "local_issuer"))
+                if isinstance(payload, dict)
+                else "local_issuer"
+            ),
             state=initial_state,
-            manifest=payload.get("channel_manifest", {}) if isinstance(payload, dict) else {},
+            manifest=(
+                payload.get("channel_manifest", {}) if isinstance(payload, dict) else {}
+            ),
         )
         output = node.export_pack()
         write_json(args.out, output)
-        output = {"action": "proof_grid_pack_exported", "out": args.out, "pack": output, "candidate_graph_contamination_count": 0}
+        output = {
+            "action": "proof_grid_pack_exported",
+            "out": args.out,
+            "pack": output,
+            "candidate_graph_contamination_count": 0,
+        }
         exit_code = 0
     elif args.command == "import-pack":
         node = ProofGridNode()

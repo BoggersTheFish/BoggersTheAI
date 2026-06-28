@@ -24,7 +24,6 @@ from pathlib import Path
 
 import torch
 
-
 MODEL_CARD = """\
 ---
 language: en
@@ -104,8 +103,8 @@ def get_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     p.add_argument("--checkpoint", required=True)
-    p.add_argument("--repo_id",    required=True, help="e.g. username/TensionLM-117M")
-    p.add_argument("--private",    action="store_true")
+    p.add_argument("--repo_id", required=True, help="e.g. username/TensionLM-117M")
+    p.add_argument("--private", action="store_true")
     p.add_argument("--commit_message", default="Upload TensionLM checkpoint")
     return p.parse_args()
 
@@ -121,18 +120,19 @@ def main():
     print(f"Loading {args.checkpoint} ...")
     ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     cfg_dict = ckpt["cfg"]
-    val_ppl  = ckpt.get("val_ppl", "N/A")
-    arch     = ckpt.get("arch", "tension")
+    val_ppl = ckpt.get("val_ppl", "N/A")
+    arch = ckpt.get("arch", "tension")
     train_args = ckpt.get("args", {})
 
     from model import TensionConfig, TensionLM
-    cfg   = TensionConfig(**cfg_dict)
+
+    cfg = TensionConfig(**cfg_dict)
     model = TensionLM(cfg)
     state = {k.replace("_orig_mod.", ""): v for k, v in ckpt["model"].items()}
     model.load_state_dict(state)
     params = model.num_params
 
-    dataset     = train_args.get("dataset", "unknown")
+    dataset = train_args.get("dataset", "unknown")
     training_info = (
         f"Trained for {ckpt.get('step', '?')} steps on {dataset}. "
         f"See [github.com/BoggersTheFish/bozo](https://github.com/BoggersTheFish/bozo) "
@@ -154,7 +154,7 @@ def main():
         torch.save(ckpt, model_path)
 
         # Copy tokenizer
-        tok_src  = ckpt["tok_path"]
+        tok_src = ckpt["tok_path"]
         tok_dest = os.path.join(tmpdir, "tokenizer.json")
         shutil.copy(tok_src, tok_dest)
 

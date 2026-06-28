@@ -34,7 +34,9 @@ def run_recovery_drill(
     events: list[dict[str, Any]],
     continuation_events: list[dict[str, Any]],
 ) -> RuntimeRecoveryDrillResult:
-    checkpoint_result = build_checkpoint(case_id=case_id, initial_state=initial_state, events=events)
+    checkpoint_result = build_checkpoint(
+        case_id=case_id, initial_state=initial_state, events=events
+    )
     checkpoint = checkpoint_result.checkpoint
     restored_state = restore_checkpoint(checkpoint)
 
@@ -53,10 +55,18 @@ def run_recovery_drill(
     else:
         reordered_ledger_rejected = True
 
-    full_replay = replay_events(case_id=f"{case_id}__full", initial_state=initial_state, events=events)
+    full_replay = replay_events(
+        case_id=f"{case_id}__full", initial_state=initial_state, events=events
+    )
     if events:
-        missing_replay = replay_events(case_id=f"{case_id}__missing", initial_state=initial_state, events=events[:-1])
-        missing_event_replay_diverged = missing_replay.final_state != full_replay.final_state
+        missing_replay = replay_events(
+            case_id=f"{case_id}__missing",
+            initial_state=initial_state,
+            events=events[:-1],
+        )
+        missing_event_replay_diverged = (
+            missing_replay.final_state != full_replay.final_state
+        )
     else:
         missing_event_replay_diverged = True
 
@@ -102,8 +112,12 @@ def evaluate_recovery_drill_cases(cases: Iterable[dict[str, Any]]) -> dict[str, 
         )
 
         expected_base_actions = [str(action) for action in raw["expected_base_actions"]]
-        expected_continued_actions = [str(action) for action in raw["expected_continued_actions"]]
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_continued_actions = [
+            str(action) for action in raw["expected_continued_actions"]
+        ]
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.base_actions == expected_base_actions

@@ -5,9 +5,10 @@ See PHASE0_DETAIL_PLAN.md and FRONTIER_PLAN.md.
 """
 
 from __future__ import annotations
+
 import hashlib
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
 
@@ -28,7 +29,9 @@ class WaveStepReceipt:
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         if not d.get("trace_hash"):
-            d["trace_hash"] = stable_hash({k: v for k, v in d.items() if k != "trace_hash"})
+            d["trace_hash"] = stable_hash(
+                {k: v for k, v in d.items() if k != "trace_hash"}
+            )
         return d
 
 
@@ -45,7 +48,9 @@ class GraphUpdateReceipt:
         return d
 
 
-def make_wave_receipt(step: int, result: Any, tensions: Dict[str, float] | None = None) -> WaveStepReceipt:
+def make_wave_receipt(
+    step: int, result: Any, tensions: Dict[str, float] | None = None
+) -> WaveStepReceipt:
     """Create a receipt from a RulesEngineCycleResult or similar."""
     max_t = max(tensions.values()) if tensions else 0.0
     return WaveStepReceipt(

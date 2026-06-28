@@ -11,7 +11,9 @@ from .types import ReasoningChain, ReasoningStep, RepairSuggestion, TensionScore
 class TensionRepairer:
     """Create traceable repair suggestions; v0 does not mutate hidden state."""
 
-    def suggest(self, chain: ReasoningChain, score: TensionScore) -> List[RepairSuggestion]:
+    def suggest(
+        self, chain: ReasoningChain, score: TensionScore
+    ) -> List[RepairSuggestion]:
         repairs: List[RepairSuggestion] = []
         step_by_id = {step.step_id: step for step in chain.steps}
         for issue in score.issues:
@@ -113,7 +115,9 @@ class TensionRepairer:
             -0.1,
         )
 
-    def _answer_from_repair(self, chain: ReasoningChain, repair: RepairSuggestion) -> str:
+    def _answer_from_repair(
+        self, chain: ReasoningChain, repair: RepairSuggestion
+    ) -> str:
         proposed = repair.proposed_text.strip()
         lower = proposed.lower()
         if "not provide enough support" in lower or "more premises are needed" in lower:
@@ -126,7 +130,9 @@ class TensionRepairer:
             return proposed
         return chain.final_answer
 
-    def _dependencies_after_repair(self, step: ReasoningStep, repair: RepairSuggestion) -> List[str]:
+    def _dependencies_after_repair(
+        self, step: ReasoningStep, repair: RepairSuggestion
+    ) -> List[str]:
         if repair.issue_kind == "circular_reasoning":
             return [dep for dep in step.dependencies if dep != step.step_id]
         return step.dependencies

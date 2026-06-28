@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import struct
+from dataclasses import dataclass
 
 INSTRUCTION_STRUCT = struct.Struct(">BBHHH")
 

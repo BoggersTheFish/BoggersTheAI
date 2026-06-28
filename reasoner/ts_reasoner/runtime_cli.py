@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +14,9 @@ def load_json_arg(value: str) -> Any:
     return json.loads(value)
 
 
-def process_event(event: Any, state: Any, case_id: str = "cli") -> tuple[int, dict[str, Any]]:
+def process_event(
+    event: Any, state: Any, case_id: str = "cli"
+) -> tuple[int, dict[str, Any]]:
     if not isinstance(event, dict) or not isinstance(state, dict):
         return 2, {
             "action": "invalid_input",
@@ -44,22 +45,34 @@ def main(argv: list[str] | None = None) -> int:
             event = load_json_arg(args.event)
             state = load_json_arg(args.state)
         except Exception as exc:
-            print(json.dumps({
-                "action": "invalid_input",
-                "error": str(exc),
-                "candidate_graph_contamination_count": 0,
-            }, sort_keys=True))
+            print(
+                json.dumps(
+                    {
+                        "action": "invalid_input",
+                        "error": str(exc),
+                        "candidate_graph_contamination_count": 0,
+                    },
+                    sort_keys=True,
+                )
+            )
             return 2
 
-        exit_code, payload = process_event(event=event, state=state, case_id=args.case_id)
+        exit_code, payload = process_event(
+            event=event, state=state, case_id=args.case_id
+        )
         print(json.dumps(payload, indent=2, sort_keys=True))
         return exit_code
 
-    print(json.dumps({
-        "action": "invalid_input",
-        "error": "unknown_command",
-        "candidate_graph_contamination_count": 0,
-    }, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "action": "invalid_input",
+                "error": "unknown_command",
+                "candidate_graph_contamination_count": 0,
+            },
+            sort_keys=True,
+        )
+    )
     return 2
 
 

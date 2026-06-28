@@ -10,7 +10,6 @@ from .generator import DeterministicHeuristicGenerator
 from .ranker import HeuristicTensionRanker
 from .types import ReasoningChain, ReasoningStep
 
-
 TRAIN_SYMBOLIC_TRIPLES = [
     ("A", "B", "C"),
     ("D", "E", "F"),
@@ -37,11 +36,15 @@ def synthetic_tasks() -> List[Dict[str, object]]:
     for index, (a, b, c) in enumerate(TRAIN_SYMBOLIC_TRIPLES, start=1):
         tasks.extend(_task_family(index, a, b, c, split="train", family="symbolic"))
     for index, (a, b, c) in enumerate(HELDOUT_NATURAL_TRIPLES, start=1):
-        tasks.extend(_task_family(index, a, b, c, split="eval", family="heldout_natural"))
+        tasks.extend(
+            _task_family(index, a, b, c, split="eval", family="heldout_natural")
+        )
     return tasks
 
 
-def _task_family(index: int, a: str, b: str, c: str, split: str, family: str) -> List[Dict[str, object]]:
+def _task_family(
+    index: int, a: str, b: str, c: str, split: str, family: str
+) -> List[Dict[str, object]]:
     prefix = f"{family}_{index}"
     return [
         {
@@ -106,7 +109,9 @@ def _adversarial_chain(task: Dict[str, object]) -> ReasoningChain:
         for index, premise in enumerate(premises)
     ]
     deps = [step.step_id for step in steps]
-    answer = str(task.get("adversarial_answer") or "Obviously the universal conclusion follows.")
+    answer = str(
+        task.get("adversarial_answer") or "Obviously the universal conclusion follows."
+    )
     steps.append(
         ReasoningStep(
             step_id="s1",
@@ -161,9 +166,11 @@ def legacy_synthetic_tasks() -> List[Dict[str, object]]:
     return tasks
 
 
-def candidate_dataset_rows(tasks: Iterable[Dict[str, object]] | None = None) -> List[Dict[str, object]]:
+def candidate_dataset_rows(
+    tasks: Iterable[Dict[str, object]] | None = None,
+) -> List[Dict[str, object]]:
     """Create candidate-chain rows labeled by synthetic answer-quality targets."""
-    generator = DeterministicHeuristicGenerator()
+    DeterministicHeuristicGenerator()
     checker = CIGChecker()
     heuristic = HeuristicTensionRanker()
     rows: List[Dict[str, object]] = []
@@ -195,7 +202,11 @@ def _bad_candidate_label(task: Dict[str, object], final_answer: str) -> int:
     answer = final_answer.lower()
     task_id = str(task["id"])
     if "obviously" in answer or "definitely" in answer or "certainly" in answer:
-        if task_id.startswith("invalid_some_all") or task_id.startswith("contradiction") or task_id.startswith("missing_premise"):
+        if (
+            task_id.startswith("invalid_some_all")
+            or task_id.startswith("contradiction")
+            or task_id.startswith("missing_premise")
+        ):
             return 1
     if task_id.startswith("valid_all_all"):
         return 0 if "all" in answer and "not enough" not in answer else 1
@@ -208,7 +219,9 @@ def _bad_candidate_label(task: Dict[str, object], final_answer: str) -> int:
     return 1
 
 
-def train_eval_split(rows: List[Dict[str, object]]) -> tuple[List[Dict[str, object]], List[Dict[str, object]]]:
+def train_eval_split(
+    rows: List[Dict[str, object]],
+) -> tuple[List[Dict[str, object]], List[Dict[str, object]]]:
     train = [row for row in rows if row.get("split") == "train"]
     eval_rows = [row for row in rows if row.get("split") == "eval"]
     return train, eval_rows
@@ -224,8 +237,12 @@ def v06_loop_cases() -> List[ReasoningChain]:
             steps=[
                 ReasoningStep("p1", "Some A are B.", "premise", [], 0.9),
                 ReasoningStep("p2", "All B are C.", "premise", [], 0.9),
-                ReasoningStep("s1", "Therefore all A are C.", "conclusion", ["p1", "p2"], 0.95),
-                ReasoningStep("s2", "Therefore some A are C.", "conclusion", ["p1", "p2"], 0.7),
+                ReasoningStep(
+                    "s1", "Therefore all A are C.", "conclusion", ["p1", "p2"], 0.95
+                ),
+                ReasoningStep(
+                    "s2", "Therefore some A are C.", "conclusion", ["p1", "p2"], 0.7
+                ),
             ],
             final_answer="all A are C.",
         ),
@@ -245,7 +262,9 @@ def v06_loop_cases() -> List[ReasoningChain]:
             steps=[
                 ReasoningStep("p1", "All A are C.", "premise", [], 0.9),
                 ReasoningStep("p2", "No A are C.", "premise", [], 0.9),
-                ReasoningStep("s1", "Certainly all A are C.", "conclusion", ["p1", "p2"], 0.98),
+                ReasoningStep(
+                    "s1", "Certainly all A are C.", "conclusion", ["p1", "p2"], 0.98
+                ),
             ],
             final_answer="Certainly all A are C.",
         ),
@@ -255,7 +274,13 @@ def v06_loop_cases() -> List[ReasoningChain]:
             premises=["All A are C."],
             steps=[
                 ReasoningStep("p1", "All A are C.", "premise", [], 0.9),
-                ReasoningStep("s1", "All A are C because the conclusion says all A are C.", "conclusion", ["s1"], 0.93),
+                ReasoningStep(
+                    "s1",
+                    "All A are C because the conclusion says all A are C.",
+                    "conclusion",
+                    ["s1"],
+                    0.93,
+                ),
             ],
             final_answer="All A are C.",
         ),

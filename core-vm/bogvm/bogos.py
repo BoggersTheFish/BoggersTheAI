@@ -4,13 +4,12 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from .archive import (
-    ArchiveError,
     build_directory_archive,
     restore_directory_archive,
     verify_directory_archive,
@@ -19,7 +18,14 @@ from .bogfs import BogFS
 from .kernel import BogKernel, BogKernelError
 from .schema import SchemaError, validate_schema
 from .signing import generate_keypair, public_key_info
-from .store import StoreError, init_store, install_bundle, package_directory, read_store_index, verify_installed_package
+from .store import (
+    StoreError,
+    init_store,
+    install_bundle,
+    package_directory,
+    read_store_index,
+    verify_installed_package,
+)
 
 
 class BogOSError(Exception):
@@ -215,7 +221,9 @@ def main(argv: list[str] | None = None) -> None:
     swarm_sub = p_swarm.add_subparsers(dest="swarm_cmd", required=True)
     p_swarm_run = swarm_sub.add_parser("run")
     p_swarm_run.add_argument("hypothesis")
-    p_swarm_run.add_argument("candidates", help="JSON file containing a candidate array")
+    p_swarm_run.add_argument(
+        "candidates", help="JSON file containing a candidate array"
+    )
 
     p_vertical = sub.add_parser("vertical")
     vertical_sub = p_vertical.add_subparsers(dest="vertical_cmd", required=True)
@@ -246,7 +254,11 @@ def main(argv: list[str] | None = None) -> None:
         elif args.cmd == "app":
             _run_app(workspace, args)
         elif args.cmd == "status":
-            print(json.dumps(workspace.status(verbose=args.verbose), indent=2, sort_keys=True))
+            print(
+                json.dumps(
+                    workspace.status(verbose=args.verbose), indent=2, sort_keys=True
+                )
+            )
         elif args.cmd == "doctor":
             receipt = workspace.doctor()
             _print_receipt(receipt)
@@ -258,12 +270,18 @@ def main(argv: list[str] | None = None) -> None:
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "receipt":
-            print(json.dumps(workspace.read_receipt(args.receipt), indent=2, sort_keys=True))
+            print(
+                json.dumps(
+                    workspace.read_receipt(args.receipt), indent=2, sort_keys=True
+                )
+            )
         elif args.cmd == "workspace":
             if args.workspace_cmd == "tree":
                 print(json.dumps(workspace.workspace_tree(), indent=2, sort_keys=True))
         elif args.cmd == "demo":
-            receipt = workspace.demo(args.target, public=args.public or args.target == "pack")
+            receipt = workspace.demo(
+                args.target, public=args.public or args.target == "pack"
+            )
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
@@ -271,59 +289,78 @@ def main(argv: list[str] | None = None) -> None:
             _run_kernel(workspace, args)
         elif args.cmd == "boot":
             from .genesis import Genesis
+
             _print_receipt(Genesis(workspace).boot())
         elif args.cmd == "registry":
             from .genesis import Genesis
+
             genesis = Genesis(workspace)
             result = (
-                genesis.sync_registry_from(args.source) if args.registry_cmd == "sync" and args.source
-                else genesis.sync_registry() if args.registry_cmd == "sync"
-                else genesis.verify_registry(required=True)
+                genesis.sync_registry_from(args.source)
+                if args.registry_cmd == "sync" and args.source
+                else (
+                    genesis.sync_registry()
+                    if args.registry_cmd == "sync"
+                    else genesis.verify_registry(required=True)
+                )
             )
             _print_receipt(result)
             if result["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "install":
             from .genesis import Genesis
+
             receipt = Genesis(workspace).install(args.package)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "shell":
             from .genesis import Genesis
+
             _run_genesis_shell(Genesis(workspace), args.command)
         elif args.cmd == "rollback":
             from .genesis import Genesis
+
             receipt = Genesis(workspace).rollback(args.receipt)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "replay-session":
             from .genesis import Genesis
+
             receipt = Genesis(workspace).replay_session(args.receipt)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "genesis":
             from .genesis import Genesis
+
             receipt = Genesis(workspace).demo()
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "build":
             from .hypergenesis import HyperGenesis
+
             _print_receipt(HyperGenesis(workspace).build(args.source, args.output))
         elif args.cmd == "package":
             from .hypergenesis import HyperGenesis
-            _print_receipt(HyperGenesis(workspace).package_build(args.project, args.name, args.version, args.dependency))
+
+            _print_receipt(
+                HyperGenesis(workspace).package_build(
+                    args.project, args.name, args.version, args.dependency
+                )
+            )
         elif args.cmd == "run-cell":
             from .hypergenesis import HyperGenesis
+
             receipt = HyperGenesis(workspace).run_cell(args.app)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "proof":
             from .hypergenesis import HyperGenesis
+
             hyper = HyperGenesis(workspace)
             receipt = (
                 hyper.export_proof(args.receipt, args.output)
@@ -335,35 +372,44 @@ def main(argv: list[str] | None = None) -> None:
                 raise SystemExit(1)
         elif args.cmd == "ledger":
             from .hypergenesis import HyperGenesis
+
             receipt = HyperGenesis(workspace).ledger_verify()
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "state":
             from .hypergenesis import HyperGenesis
+
             hyper = HyperGenesis(workspace)
             receipt = (
-                hyper.state_diff(args.root_a, args.root_b) if args.state_cmd == "diff"
-                else hyper.state_checkout(args.root) if args.state_cmd == "checkout"
-                else hyper.prove_file(args.path, args.root)
+                hyper.state_diff(args.root_a, args.root_b)
+                if args.state_cmd == "diff"
+                else (
+                    hyper.state_checkout(args.root)
+                    if args.state_cmd == "checkout"
+                    else hyper.prove_file(args.path, args.root)
+                )
             )
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "pilot":
             from .hypergenesis import HyperGenesis
+
             receipt = HyperGenesis(workspace).pilot(args.prompt)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "hypergenesis":
             from .hypergenesis import HyperGenesis
+
             receipt = HyperGenesis(workspace).demo()
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "bogboot":
             from .bogboot import BogBoot
+
             boot = BogBoot(workspace)
             if args.bogboot_cmd == "boot":
                 receipt = boot.boot()
@@ -378,6 +424,7 @@ def main(argv: list[str] | None = None) -> None:
                 raise SystemExit(1)
         elif args.cmd == "mesh":
             from .mesh import BogMesh
+
             mesh = BogMesh(workspace)
             if args.mesh_cmd == "propose":
                 receipt = mesh.propose(
@@ -401,13 +448,17 @@ def main(argv: list[str] | None = None) -> None:
                 raise SystemExit(1)
         elif args.cmd == "swarm":
             from .swarm import BogPilotSwarm
-            candidates = json.loads(workspace._resolve_path(args.candidates).read_text())
+
+            candidates = json.loads(
+                workspace._resolve_path(args.candidates).read_text()
+            )
             receipt = BogPilotSwarm(workspace).tournament(args.hypothesis, candidates)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)
         elif args.cmd == "vertical":
             from .vertical import vertical_demo
+
             receipt = vertical_demo(workspace)
             _print_receipt(receipt)
             if receipt["execution_status"] != "completed":
@@ -421,7 +472,16 @@ def init_workspace(path: str | Path) -> dict:
     root = Path(path)
     root.mkdir(parents=True, exist_ok=True)
     bogos = root / ".bogos"
-    for child in ("archives", "bundles", "receipts", "store", "demo", "appdata", "keys", "trust"):
+    for child in (
+        "archives",
+        "bundles",
+        "receipts",
+        "store",
+        "demo",
+        "appdata",
+        "keys",
+        "trust",
+    ):
         (bogos / child).mkdir(parents=True, exist_ok=True)
     private_key = bogos / "keys" / "workspace.key"
     public_key = bogos / "trust" / "workspace.pub"
@@ -472,7 +532,9 @@ class Workspace:
         for candidate in (current, *current.parents):
             if (candidate / ".bogos" / "state.json").exists():
                 return cls(candidate)
-        raise BogOSError("not inside a BogOS workspace; run `bog init <workspace>` first")
+        raise BogOSError(
+            "not inside a BogOS workspace; run `bog init <workspace>` first"
+        )
 
     def archive_project(self, project: str | Path, name: str | None = None) -> dict:
         source = self._resolve_path(project)
@@ -498,7 +560,11 @@ class Workspace:
 
     def restore_archive(self, archive: str, output: str | Path | None = None) -> dict:
         archive_name, archive_path = self._resolve_archive(archive)
-        output_path = self._resolve_path(output) if output else self.root / "restored" / archive_name
+        output_path = (
+            self._resolve_path(output)
+            if output
+            else self.root / "restored" / archive_name
+        )
         try:
             restore_receipt = restore_directory_archive(archive_path, output_path)
             receipt = {
@@ -576,7 +642,13 @@ class Workspace:
         mount_info = self._resolve_mount(mount)
         return BogFS(mount_info["path"]).stat(path)
 
-    def package_project(self, project: str | Path, name: str, version: str, dependencies: list[str] | None = None) -> dict:
+    def package_project(
+        self,
+        project: str | Path,
+        name: str,
+        version: str,
+        dependencies: list[str] | None = None,
+    ) -> dict:
         source = self._resolve_path(project)
         key = _package_key(name, version)
         bundle_dir = self.bogos / "bundles" / key
@@ -648,7 +720,14 @@ class Workspace:
             "execution_status": install_receipt["execution_status"],
         }
         self.state["packages"][key] = {"bundle": str(bundle_dir), "installed": True}
-        self._index_package_apps(key, Path(install_receipt.get("install_dir", self.bogos / "store" / "installed" / key)))
+        self._index_package_apps(
+            key,
+            Path(
+                install_receipt.get(
+                    "install_dir", self.bogos / "store" / "installed" / key
+                )
+            ),
+        )
         return self._record_receipt("store-install", key, receipt)
 
     def verify_package(self, package: str) -> dict:
@@ -726,16 +805,24 @@ class Workspace:
             post_verify_receipt = self._verify_installed_package(app_info["package"])
             failures = []
             if result.returncode != 0:
-                failures.append({
-                    "path": app,
-                    "reason": f"app exited with code {result.returncode}",
-                })
-            failures.extend(_write_policy_failures(app_info["write_policy"], runtime_before, runtime_after))
+                failures.append(
+                    {
+                        "path": app,
+                        "reason": f"app exited with code {result.returncode}",
+                    }
+                )
+            failures.extend(
+                _write_policy_failures(
+                    app_info["write_policy"], runtime_before, runtime_after
+                )
+            )
             if package_after != package_before:
-                failures.append({
-                    "path": str(install_dir),
-                    "reason": "installed package changed during app run",
-                })
+                failures.append(
+                    {
+                        "path": str(install_dir),
+                        "reason": "installed package changed during app run",
+                    }
+                )
             failures.extend(post_verify_receipt.get("failures", []))
             receipt = {
                 "format": "BOGOS-app-run-receipt-6.0",
@@ -771,7 +858,9 @@ class Workspace:
             }
         return self._record_receipt("app-run", app, receipt, receipt_dir=receipt_path)
 
-    def _verify_app_runtime_policy(self, app: str, app_info: dict, verify_receipt: dict) -> dict:
+    def _verify_app_runtime_policy(
+        self, app: str, app_info: dict, verify_receipt: dict
+    ) -> dict:
         install_dir = Path(app_info.get("install_dir", ""))
         failures = []
         required_fields = (
@@ -787,14 +876,30 @@ class Workspace:
         )
         for field in required_fields:
             if field not in app_info:
-                failures.append({"path": "bog_app.json", "reason": f"missing app manifest field: {field}"})
+                failures.append(
+                    {
+                        "path": "bog_app.json",
+                        "reason": f"missing app manifest field: {field}",
+                    }
+                )
 
         if app_info.get("name") != app:
-            failures.append({"path": "bog_app.json", "reason": f"app name mismatch: expected {app}"})
-        if not isinstance(app_info.get("entrypoint"), list) or not all(isinstance(part, str) for part in app_info.get("entrypoint", [])):
-            failures.append({"path": "bog_app.json", "reason": "entrypoint must be a list of strings"})
+            failures.append(
+                {"path": "bog_app.json", "reason": f"app name mismatch: expected {app}"}
+            )
+        if not isinstance(app_info.get("entrypoint"), list) or not all(
+            isinstance(part, str) for part in app_info.get("entrypoint", [])
+        ):
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "entrypoint must be a list of strings",
+                }
+            )
         if not app_info.get("entrypoint"):
-            failures.append({"path": "bog_app.json", "reason": "entrypoint must not be empty"})
+            failures.append(
+                {"path": "bog_app.json", "reason": "entrypoint must not be empty"}
+            )
 
         allowed_files = app_info.get("allowed_files", [])
         expected_hashes = app_info.get("expected_hashes", {})
@@ -804,39 +909,123 @@ class Workspace:
         write_policy = app_info.get("write_policy", {})
         capabilities = app_info.get("capabilities")
 
-        if not isinstance(allowed_files, list) or not all(_is_safe_relpath(path) for path in allowed_files):
-            failures.append({"path": "bog_app.json", "reason": "allowed_files must be safe relative paths"})
+        if not isinstance(allowed_files, list) or not all(
+            _is_safe_relpath(path) for path in allowed_files
+        ):
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "allowed_files must be safe relative paths",
+                }
+            )
             allowed_files = []
-        if not isinstance(expected_hashes, dict) or not all(_is_safe_relpath(path) and isinstance(value, str) for path, value in expected_hashes.items()):
-            failures.append({"path": "bog_app.json", "reason": "expected_hashes must map safe relative paths to hashes"})
+        if not isinstance(expected_hashes, dict) or not all(
+            _is_safe_relpath(path) and isinstance(value, str)
+            for path, value in expected_hashes.items()
+        ):
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "expected_hashes must map safe relative paths to hashes",
+                }
+            )
             expected_hashes = {}
         if not isinstance(permissions, dict):
-            failures.append({"path": "bog_app.json", "reason": "permissions must be an object"})
-        elif not all(isinstance(key, str) and isinstance(value, bool) for key, value in permissions.items()):
-            failures.append({"path": "bog_app.json", "reason": "permissions must map strings to booleans"})
+            failures.append(
+                {"path": "bog_app.json", "reason": "permissions must be an object"}
+            )
+        elif not all(
+            isinstance(key, str) and isinstance(value, bool)
+            for key, value in permissions.items()
+        ):
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "permissions must map strings to booleans",
+                }
+            )
         else:
             for permission, enabled in sorted(permissions.items()):
                 if permission not in {"network", "subprocess"}:
-                    failures.append({"path": "bog_app.json", "reason": f"unsupported permission: {permission}"})
+                    failures.append(
+                        {
+                            "path": "bog_app.json",
+                            "reason": f"unsupported permission: {permission}",
+                        }
+                    )
                 elif enabled:
-                    failures.append({"path": "bog_app.json", "reason": f"permission is not supported in v6: {permission}"})
-        if not isinstance(environment, dict) or not all(isinstance(key, str) and isinstance(value, str) for key, value in environment.items()):
-            failures.append({"path": "bog_app.json", "reason": "environment must map strings to strings"})
+                    failures.append(
+                        {
+                            "path": "bog_app.json",
+                            "reason": f"permission is not supported in v6: {permission}",
+                        }
+                    )
+        if not isinstance(environment, dict) or not all(
+            isinstance(key, str) and isinstance(value, str)
+            for key, value in environment.items()
+        ):
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "environment must map strings to strings",
+                }
+            )
         if not _valid_access_policy(read_policy):
-            failures.append({"path": "bog_app.json", "reason": "read_policy must be an object with a safe allow list"})
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "read_policy must be an object with a safe allow list",
+                }
+            )
         if not _valid_write_policy(write_policy):
-            failures.append({"path": "bog_app.json", "reason": "write_policy must be mode none or allowed with a safe allow list"})
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "write_policy must be mode none or allowed with a safe allow list",
+                }
+            )
         if capabilities is not None and not _valid_capabilities(capabilities):
-            failures.append({"path": "bog_app.json", "reason": "capabilities must declare safe read/write/env/dependencies lists"})
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "capabilities must declare safe read/write/env/dependencies lists",
+                }
+            )
         if capabilities is not None:
-            if not set(capabilities.get("read", [])).issubset(set(read_policy.get("allow", []))):
-                failures.append({"path": "bog_app.json", "reason": "read capabilities must be allowed by read_policy"})
-            if not set(capabilities.get("write", [])).issubset(set(write_policy.get("allow", []))):
-                failures.append({"path": "bog_app.json", "reason": "write capabilities must be allowed by write_policy"})
+            if not set(capabilities.get("read", [])).issubset(
+                set(read_policy.get("allow", []))
+            ):
+                failures.append(
+                    {
+                        "path": "bog_app.json",
+                        "reason": "read capabilities must be allowed by read_policy",
+                    }
+                )
+            if not set(capabilities.get("write", [])).issubset(
+                set(write_policy.get("allow", []))
+            ):
+                failures.append(
+                    {
+                        "path": "bog_app.json",
+                        "reason": "write capabilities must be allowed by write_policy",
+                    }
+                )
             if not set(capabilities.get("env", [])).issubset(set(environment)):
-                failures.append({"path": "bog_app.json", "reason": "env capabilities must be declared in environment"})
-            if set(capabilities.get("dependencies", [])) != set(verify_receipt.get("dependencies", [])):
-                failures.append({"path": "bog_app.json", "reason": "dependency capabilities must match signed package dependencies"})
+                failures.append(
+                    {
+                        "path": "bog_app.json",
+                        "reason": "env capabilities must be declared in environment",
+                    }
+                )
+            if set(capabilities.get("dependencies", [])) != set(
+                verify_receipt.get("dependencies", [])
+            ):
+                failures.append(
+                    {
+                        "path": "bog_app.json",
+                        "reason": "dependency capabilities must match signed package dependencies",
+                    }
+                )
 
         try:
             self._resolve_policy_receipt_path(app_info.get("receipt_path"))
@@ -846,21 +1035,46 @@ class Workspace:
         allowed_set = set(allowed_files)
         for relpath in expected_hashes:
             if relpath not in allowed_set:
-                failures.append({"path": relpath, "reason": "expected hash path is not in allowed_files"})
-        for relpath in read_policy.get("allow", []) if isinstance(read_policy, dict) else []:
+                failures.append(
+                    {
+                        "path": relpath,
+                        "reason": "expected hash path is not in allowed_files",
+                    }
+                )
+        for relpath in (
+            read_policy.get("allow", []) if isinstance(read_policy, dict) else []
+        ):
             if relpath not in allowed_set:
-                failures.append({"path": relpath, "reason": "read policy path is not in allowed_files"})
+                failures.append(
+                    {
+                        "path": relpath,
+                        "reason": "read policy path is not in allowed_files",
+                    }
+                )
         for relpath, expected_hash in sorted(expected_hashes.items()):
             target = install_dir / relpath
             if not target.is_file():
-                failures.append({"path": relpath, "reason": "expected hashed file is missing"})
+                failures.append(
+                    {"path": relpath, "reason": "expected hashed file is missing"}
+                )
                 continue
             actual_hash = hashlib.sha256(target.read_bytes()).hexdigest()
             if actual_hash != expected_hash:
-                failures.append({"path": relpath, "reason": "app manifest expected hash mismatch"})
+                failures.append(
+                    {"path": relpath, "reason": "app manifest expected hash mismatch"}
+                )
         entrypoint = app_info.get("entrypoint", [])
-        if len(entrypoint) >= 2 and _is_safe_relpath(entrypoint[1]) and entrypoint[1] not in allowed_set:
-            failures.append({"path": entrypoint[1], "reason": "entrypoint file is not in allowed_files"})
+        if (
+            len(entrypoint) >= 2
+            and _is_safe_relpath(entrypoint[1])
+            and entrypoint[1] not in allowed_set
+        ):
+            failures.append(
+                {
+                    "path": entrypoint[1],
+                    "reason": "entrypoint file is not in allowed_files",
+                }
+            )
 
         return {
             "format": "BOGOS-app-runtime-policy-receipt-6.0",
@@ -900,25 +1114,37 @@ class Workspace:
             ok = path.is_dir()
             checks.append({"name": f"directory:{dirname}", "path": str(path), "ok": ok})
             if not ok:
-                failures.append({"path": str(path), "reason": "workspace directory missing"})
+                failures.append(
+                    {"path": str(path), "reason": "workspace directory missing"}
+                )
 
         for name, entry in sorted(self.state["archives"].items()):
             verify_receipt = verify_directory_archive(entry["path"])
             ok = verify_receipt["execution_status"] == "completed"
-            checks.append({"name": f"archive:{name}", "ok": ok, "receipt": verify_receipt})
+            checks.append(
+                {"name": f"archive:{name}", "ok": ok, "receipt": verify_receipt}
+            )
             if not ok:
                 failures.extend(
-                    {"path": failure["path"], "reason": f"archive {name}: {failure['reason']}"}
+                    {
+                        "path": failure["path"],
+                        "reason": f"archive {name}: {failure['reason']}",
+                    }
                     for failure in verify_receipt.get("failures", [])
                 )
 
         for package in sorted(self.state["packages"]):
             verify_receipt = self._verify_installed_package(package)
             ok = verify_receipt["execution_status"] == "completed"
-            checks.append({"name": f"package:{package}", "ok": ok, "receipt": verify_receipt})
+            checks.append(
+                {"name": f"package:{package}", "ok": ok, "receipt": verify_receipt}
+            )
             if not ok:
                 failures.extend(
-                    {"path": failure["path"], "reason": f"package {package}: {failure['reason']}"}
+                    {
+                        "path": failure["path"],
+                        "reason": f"package {package}: {failure['reason']}",
+                    }
                     for failure in verify_receipt.get("failures", [])
                 )
 
@@ -933,12 +1159,19 @@ class Workspace:
 
     def corrupt_test(self, package: str | None = None) -> dict:
         self.state = self._read_state()
-        package = package or (sorted(self.state["packages"])[0] if self.state["packages"] else None)
+        package = package or (
+            sorted(self.state["packages"])[0] if self.state["packages"] else None
+        )
         if package is None:
             receipt = {
                 "format": "BOGOS-corrupt-test-receipt-4.1",
                 "workspace": str(self.root),
-                "failures": [{"path": "store", "reason": "no installed package available for corrupt-test"}],
+                "failures": [
+                    {
+                        "path": "store",
+                        "reason": "no installed package available for corrupt-test",
+                    }
+                ],
                 "execution_status": "blocked",
             }
             return self._record_receipt("corrupt-test", "none", receipt)
@@ -946,7 +1179,9 @@ class Workspace:
         try:
             index = read_store_index(self.bogos / "store")
             install_dir = Path(index["packages"][package]["install_dir"])
-            target = next(path for path in sorted(install_dir.rglob("*")) if path.is_file())
+            target = next(
+                path for path in sorted(install_dir.rglob("*")) if path.is_file()
+            )
             target.write_bytes(target.read_bytes() + b"\nBOG_CORRUPT_TEST\n")
             verify_receipt = self._verify_installed_package(package)
             rejected = verify_receipt["execution_status"] == "blocked"
@@ -993,7 +1228,9 @@ class Workspace:
             status["app_details"] = self.state.get("apps", {})
             status["receipt_details"] = self.state["receipts"]
             if self.state.get("last_receipt"):
-                status["last_receipt_summary"] = _receipt_summary(json.loads(Path(self.state["last_receipt"]).read_text()))
+                status["last_receipt_summary"] = _receipt_summary(
+                    json.loads(Path(self.state["last_receipt"]).read_text())
+                )
         return status
 
     def read_receipt(self, selector: str = "last") -> dict:
@@ -1020,7 +1257,9 @@ class Workspace:
             "tree": {
                 ".bogos": {
                     "archives": sorted(self.state["archives"]),
-                    "bundles": sorted(path.name for path in (self.bogos / "bundles").glob("*")),
+                    "bundles": sorted(
+                        path.name for path in (self.bogos / "bundles").glob("*")
+                    ),
                     "mounts": sorted(self.state["mounts"]),
                     "packages": sorted(self.state["packages"]),
                     "apps": sorted(self.state.get("apps", {})),
@@ -1034,7 +1273,9 @@ class Workspace:
                         for receipt in self.state["receipts"]
                     ],
                 },
-                "restored": sorted(path.name for path in (self.root / "restored").glob("*")),
+                "restored": sorted(
+                    path.name for path in (self.root / "restored").glob("*")
+                ),
             },
             "execution_status": "completed",
         }
@@ -1053,9 +1294,22 @@ class Workspace:
         mount_receipt = self.mount_archive(archive_receipt["archive"], name="demo")
         data, read_receipt = self.read_mount("demo", "README.txt")
         verify_receipt = self.verify_package(install_receipt["package"])
-        app_receipt = self.run_app("demo-app") if public or (project_path / "bog_app.json").exists() else None
-        corrupt_receipt = self.corrupt_test(install_receipt["package"]) if public else None
-        steps = [archive_receipt, restore_receipt, install_receipt, mount_receipt, read_receipt, verify_receipt]
+        app_receipt = (
+            self.run_app("demo-app")
+            if public or (project_path / "bog_app.json").exists()
+            else None
+        )
+        corrupt_receipt = (
+            self.corrupt_test(install_receipt["package"]) if public else None
+        )
+        steps = [
+            archive_receipt,
+            restore_receipt,
+            install_receipt,
+            mount_receipt,
+            read_receipt,
+            verify_receipt,
+        ]
         if app_receipt:
             steps.append(app_receipt)
         if corrupt_receipt:
@@ -1069,7 +1323,11 @@ class Workspace:
                 {"format": step["format"], "execution_status": step["execution_status"]}
                 for step in steps
             ],
-            "execution_status": "completed" if all(step["execution_status"] == "completed" for step in steps) else "blocked",
+            "execution_status": (
+                "completed"
+                if all(step["execution_status"] == "completed" for step in steps)
+                else "blocked"
+            ),
         }
         return self._record_receipt("demo", project_path.name, receipt)
 
@@ -1085,7 +1343,9 @@ class Workspace:
     def _write_state(self) -> None:
         _write_json(self.state_path, self.state)
 
-    def _record_receipt(self, action: str, name: str, receipt: dict, receipt_dir: Path | None = None) -> dict:
+    def _record_receipt(
+        self, action: str, name: str, receipt: dict, receipt_dir: Path | None = None
+    ) -> dict:
         receipt = {
             **receipt,
             "receipt_format": RECEIPT_FORMAT,
@@ -1096,15 +1356,19 @@ class Workspace:
         except SchemaError as exc:
             raise BogOSError(str(exc)) from exc
         index = len(self.state["receipts"]) + 1
-        path = (receipt_dir or self.bogos / "receipts") / f"{index:04d}_{_safe_name(action)}_{_safe_name(name)}.json"
+        path = (
+            receipt_dir or self.bogos / "receipts"
+        ) / f"{index:04d}_{_safe_name(action)}_{_safe_name(name)}.json"
         _write_json(path, receipt)
-        self.state["receipts"].append({
-            "index": index,
-            "action": action,
-            "name": name,
-            "path": str(path),
-            "execution_status": receipt["execution_status"],
-        })
+        self.state["receipts"].append(
+            {
+                "index": index,
+                "action": action,
+                "name": name,
+                "path": str(path),
+                "execution_status": receipt["execution_status"],
+            }
+        )
         self.state["last_receipt"] = str(path)
         self._write_state()
         return receipt
@@ -1141,7 +1405,9 @@ class Workspace:
             except (json.JSONDecodeError, SchemaError):
                 manifest = {}
             for app_name, app_entry in sorted(manifest.get("apps", {}).items()):
-                indexed_app = _normalize_app_manifest_entry(app_name, app_entry, install_dir)
+                indexed_app = _normalize_app_manifest_entry(
+                    app_name, app_entry, install_dir
+                )
                 if indexed_app is not None:
                     indexed_app["package"] = package
                     indexed_app["install_dir"] = str(install_dir)
@@ -1155,7 +1421,11 @@ class Workspace:
                 manifest = {}
             if manifest.get("format") == "BOGCELL-app-manifest-10.0":
                 for app_name, entry in sorted(manifest.get("apps", {}).items()):
-                    if isinstance(entry, dict) and isinstance(entry.get("program"), str) and isinstance(entry.get("capabilities"), dict):
+                    if (
+                        isinstance(entry, dict)
+                        and isinstance(entry.get("program"), str)
+                        and isinstance(entry.get("capabilities"), dict)
+                    ):
                         self.state["apps"][_safe_name(app_name)] = {
                             "name": app_name,
                             "package": package,
@@ -1163,7 +1433,9 @@ class Workspace:
                             "cell_program": entry["program"],
                             "cell_capabilities": entry["capabilities"],
                             "cell_environment": entry.get("environment", {}),
-                            "build_receipt": entry.get("build_receipt", "build_receipt.json"),
+                            "build_receipt": entry.get(
+                                "build_receipt", "build_receipt.json"
+                            ),
                         }
 
     def _trusted_public_keys(self) -> list[Path]:
@@ -1194,39 +1466,53 @@ class Workspace:
         )
         readme_hash = hashlib.sha256((project / "README.txt").read_bytes()).hexdigest()
         app_hash = hashlib.sha256((project / "app.py").read_bytes()).hexdigest()
-        (project / "bog_app.json").write_text(json.dumps({
-            "format": "BOGOS-app-manifest-6.0",
-            "apps": {
-                "demo-app": {
-                    "name": "demo-app",
-                    "entrypoint": [sys.executable, "app.py"],
-                    "allowed_files": ["README.txt", "app.py"],
-                    "expected_hashes": {
-                        "README.txt": readme_hash,
-                        "app.py": app_hash,
+        (project / "bog_app.json").write_text(
+            json.dumps(
+                {
+                    "format": "BOGOS-app-manifest-6.0",
+                    "apps": {
+                        "demo-app": {
+                            "name": "demo-app",
+                            "entrypoint": [sys.executable, "app.py"],
+                            "allowed_files": ["README.txt", "app.py"],
+                            "expected_hashes": {
+                                "README.txt": readme_hash,
+                                "app.py": app_hash,
+                            },
+                            "permissions": {
+                                "network": False,
+                                "subprocess": False,
+                            },
+                            "environment": {
+                                "DEMO_MODE": "public",
+                            },
+                            "read_policy": {
+                                "allow": ["README.txt", "app.py"],
+                            },
+                            "write_policy": {
+                                "mode": "allowed",
+                                "allow": ["run.log"],
+                            },
+                            "receipt_path": ".bogos/receipts",
+                        },
                     },
-                    "permissions": {
-                        "network": False,
-                        "subprocess": False,
-                    },
-                    "environment": {
-                        "DEMO_MODE": "public",
-                    },
-                    "read_policy": {
-                        "allow": ["README.txt", "app.py"],
-                    },
-                    "write_policy": {
-                        "mode": "allowed",
-                        "allow": ["run.log"],
-                    },
-                    "receipt_path": ".bogos/receipts",
                 },
-            },
-        }, indent=2, sort_keys=True) + "\n")
-        (project / "data.json").write_text(json.dumps({
-            "name": "public-demo-app",
-            "purpose": "verified software environment demo",
-        }, indent=2, sort_keys=True) + "\n")
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
+        (project / "data.json").write_text(
+            json.dumps(
+                {
+                    "name": "public-demo-app",
+                    "purpose": "verified software environment demo",
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
         return project
 
 
@@ -1245,15 +1531,29 @@ def _run_fs(workspace: Workspace, args: argparse.Namespace) -> None:
     elif args.fs_cmd == "ls":
         print(json.dumps(workspace.list_mount(args.mount, args.path), indent=2))
     elif args.fs_cmd == "stat":
-        print(json.dumps(workspace.stat_mount(args.mount, args.path), indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                workspace.stat_mount(args.mount, args.path), indent=2, sort_keys=True
+            )
+        )
 
 
 def _run_store(workspace: Workspace, args: argparse.Namespace) -> None:
     if args.store_cmd == "package":
-        receipt = workspace.package_project(args.project, name=args.name, version=args.version, dependencies=args.dependency)
+        receipt = workspace.package_project(
+            args.project,
+            name=args.name,
+            version=args.version,
+            dependencies=args.dependency,
+        )
         _print_receipt(receipt)
     elif args.store_cmd == "install":
-        receipt = workspace.install_package(args.package, name=args.name, version=args.version, dependencies=args.dependency)
+        receipt = workspace.install_package(
+            args.package,
+            name=args.name,
+            version=args.version,
+            dependencies=args.dependency,
+        )
         _print_receipt(receipt)
         if receipt["execution_status"] != "completed":
             raise SystemExit(1)
@@ -1292,7 +1592,11 @@ def _run_kernel(workspace: Workspace, args: argparse.Namespace) -> None:
 def _run_genesis_shell(genesis, command: str | None) -> None:
     if command is not None:
         result = genesis.shell_command(command)
-        print(json.dumps(result, indent=2, sort_keys=True) if isinstance(result, dict) else result)
+        print(
+            json.dumps(result, indent=2, sort_keys=True)
+            if isinstance(result, dict)
+            else result
+        )
         return
     while True:
         try:
@@ -1303,7 +1607,11 @@ def _run_genesis_shell(genesis, command: str | None) -> None:
             return
         try:
             result = genesis.shell_command(line)
-            print(json.dumps(result, indent=2, sort_keys=True) if isinstance(result, dict) else result)
+            print(
+                json.dumps(result, indent=2, sort_keys=True)
+                if isinstance(result, dict)
+                else result
+            )
         except BogOSError as exc:
             print(f"blocked: {exc}", file=sys.stderr)
 
@@ -1330,10 +1638,15 @@ def _receipt_summary(receipt: dict) -> dict:
     }
 
 
-def _normalize_app_manifest_entry(app_name: str, app_entry: dict, install_dir: Path) -> dict | None:
+def _normalize_app_manifest_entry(
+    app_name: str, app_entry: dict, install_dir: Path
+) -> dict | None:
     if not isinstance(app_entry, dict):
         return None
-    if app_entry.get("format") and app_entry["format"] != "BOGOS-app-manifest-entry-6.0":
+    if (
+        app_entry.get("format")
+        and app_entry["format"] != "BOGOS-app-manifest-entry-6.0"
+    ):
         return None
 
     entrypoint = app_entry.get("entrypoint", app_entry.get("command"))
@@ -1356,7 +1669,9 @@ def _normalize_app_manifest_entry(app_name: str, app_entry: dict, install_dir: P
     return normalized
 
 
-def _runtime_environment(app_info: dict, app: str, runtime_dir: Path, receipt_path: Path) -> dict[str, str]:
+def _runtime_environment(
+    app_info: dict, app: str, runtime_dir: Path, receipt_path: Path
+) -> dict[str, str]:
     path = os.environ.get("PATH")
     env = {"PYTHONUNBUFFERED": "1"}
     if path:
@@ -1375,9 +1690,17 @@ def _runtime_environment(app_info: dict, app: str, runtime_dir: Path, receipt_pa
 
 def _resolve_entrypoint(install_dir: Path, entrypoint: list[str]) -> list[str]:
     command = [str(part) for part in entrypoint]
-    if len(command) >= 2 and _is_safe_relpath(command[1]) and (install_dir / command[1]).is_file():
+    if (
+        len(command) >= 2
+        and _is_safe_relpath(command[1])
+        and (install_dir / command[1]).is_file()
+    ):
         command[1] = str((install_dir / command[1]).resolve())
-    elif command and _is_safe_relpath(command[0]) and (install_dir / command[0]).is_file():
+    elif (
+        command
+        and _is_safe_relpath(command[0])
+        and (install_dir / command[0]).is_file()
+    ):
         command[0] = str((install_dir / command[0]).resolve())
     return command
 
@@ -1392,17 +1715,23 @@ def _file_snapshot(root: Path) -> dict[str, str]:
     return snapshot
 
 
-def _snapshot_changes(before: dict[str, str], after: dict[str, str]) -> dict[str, list[str]]:
+def _snapshot_changes(
+    before: dict[str, str], after: dict[str, str]
+) -> dict[str, list[str]]:
     before_paths = set(before)
     after_paths = set(after)
     return {
         "added": sorted(after_paths - before_paths),
         "removed": sorted(before_paths - after_paths),
-        "changed": sorted(path for path in before_paths & after_paths if before[path] != after[path]),
+        "changed": sorted(
+            path for path in before_paths & after_paths if before[path] != after[path]
+        ),
     }
 
 
-def _write_policy_failures(write_policy: dict, before: dict[str, str], after: dict[str, str]) -> list[dict[str, str]]:
+def _write_policy_failures(
+    write_policy: dict, before: dict[str, str], after: dict[str, str]
+) -> list[dict[str, str]]:
     changes = _snapshot_changes(before, after)
     changed_paths = set(changes["added"] + changes["removed"] + changes["changed"])
     if not changed_paths:
@@ -1443,8 +1772,16 @@ def _valid_capabilities(capabilities: object) -> bool:
         isinstance(capabilities, dict)
         and set(capabilities) == {"read", "write", "env", "dependencies"}
         and all(isinstance(capabilities.get(name), list) for name in capabilities)
-        and all(_is_safe_relpath(path) for name in ("read", "write") for path in capabilities[name])
-        and all(isinstance(value, str) and value for name in ("env", "dependencies") for value in capabilities[name])
+        and all(
+            _is_safe_relpath(path)
+            for name in ("read", "write")
+            for path in capabilities[name]
+        )
+        and all(
+            isinstance(value, str) and value
+            for name in ("env", "dependencies")
+            for value in capabilities[name]
+        )
     )
 
 

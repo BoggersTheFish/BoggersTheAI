@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Dict, List
-import json
 
 from ts_reasoner.claim_normalizer import canonicalize_claim_surface
 from ts_reasoner.support_path_verifier import verify_support_path
@@ -114,17 +114,27 @@ def build_proof_object_examples() -> Dict[str, Any]:
         "artifact": "proof_object_examples",
         "release": "v28.0.0",
         "examples": examples,
-        "accepted_count": sum(1 for example in examples if example["verifier_decision"] == "accepted"),
-        "rejected_count": sum(1 for example in examples if example["verifier_decision"] == "rejected"),
-        "abstained_count": sum(1 for example in examples if example["verifier_decision"] == "abstained"),
+        "accepted_count": sum(
+            1 for example in examples if example["verifier_decision"] == "accepted"
+        ),
+        "rejected_count": sum(
+            1 for example in examples if example["verifier_decision"] == "rejected"
+        ),
+        "abstained_count": sum(
+            1 for example in examples if example["verifier_decision"] == "abstained"
+        ),
         "confidence_ignored": True,
         "all_gates_passed": all_gates_passed,
     }
 
 
-def write_proof_object_examples(path: str | Path = "artifacts/proof_object_examples.json") -> Dict[str, Any]:
+def write_proof_object_examples(
+    path: str | Path = "artifacts/proof_object_examples.json",
+) -> Dict[str, Any]:
     payload = build_proof_object_examples()
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    target.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return payload

@@ -42,7 +42,9 @@ def vm_state_to_signed_graph(
 ) -> SignedGraph:
     """Convert a BOGVM-0 final_state dict into a SignedGraph constraint matrix."""
     node_names: list[str] = []
-    for node_id, node in sorted(vm_state.get("nodes", {}).items(), key=lambda x: int(x[0])):
+    for node_id, node in sorted(
+        vm_state.get("nodes", {}).items(), key=lambda x: int(x[0])
+    ):
         name = str(node.get("name", f"node_{node_id}"))
         if name not in node_names:
             node_names.append(name)
@@ -51,7 +53,9 @@ def vm_state_to_signed_graph(
         node_names = ["vm_root"]
 
     edges: list[SignedEdge] = []
-    for edge_id, edge in sorted(vm_state.get("edges", {}).items(), key=lambda x: int(x[0])):
+    for edge_id, edge in sorted(
+        vm_state.get("edges", {}).items(), key=lambda x: int(x[0])
+    ):
         source_table = vm_state.get("nodes", {})
         target_table = vm_state.get("nodes", {})
         src_node = source_table.get(str(edge.get("src", edge.get("source", ""))), {})
@@ -99,10 +103,14 @@ def brain_snapshot_to_signed_graph(
         if edge.get("status") != "accepted":
             continue
         edge_type = str(edge.get("edge_type", "SUPPORTS")).upper()
-        relation = "conflict" if edge_type in {"CONTRADICTS", "REJECTED_BY"} else "support"
+        relation = (
+            "conflict" if edge_type in {"CONTRADICTS", "REJECTED_BY"} else "support"
+        )
         edges.append(
             SignedEdge(
-                edge_id=str(edge.get("edge_id", f"edge_{edge['source_id']}_{edge['target_id']}")),
+                edge_id=str(
+                    edge.get("edge_id", f"edge_{edge['source_id']}_{edge['target_id']}")
+                ),
                 source=str(edge["source_id"]),
                 target=str(edge["target_id"]),
                 relation=relation,
@@ -110,7 +118,9 @@ def brain_snapshot_to_signed_graph(
                 status="accepted",
             )
         )
-    return SignedGraph.from_edges(case_id, edges, nodes=nodes, metadata={"source": "central_brain"})
+    return SignedGraph.from_edges(
+        case_id, edges, nodes=nodes, metadata={"source": "central_brain"}
+    )
 
 
 def run_spectral_metacompute(graph: SignedGraph) -> dict[str, Any]:

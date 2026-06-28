@@ -6,7 +6,6 @@ import numpy as np
 
 from ..runtime import TensionForgeRuntime
 
-
 LINEAR_SOURCE = r"""
 #ifndef TILE_SIZE
 #define TILE_SIZE 16
@@ -121,14 +120,10 @@ def linear(
     tile_size: int = 16,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     if tile_size not in {8, 16}:
-        raise ValueError(
-            "tile_size must currently be 8 or 16"
-        )
+        raise ValueError("tile_size must currently be 8 or 16")
 
     inputs = np.ascontiguousarray(
         inputs,
@@ -146,19 +141,13 @@ def linear(
     )
 
     if inputs.ndim != 2:
-        raise ValueError(
-            "inputs must be two-dimensional"
-        )
+        raise ValueError("inputs must be two-dimensional")
 
     if weights.ndim != 2:
-        raise ValueError(
-            "weights must be two-dimensional"
-        )
+        raise ValueError("weights must be two-dimensional")
 
     if bias.ndim != 1:
-        raise ValueError(
-            "bias must be one-dimensional"
-        )
+        raise ValueError("bias must be one-dimensional")
 
     batch_size, input_features = inputs.shape
     weight_inputs, output_features = weights.shape
@@ -178,21 +167,12 @@ def linear(
             f"received {bias.shape}"
         )
 
-    if (
-        batch_size == 0
-        or input_features == 0
-        or output_features == 0
-    ):
-        raise ValueError(
-            "Linear dimensions must be positive"
-        )
+    if batch_size == 0 or input_features == 0 or output_features == 0:
+        raise ValueError("Linear dimensions must be positive")
 
     local_work_items = tile_size * tile_size
 
-    if (
-        local_work_items
-        > runtime.device.max_work_group_size
-    ):
+    if local_work_items > runtime.device.max_work_group_size:
         raise ValueError(
             f"Tile size {tile_size} requires "
             f"{local_work_items} work items, but "
@@ -225,9 +205,7 @@ def linear(
         access="write_only",
     )
 
-    compile_options = (
-        f"-DTILE_SIZE={tile_size}",
-    )
+    compile_options = (f"-DTILE_SIZE={tile_size}",)
 
     kernel = runtime.kernel(
         LINEAR_SOURCE,
@@ -292,24 +270,14 @@ def linear(
         output_gpu,
     )
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
     floating_point_operations = (
-        2
-        * batch_size
-        * input_features
-        * output_features
-        + batch_size * output_features
+        2 * batch_size * input_features * output_features + batch_size * output_features
     )
 
     gflops = (
-        floating_point_operations
-        / (median_ms * 1e-3)
-        / 1e9
+        floating_point_operations / (median_ms * 1e-3) / 1e9
         if median_ms is not None
         else None
     )
@@ -324,11 +292,8 @@ def linear(
         "repetitions": repetitions,
         "median_kernel_ms": median_ms,
         "gflops": gflops,
-        "source_sha256":
-            runtime.source_hash(LINEAR_SOURCE),
-        "compile_options": list(
-            compile_options
-        ),
+        "source_sha256": runtime.source_hash(LINEAR_SOURCE),
+        "compile_options": list(compile_options),
     }
 
     return output, metadata

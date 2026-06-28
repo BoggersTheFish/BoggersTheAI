@@ -21,7 +21,7 @@ class BogFS:
         for path in self._entries:
             if not path.startswith(prefix):
                 continue
-            rest = path[len(prefix):]
+            rest = path[len(prefix) :]
             names.add(rest.split("/", 1)[0])
         return sorted(names)
 
@@ -37,7 +37,9 @@ class BogFS:
         }
 
     def read_bytes(self, path: str) -> bytes:
-        return read_archive_file(self.archive_dir, path.strip("/"), manifest=self.manifest)
+        return read_archive_file(
+            self.archive_dir, path.strip("/"), manifest=self.manifest
+        )
 
     def read_text(self, path: str, encoding: str = "utf-8") -> str:
         return self.read_bytes(path).decode(encoding)

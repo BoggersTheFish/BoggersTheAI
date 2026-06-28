@@ -6,9 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from ts_reasoner.claim_normalizer import canonicalize_claim_surface
-from ts_reasoner.runtime_kernel import normalize_claim
 from ts_reasoner.typed_support import make_typed_support, validate_typed_support
-
 
 ALL_RE = re.compile(r"^all (.+) are (.+)$")
 NO_RE = re.compile(r"^no (.+) are (.+)$")
@@ -36,7 +34,9 @@ def _format_claim(parsed: ParsedClaim) -> str:
     return f"{parsed.quantifier} {parsed.subject} are {parsed.predicate}"
 
 
-def _all_path(premises: list[ParsedClaim], source: str, target: str) -> list[ParsedClaim] | None:
+def _all_path(
+    premises: list[ParsedClaim], source: str, target: str
+) -> list[ParsedClaim] | None:
     edges: dict[str, list[tuple[str, ParsedClaim]]] = {}
     for premise in premises:
         if premise.quantifier == "all":
@@ -60,18 +60,30 @@ def _all_path(premises: list[ParsedClaim], source: str, target: str) -> list[Par
 
 def derive_typed_support(premises: Iterable[str], claim: str) -> dict[str, Any]:
     normalized_premises = [canonicalize_claim_surface(item) for item in premises]
-    parsed_premises = [parsed for item in normalized_premises if (parsed := parse_claim(item)) is not None]
+    parsed_premises = [
+        parsed
+        for item in normalized_premises
+        if (parsed := parse_claim(item)) is not None
+    ]
     target = parse_claim(claim)
     normalized_claim = canonicalize_claim_surface(claim)
 
     if target is None:
-        return {"status": "rejected", "reason": "unparseable_claim", "claim": normalized_claim}
+        return {
+            "status": "rejected",
+            "reason": "unparseable_claim",
+            "claim": normalized_claim,
+        }
 
     for premise_text in normalized_premises:
         if premise_text == normalized_claim:
             parsed = parse_claim(premise_text)
             if parsed and parsed.subject == parsed.predicate:
-                return {"status": "rejected", "reason": "identity_block", "claim": normalized_claim}
+                return {
+                    "status": "rejected",
+                    "reason": "identity_block",
+                    "claim": normalized_claim,
+                }
             support = make_typed_support(
                 channel="direct_support",
                 premises=[premise_text],
@@ -81,7 +93,11 @@ def derive_typed_support(premises: Iterable[str], claim: str) -> dict[str, Any]:
 
     if target.quantifier == "all":
         if target.subject == target.predicate:
-            return {"status": "rejected", "reason": "identity_block", "claim": normalized_claim}
+            return {
+                "status": "rejected",
+                "reason": "identity_block",
+                "claim": normalized_claim,
+            }
         path = _all_path(parsed_premises, target.subject, target.predicate)
         if path and len(path) > 1:
             support = make_typed_support(
@@ -92,7 +108,11 @@ def derive_typed_support(premises: Iterable[str], claim: str) -> dict[str, Any]:
             return {"status": "accepted", "claim": normalized_claim, "support": support}
         reverse_path = _all_path(parsed_premises, target.predicate, target.subject)
         if reverse_path:
-            return {"status": "rejected", "reason": "reverse_inference_block", "claim": normalized_claim}
+            return {
+                "status": "rejected",
+                "reason": "reverse_inference_block",
+                "claim": normalized_claim,
+            }
 
     if target.quantifier == "no":
         for negative in parsed_premises:
@@ -102,12 +122,23 @@ def derive_typed_support(premises: Iterable[str], claim: str) -> dict[str, Any]:
             if prefix and negative.predicate == target.predicate:
                 support = make_typed_support(
                     channel="negative_exclusion",
-                    premises=[*[_format_claim(item) for item in prefix], _format_claim(negative)],
+                    premises=[
+                        *[_format_claim(item) for item in prefix],
+                        _format_claim(negative),
+                    ],
                     derived_claim=normalized_claim,
                 )
-                return {"status": "accepted", "claim": normalized_claim, "support": support}
+                return {
+                    "status": "accepted",
+                    "claim": normalized_claim,
+                    "support": support,
+                }
 
-    return {"status": "abstained", "reason": "unsupported_claim", "claim": normalized_claim}
+    return {
+        "status": "abstained",
+        "reason": "unsupported_claim",
+        "claim": normalized_claim,
+    }
 
 
 def verify_support_path(premises: Iterable[str], claim: str) -> dict[str, Any]:
@@ -115,7 +146,11 @@ def verify_support_path(premises: Iterable[str], claim: str) -> dict[str, Any]:
     if result.get("status") == "accepted":
         support_check = validate_typed_support(result["claim"], result["support"])
         if not support_check["accepted"]:
-            return {"status": "rejected", "reason": support_check["reason"], "claim": result["claim"]}
+            return {
+                "status": "rejected",
+                "reason": support_check["reason"],
+                "claim": result["claim"],
+            }
     return result
 
 
@@ -132,10 +167,16 @@ def evaluate_support_path_cases(cases: Iterable[dict[str, Any]]) -> dict[str, An
     contamination = 0
 
     for case in cases:
-        result = verify_support_path(case.get("premises", []), str(case.get("claim", "")))
+        result = verify_support_path(
+            case.get("premises", []), str(case.get("claim", ""))
+        )
         expected_status = str(case.get("expected_status"))
         expected_channel = str(case.get("expected_channel", ""))
-        observed_channel = result.get("support", {}).get("channel") if result.get("support") else result.get("reason")
+        observed_channel = (
+            result.get("support", {}).get("channel")
+            if result.get("support")
+            else result.get("reason")
+        )
         passed = result["status"] == expected_status and (
             not expected_channel or observed_channel == expected_channel
         )
@@ -147,23 +188,29 @@ def evaluate_support_path_cases(cases: Iterable[dict[str, Any]]) -> dict[str, An
             metrics[expected_channel][1] += 1
             if passed:
                 metrics[expected_channel][0] += 1
-        rows.append({
-            "case_id": case.get("case_id"),
-            "expected_status": expected_status,
-            "observed_status": result["status"],
-            "expected_channel": expected_channel,
-            "observed_channel": observed_channel,
-            "passed": passed,
-        })
+        rows.append(
+            {
+                "case_id": case.get("case_id"),
+                "expected_status": expected_status,
+                "observed_status": result["status"],
+                "expected_channel": expected_channel,
+                "observed_channel": observed_channel,
+                "passed": passed,
+            }
+        )
 
     case_count = len(rows)
     report = {
         "release": "v10.7.0",
         "case_count": case_count,
-        "direct_support_accuracy": metrics["direct_support"][0] / metrics["direct_support"][1],
-        "transitive_support_accuracy": metrics["transitive_all"][0] / metrics["transitive_all"][1],
-        "negative_exclusion_accuracy": metrics["negative_exclusion"][0] / metrics["negative_exclusion"][1],
-        "wrong_reverse_rejection_rate": metrics["reverse_inference_block"][0] / metrics["reverse_inference_block"][1],
+        "direct_support_accuracy": metrics["direct_support"][0]
+        / metrics["direct_support"][1],
+        "transitive_support_accuracy": metrics["transitive_all"][0]
+        / metrics["transitive_all"][1],
+        "negative_exclusion_accuracy": metrics["negative_exclusion"][0]
+        / metrics["negative_exclusion"][1],
+        "wrong_reverse_rejection_rate": metrics["reverse_inference_block"][0]
+        / metrics["reverse_inference_block"][1],
         "identity_collapse_count": identity_collapse_count,
         "accepted_without_typed_support_count": accepted_without_typed,
         "candidate_graph_contamination_count": contamination,

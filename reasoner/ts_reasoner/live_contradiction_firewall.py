@@ -23,12 +23,13 @@ from ts_reasoner.answer_arena import Relation, normalize_term
 from ts_reasoner.chat_repair import RepairTarget
 from ts_reasoner.common_ground import ClaimRecord, CommonGround, relation_to_dict
 
-
 SCHEMA = "ts_reasoner_live_contradiction_firewall_v1"
 RELEASE = "v7.4.0"
 
 
-NO_RELATION_RE = re.compile(r"^\s*no\s+(.+?)\s+(?:are|is)\s+(.+?)[.?!]?\s*$", re.IGNORECASE)
+NO_RELATION_RE = re.compile(
+    r"^\s*no\s+(.+?)\s+(?:are|is)\s+(.+?)[.?!]?\s*$", re.IGNORECASE
+)
 
 
 def parse_no_relation(text: str) -> Relation | None:

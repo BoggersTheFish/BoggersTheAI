@@ -19,7 +19,9 @@ def relation_edges(graph: GraphState, relation: str = "all") -> list[Edge]:
     return [edge for edge in graph.edges if edge.relation == relation]
 
 
-def has_directed_path(graph: GraphState, source: str, target: str, relations: Iterable[str] = ("all",)) -> bool:
+def has_directed_path(
+    graph: GraphState, source: str, target: str, relations: Iterable[str] = ("all",)
+) -> bool:
     allowed = set(relations)
     seen = set()
     frontier = [source]
@@ -30,5 +32,7 @@ def has_directed_path(graph: GraphState, source: str, target: str, relations: It
         if node in seen:
             continue
         seen.add(node)
-        frontier.extend(edge.target for edge in graph.outgoing(node) if edge.relation in allowed)
+        frontier.extend(
+            edge.target for edge in graph.outgoing(node) if edge.relation in allowed
+        )
     return False

@@ -7,8 +7,13 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Mapping, Sequence
 
-from .types import CIGCheck, ReasoningChain, TensionAgentSignal, TensionScore, to_jsonable
-
+from .types import (
+    CIGCheck,
+    ReasoningChain,
+    TensionAgentSignal,
+    TensionScore,
+    to_jsonable,
+)
 
 DEFAULT_COUPLING_MATRIX: Dict[str, Dict[str, float]] = {
     "logic": {"repair": 0.9, "goal": 0.7},
@@ -24,10 +29,14 @@ class BaseTensionAgent:
     channel = "base"
     shares_with: Sequence[str] = ()
 
-    def evaluate(self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore) -> TensionAgentSignal:
+    def evaluate(
+        self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore
+    ) -> TensionAgentSignal:
         raise NotImplementedError
 
-    def _issue_steps(self, score: TensionScore, kinds: set[str] | None = None) -> List[str]:
+    def _issue_steps(
+        self, score: TensionScore, kinds: set[str] | None = None
+    ) -> List[str]:
         return [
             issue.step_id
             for issue in score.issues
@@ -50,10 +59,14 @@ class LogicTensionAgent(BaseTensionAgent):
         "missing_premise",
     }
 
-    def evaluate(self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore) -> TensionAgentSignal:
+    def evaluate(
+        self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore
+    ) -> TensionAgentSignal:
         tension = self._issue_tension(score, self.issue_kinds)
         ops = ["CHECK_ENTAILMENT"] if tension else []
-        if any(issue.kind in {"contradiction", "quantifier_jump"} for issue in score.issues):
+        if any(
+            issue.kind in {"contradiction", "quantifier_jump"} for issue in score.issues
+        ):
             ops.append("LOCALIZE_FAILURE")
         if any(issue.kind == "missing_premise" for issue in score.issues):
             ops.append("REQUEST_PREMISE")
@@ -71,7 +84,9 @@ class GoalTensionAgent(BaseTensionAgent):
     channel = "goal"
     shares_with = ("repair", "logic")
 
-    def evaluate(self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore) -> TensionAgentSignal:
+    def evaluate(
+        self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore
+    ) -> TensionAgentSignal:
         unresolved = score.global_tension
         if "not enough information" in chain.final_answer.lower() and not score.issues:
             unresolved = 0.0
@@ -84,7 +99,9 @@ class GoalTensionAgent(BaseTensionAgent):
             tension=round(unresolved, 4),
             suspect_edges=target,
             suggested_ops=ops,
-            confidence=round(0.6 + min(0.35, unresolved * 0.35), 4) if unresolved else 0.85,
+            confidence=(
+                round(0.6 + min(0.35, unresolved * 0.35), 4) if unresolved else 0.85
+            ),
             shares_with=list(self.shares_with),
         )
 
@@ -101,12 +118,17 @@ class RepairTensionAgent(BaseTensionAgent):
         "overconfidence",
     }
 
-    def evaluate(self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore) -> TensionAgentSignal:
+    def evaluate(
+        self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore
+    ) -> TensionAgentSignal:
         repair_mass = self._issue_tension(score, self.repairable_kinds)
         ops = []
         if repair_mass:
             ops.append("REPAIR_STEP")
-        if any(issue.kind in {"quantifier_jump", "unsupported_conclusion"} for issue in score.issues):
+        if any(
+            issue.kind in {"quantifier_jump", "unsupported_conclusion"}
+            for issue in score.issues
+        ):
             ops.append("SEARCH_ALTERNATIVE_RULE")
         if any(issue.kind == "contradiction" for issue in score.issues):
             ops.append("SPLIT_CONFLICTING_CLAIMS")
@@ -115,7 +137,9 @@ class RepairTensionAgent(BaseTensionAgent):
             tension=repair_mass,
             suspect_edges=self._issue_steps(score, self.repairable_kinds),
             suggested_ops=ops,
-            confidence=round(0.55 + min(0.4, repair_mass * 0.4), 4) if repair_mass else 0.8,
+            confidence=(
+                round(0.55 + min(0.4, repair_mass * 0.4), 4) if repair_mass else 0.8
+            ),
             shares_with=list(self.shares_with),
         )
 
@@ -124,17 +148,24 @@ class CompressionTensionAgent(BaseTensionAgent):
     channel = "compression"
     shares_with = ("goal", "repair")
 
-    def evaluate(self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore) -> TensionAgentSignal:
+    def evaluate(
+        self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore
+    ) -> TensionAgentSignal:
         repeated_claims = [
             claim
-            for claim, count in Counter(claim.normalized for claim in cig.claims).items()
+            for claim, count in Counter(
+                claim.normalized for claim in cig.claims
+            ).items()
             if count > 1 and claim
         ]
         claim_source_ids = {claim.source_step_id for claim in cig.claims}
         dependency_free_nonpremises = [
             step.step_id
             for step in chain.steps
-            if step.kind != "premise" and not step.dependencies and step.step_id in claim_source_ids and len(chain.steps) > 1
+            if step.kind != "premise"
+            and not step.dependencies
+            and step.step_id in claim_source_ids
+            and len(chain.steps) > 1
         ]
         bloat = 0.0
         bloat += min(0.45, 0.15 * len(repeated_claims))
@@ -142,7 +173,11 @@ class CompressionTensionAgent(BaseTensionAgent):
         if len(chain.steps) > max(3, len(chain.premises) + 2):
             bloat += min(0.2, 0.04 * (len(chain.steps) - len(chain.premises) - 2))
         tension = round(min(1.0, bloat), 4)
-        targets = dependency_free_nonpremises or [claim.source_step_id for claim in cig.claims if claim.normalized in repeated_claims]
+        targets = dependency_free_nonpremises or [
+            claim.source_step_id
+            for claim in cig.claims
+            if claim.normalized in repeated_claims
+        ]
         return TensionAgentSignal(
             channel=self.channel,
             tension=tension,
@@ -161,12 +196,16 @@ class TensionCoordinator:
         agents: Sequence[BaseTensionAgent] | None = None,
         coupling_matrix: Mapping[str, Mapping[str, float]] | None = None,
     ) -> None:
-        self.agents = list(agents) if agents is not None else [
-            LogicTensionAgent(),
-            GoalTensionAgent(),
-            RepairTensionAgent(),
-            CompressionTensionAgent(),
-        ]
+        self.agents = (
+            list(agents)
+            if agents is not None
+            else [
+                LogicTensionAgent(),
+                GoalTensionAgent(),
+                RepairTensionAgent(),
+                CompressionTensionAgent(),
+            ]
+        )
         self.coupling_matrix = {
             source: dict(targets)
             for source, targets in (coupling_matrix or DEFAULT_COUPLING_MATRIX).items()
@@ -178,7 +217,9 @@ class TensionCoordinator:
         matrix = payload.get("coupling_matrix", payload)
         return cls(coupling_matrix=matrix)
 
-    def to_json(self, path: str | Path, metadata: dict[str, object] | None = None) -> Path:
+    def to_json(
+        self, path: str | Path, metadata: dict[str, object] | None = None
+    ) -> Path:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -186,18 +227,26 @@ class TensionCoordinator:
             "coupling_matrix": self.coupling_matrix,
             "metadata": metadata or {},
         }
-        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        target.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         return target
 
-    def coordinate(self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore) -> Dict[str, object]:
+    def coordinate(
+        self, chain: ReasoningChain, cig: CIGCheck, score: TensionScore
+    ) -> Dict[str, object]:
         signals = [agent.evaluate(chain, cig, score) for agent in self.agents]
         raw = {signal.channel: signal.tension for signal in signals}
         propagated = dict(raw)
         for source, targets in self.coupling_matrix.items():
             source_tension = raw.get(source, 0.0)
             for target, weight in targets.items():
-                propagated[target] = propagated.get(target, 0.0) + source_tension * weight
-        coordinated = {channel: round(min(1.0, value), 4) for channel, value in propagated.items()}
+                propagated[target] = (
+                    propagated.get(target, 0.0) + source_tension * weight
+                )
+        coordinated = {
+            channel: round(min(1.0, value), 4) for channel, value in propagated.items()
+        }
         return {
             "agents": [to_jsonable(signal) for signal in signals],
             "coupling_matrix": self.coupling_matrix,
@@ -207,13 +256,19 @@ class TensionCoordinator:
             "target": self._select_target(signals, coordinated),
         }
 
-    def _select_next_op(self, signals: Sequence[TensionAgentSignal], coordinated: Mapping[str, float]) -> str:
+    def _select_next_op(
+        self, signals: Sequence[TensionAgentSignal], coordinated: Mapping[str, float]
+    ) -> str:
         if not coordinated:
             return "ACCEPT_TRACE"
-        active_channel, active_tension = max(coordinated.items(), key=lambda item: (item[1], item[0]))
+        active_channel, active_tension = max(
+            coordinated.items(), key=lambda item: (item[1], item[0])
+        )
         if active_tension <= 0.0:
             return "ACCEPT_TRACE"
-        channel_signals = [signal for signal in signals if signal.channel == active_channel]
+        channel_signals = [
+            signal for signal in signals if signal.channel == active_channel
+        ]
         if channel_signals and channel_signals[0].suggested_ops:
             return channel_signals[0].suggested_ops[0]
         return {
@@ -223,10 +278,14 @@ class TensionCoordinator:
             "compression": "COMPRESS_TRACE",
         }.get(active_channel, "LOCALIZE_FAILURE")
 
-    def _select_target(self, signals: Sequence[TensionAgentSignal], coordinated: Mapping[str, float]) -> str | None:
+    def _select_target(
+        self, signals: Sequence[TensionAgentSignal], coordinated: Mapping[str, float]
+    ) -> str | None:
         if not coordinated:
             return None
-        active_channel, active_tension = max(coordinated.items(), key=lambda item: (item[1], item[0]))
+        active_channel, active_tension = max(
+            coordinated.items(), key=lambda item: (item[1], item[0])
+        )
         if active_tension <= 0.0:
             return None
         for signal in signals:

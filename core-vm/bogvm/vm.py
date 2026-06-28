@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
 import hashlib
 import json
 import struct
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
 from pathlib import Path
 
-from .instruction import Instruction, INSTRUCTION_STRUCT
-from .opcodes import OPS, OP_NAMES, EDGE_TYPE_NAMES, SCALE
 from .assembler import MAGIC
 from .bases import BASIS_ORDER, synthesize_basis
 from .container import BOGBIN_FORMAT, BOGVM_FORMAT
+from .instruction import INSTRUCTION_STRUCT, Instruction
+from .opcodes import EDGE_TYPE_NAMES, OP_NAMES, SCALE
 
 
 class VMError(Exception):
@@ -32,8 +32,12 @@ class VMState:
     edge_table: dict[int, dict] = field(default_factory=dict)
     claim_table: dict[int, dict] = field(default_factory=dict)
 
-    adjacency_out: dict[int, list[int]] = field(default_factory=lambda: defaultdict(list))
-    adjacency_in: dict[int, list[int]] = field(default_factory=lambda: defaultdict(list))
+    adjacency_out: dict[int, list[int]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    adjacency_in: dict[int, list[int]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
 
     activation_current: dict[int, int] = field(default_factory=dict)
     activation_scratch: dict[int, int] = field(default_factory=dict)
@@ -62,11 +66,13 @@ class VMState:
         return self.claim_table[claim_id]["name"]
 
     def log(self, pc: int, opcode: str, **details) -> None:
-        self.receipt_ledger.append({
-            "pc": pc,
-            "opcode": opcode,
-            "details": details,
-        })
+        self.receipt_ledger.append(
+            {
+                "pc": pc,
+                "opcode": opcode,
+                "details": details,
+            }
+        )
 
     def final_state(self) -> dict:
         return {
@@ -83,7 +89,11 @@ class VMState:
             "data_blocks": {
                 k: {
                     **v,
-                    "bytes": v["bytes"].hex() if isinstance(v.get("bytes"), (bytes, bytearray)) else v.get("bytes"),
+                    "bytes": (
+                        v["bytes"].hex()
+                        if isinstance(v.get("bytes"), (bytes, bytearray))
+                        else v.get("bytes")
+                    ),
                 }
                 for k, v in self.data_blocks.items()
             },
@@ -102,12 +112,16 @@ class VMState:
             "final_state_hash": canonical_hash(self.final_state()),
             "accepted_claim_names": [self.claim_name(c) for c in self.accepted_claims],
             "rejected_claim_names": [self.claim_name(c) for c in self.rejected_claims],
-            "quarantined_claim_names": [self.claim_name(c) for c in self.quarantined_claims],
+            "quarantined_claim_names": [
+                self.claim_name(c) for c in self.quarantined_claims
+            ],
             "accepted_data_block_names": [
-                self.manifest["data_blocks"].get(str(d), str(d)) for d in self.accepted_data_blocks
+                self.manifest["data_blocks"].get(str(d), str(d))
+                for d in self.accepted_data_blocks
             ],
             "rejected_data_block_names": [
-                self.manifest["data_blocks"].get(str(d), str(d)) for d in self.rejected_data_blocks
+                self.manifest["data_blocks"].get(str(d), str(d))
+                for d in self.rejected_data_blocks
             ],
             "accepted_without_verify": 0,
             "candidate_graph_contamination": 0,
@@ -123,10 +137,10 @@ def load_bogbin(path: str | Path) -> tuple[dict, list[Instruction], str]:
 
     program_hash = hashlib.sha256(data).hexdigest()
     offset = len(MAGIC)
-    manifest_len = struct.unpack(">I", data[offset:offset + 4])[0]
+    manifest_len = struct.unpack(">I", data[offset : offset + 4])[0]
     offset += 4
 
-    manifest = json.loads(data[offset:offset + manifest_len].decode("utf-8"))
+    manifest = json.loads(data[offset : offset + manifest_len].decode("utf-8"))
     offset += manifest_len
 
     stream = data[offset:]
@@ -134,7 +148,7 @@ def load_bogbin(path: str | Path) -> tuple[dict, list[Instruction], str]:
         raise VMError("Instruction stream length is not a multiple of 8 bytes")
 
     instructions = [
-        Instruction.unpack(stream[i:i + INSTRUCTION_STRUCT.size])
+        Instruction.unpack(stream[i : i + INSTRUCTION_STRUCT.size])
         for i in range(0, len(stream), INSTRUCTION_STRUCT.size)
     ]
     return manifest, instructions, program_hash
@@ -172,7 +186,10 @@ class BOGVM:
                 self.state.log(pc, opcode_name, node_id=instr.target, name=name)
 
             elif opcode_name == "CREATE_EDGE":
-                if instr.source not in self.state.node_table or instr.param not in self.state.node_table:
+                if (
+                    instr.source not in self.state.node_table
+                    or instr.param not in self.state.node_table
+                ):
                     raise VMError("CREATE_EDGE references unknown node")
                 edge_type = EDGE_TYPE_NAMES.get(instr.flags)
                 if edge_type is None:
@@ -247,7 +264,9 @@ class BOGVM:
                 # We therefore keep a cumulative field and use a separate frontier
                 # for each tick. No in-place wave mutation is performed.
                 cumulative = dict(self.state.activation_current)
-                frontier = {instr.source: self.state.activation_current.get(instr.source, 0)}
+                frontier = {
+                    instr.source: self.state.activation_current.get(instr.source, 0)
+                }
                 total_energy = 0
                 reached = set()
 
@@ -259,7 +278,9 @@ class BOGVM:
                         if activation <= 0:
                             continue
 
-                        for edge_id in sorted(self.state.adjacency_out.get(node_id, [])):
+                        for edge_id in sorted(
+                            self.state.adjacency_out.get(node_id, [])
+                        ):
                             edge = self.state.edge_table[edge_id]
                             if edge["type"] != edge_type:
                                 continue
@@ -276,7 +297,9 @@ class BOGVM:
                             reached.add(edge["target"])
 
                     for node_id in sorted(scratch.keys()):
-                        cumulative[node_id] = max(cumulative.get(node_id, 0), scratch[node_id])
+                        cumulative[node_id] = max(
+                            cumulative.get(node_id, 0), scratch[node_id]
+                        )
 
                     frontier = dict(sorted(scratch.items()))
 
@@ -287,7 +310,11 @@ class BOGVM:
                 self.state.log(
                     pc,
                     opcode_name,
-                    source=self.state.node_name(instr.source) if instr.source in self.state.node_table else instr.source,
+                    source=(
+                        self.state.node_name(instr.source)
+                        if instr.source in self.state.node_table
+                        else instr.source
+                    ),
                     edge_type=edge_type,
                     depth=instr.param,
                     energy_spent=total_energy,
@@ -299,7 +326,9 @@ class BOGVM:
                     raise VMError(f"DECAY factor must be 0..{SCALE}")
                 decayed = {}
                 for node_id in sorted(self.state.activation_current.keys()):
-                    value = (self.state.activation_current[node_id] * instr.param) // SCALE
+                    value = (
+                        self.state.activation_current[node_id] * instr.param
+                    ) // SCALE
                     if value > 0:
                         decayed[node_id] = value
                 self.state.activation_current = decayed
@@ -316,7 +345,9 @@ class BOGVM:
                     edge = self.state.edge_table[edge_id]
                     if edge["type"] != "conflict":
                         continue
-                    source_activation = self.state.activation_current.get(edge["source"], 0)
+                    source_activation = self.state.activation_current.get(
+                        edge["source"], 0
+                    )
                     conflict_pressure += (source_activation * edge["weight"]) // SCALE
 
                 net_pressure = support_pressure - conflict_pressure
@@ -344,7 +375,9 @@ class BOGVM:
                 if pressure is None:
                     tension = 0
                 else:
-                    tension = min(pressure["support_pressure"], pressure["conflict_pressure"])
+                    tension = min(
+                        pressure["support_pressure"], pressure["conflict_pressure"]
+                    )
                 self.state.tension_current[instr.target] = tension
                 self.state.log(
                     pc,
@@ -370,7 +403,9 @@ class BOGVM:
                     pc += 1
                     continue
                 if verifier_result != "verified":
-                    raise VMError(f"ACCEPT without VERIFY is blocked for claim {self.state.claim_name(instr.target)}")
+                    raise VMError(
+                        f"ACCEPT without VERIFY is blocked for claim {self.state.claim_name(instr.target)}"
+                    )
                 if instr.target not in self.state.accepted_claims:
                     self.state.accepted_claims.append(instr.target)
                     self.state.accepted_claims.sort()
@@ -402,7 +437,6 @@ class BOGVM:
                     claim=self.state.claim_name(instr.target),
                     result="quarantined",
                 )
-
 
             elif opcode_name == "DECLARE_BASIS":
                 basis = self.state.manifest["constants"].get(str(instr.target))
@@ -484,7 +518,9 @@ class BOGVM:
                 if block is None:
                     raise VMError(f"ACCEPT_DATA missing data block {instr.target}")
                 if self.state.data_hash_results.get(instr.target) != "verified":
-                    raise VMError(f"ACCEPT_DATA without VERIFY_HASH is blocked for data block {block['name']}")
+                    raise VMError(
+                        f"ACCEPT_DATA without VERIFY_HASH is blocked for data block {block['name']}"
+                    )
                 if instr.target not in self.state.accepted_data_blocks:
                     self.state.accepted_data_blocks.append(instr.target)
                     self.state.accepted_data_blocks.sort()
@@ -500,7 +536,9 @@ class BOGVM:
                 if block is None:
                     raise VMError(f"REJECT_DATA missing data block {instr.target}")
                 if self.state.data_hash_results.get(instr.target) != "rejected":
-                    raise VMError(f"REJECT_DATA without failed VERIFY_HASH is blocked for data block {block['name']}")
+                    raise VMError(
+                        f"REJECT_DATA without failed VERIFY_HASH is blocked for data block {block['name']}"
+                    )
                 if instr.target not in self.state.rejected_data_blocks:
                     self.state.rejected_data_blocks.append(instr.target)
                     self.state.rejected_data_blocks.sort()
@@ -511,20 +549,23 @@ class BOGVM:
                     result="rejected",
                 )
 
-
             elif opcode_name == "STORE_RESIDUAL":
                 block = self.state.data_blocks.get(instr.target)
                 if block is None:
                     raise VMError(f"STORE_RESIDUAL missing data block {instr.target}")
                 if instr.source >= block["length"]:
-                    raise VMError(f"Residual offset {instr.source} out of range for data block {block['name']}")
+                    raise VMError(
+                        f"Residual offset {instr.source} out of range for data block {block['name']}"
+                    )
                 if not 0 <= instr.param <= 255:
                     raise VMError("Residual byte must be 0..255")
 
-                block.setdefault("residuals", []).append({
-                    "offset": instr.source,
-                    "byte": instr.param,
-                })
+                block.setdefault("residuals", []).append(
+                    {
+                        "offset": instr.source,
+                        "byte": instr.param,
+                    }
+                )
                 block["residuals"].sort(key=lambda item: (item["offset"], item["byte"]))
 
                 self.state.log(
@@ -546,7 +587,9 @@ class BOGVM:
                 for patch in block.get("residuals", []):
                     offset = patch["offset"]
                     if offset >= len(data):
-                        raise VMError(f"Residual offset {offset} out of synthesized byte range for data block {block['name']}")
+                        raise VMError(
+                            f"Residual offset {offset} out of synthesized byte range for data block {block['name']}"
+                        )
                     data[offset] = patch["byte"]
                     applied += 1
 
@@ -585,7 +628,9 @@ class BOGVM:
         source = claim["source"]
         target = claim["target"]
 
-        conflict_pressure = self.state.pressure_current.get(claim_id, {}).get("conflict_pressure", 0)
+        conflict_pressure = self.state.pressure_current.get(claim_id, {}).get(
+            "conflict_pressure", 0
+        )
         if conflict_pressure > 0:
             return "rejected"
 

@@ -11,7 +11,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RECEIPT_PATH = ROOT / "artifacts/v4_5_milestone_receipt_pack.json"
 

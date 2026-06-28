@@ -6,7 +6,6 @@ import numpy as np
 
 from ..runtime import TensionForgeRuntime
 
-
 MATMUL_SOURCE = r"""
 #ifndef TILE_SIZE
 #define TILE_SIZE 16
@@ -91,14 +90,10 @@ def matmul(
     tile_size: int = 16,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     if tile_size not in {8, 16}:
-        raise ValueError(
-            "tile_size must currently be 8 or 16"
-        )
+        raise ValueError("tile_size must currently be 8 or 16")
 
     a = np.ascontiguousarray(
         a,
@@ -111,9 +106,7 @@ def matmul(
     )
 
     if a.ndim != 2 or b.ndim != 2:
-        raise ValueError(
-            "matmul expects two-dimensional arrays"
-        )
+        raise ValueError("matmul expects two-dimensional arrays")
 
     rows, inner = a.shape
     b_inner, columns = b.shape
@@ -126,9 +119,7 @@ def matmul(
         )
 
     if rows == 0 or inner == 0 or columns == 0:
-        raise ValueError(
-            "Matrix dimensions must be positive"
-        )
+        raise ValueError("Matrix dimensions must be positive")
 
     local_work_items = tile_size * tile_size
 
@@ -160,9 +151,7 @@ def matmul(
         access="write_only",
     )
 
-    compile_options = (
-        f"-DTILE_SIZE={tile_size}",
-    )
+    compile_options = (f"-DTILE_SIZE={tile_size}",)
 
     kernel = runtime.kernel(
         MATMUL_SOURCE,
@@ -226,20 +215,12 @@ def matmul(
         output_gpu,
     )
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
-    floating_point_operations = (
-        2 * rows * inner * columns
-    )
+    floating_point_operations = 2 * rows * inner * columns
 
     gflops = (
-        floating_point_operations
-        / (median_ms * 1e-3)
-        / 1e9
+        floating_point_operations / (median_ms * 1e-3) / 1e9
         if median_ms is not None
         else None
     )
@@ -253,8 +234,7 @@ def matmul(
         "repetitions": repetitions,
         "median_kernel_ms": median_ms,
         "gflops": gflops,
-        "source_sha256":
-            runtime.source_hash(MATMUL_SOURCE),
+        "source_sha256": runtime.source_hash(MATMUL_SOURCE),
         "compile_options": list(compile_options),
     }
 

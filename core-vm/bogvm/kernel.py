@@ -3,16 +3,16 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from pathlib import Path
 import secrets
 import socket
 import subprocess
 import tempfile
 import threading
+from pathlib import Path
 from typing import Any
 
-from .store import verify_installed_package
 from .schema import SchemaError, validate_schema
+from .store import verify_installed_package
 
 
 class BogKernelError(Exception):
@@ -90,7 +90,9 @@ class BogKernel:
         }
         return self._record_receipt("status", "kernel", status, state=state)
 
-    def run(self, app: str, args: list[str] | None = None, brokered: bool = False) -> dict:
+    def run(
+        self, app: str, args: list[str] | None = None, brokered: bool = False
+    ) -> dict:
         if brokered:
             return self.run_brokered(app, args=args)
         state = self._require_booted_state("run", app)
@@ -106,7 +108,11 @@ class BogKernel:
             "package": app_receipt.get("package"),
             "app_receipt_format": app_receipt.get("format"),
             "app_execution_status": app_receipt["execution_status"],
-            "status": "exited" if app_receipt["execution_status"] == "completed" else "blocked",
+            "status": (
+                "exited"
+                if app_receipt["execution_status"] == "completed"
+                else "blocked"
+            ),
         }
         _write_json(self.processes_dir / f"{process_id}.json", process)
         state["processes"][process_id] = process
@@ -127,36 +133,68 @@ class BogKernel:
         self.workspace.state = self.workspace._read_state()
         app_info = self.workspace.state.get("apps", {}).get(app)
         failures = []
-        verification = self.workspace._verify_installed_package(app_info["package"]) if app_info else None
+        verification = (
+            self.workspace._verify_installed_package(app_info["package"])
+            if app_info
+            else None
+        )
         if app_info is None:
             failures.append({"path": app, "reason": f"app not installed: {app}"})
         elif verification["execution_status"] != "completed":
             failures.extend(verification["failures"])
         capabilities = app_info.get("capabilities") if app_info else None
         if app_info and capabilities is None:
-            failures.append({"path": "bog_app.json", "reason": "brokered run requires a v8 capability manifest"})
-        policy = self.workspace._verify_app_runtime_policy(app, app_info, verification) if app_info and verification else None
+            failures.append(
+                {
+                    "path": "bog_app.json",
+                    "reason": "brokered run requires a v8 capability manifest",
+                }
+            )
+        policy = (
+            self.workspace._verify_app_runtime_policy(app, app_info, verification)
+            if app_info and verification
+            else None
+        )
         if policy and policy["execution_status"] != "completed":
             failures.extend(policy["failures"])
 
         process_id = self._next_process_id(state)
         if failures:
             return self._finalize_brokered_process(
-                state, process_id, app, app_info, verification, policy, [], None, failures
+                state,
+                process_id,
+                app,
+                app_info,
+                verification,
+                policy,
+                [],
+                None,
+                failures,
             )
 
         install_dir = Path(app_info["install_dir"])
         runtime_dir = self.workspace.bogos / "appdata" / app
         runtime_dir.mkdir(parents=True, exist_ok=True)
-        command = _resolve_entrypoint(install_dir, app_info["entrypoint"]) + (args or [])
+        command = _resolve_entrypoint(install_dir, app_info["entrypoint"]) + (
+            args or []
+        )
         token = secrets.token_hex(24)
         broker = _CapabilityBroker(self, state, app, app_info, verification, token)
         broker.start()
-        environment = _brokered_environment(app_info, app, install_dir, runtime_dir, broker.socket_path, token)
+        environment = _brokered_environment(
+            app_info, app, install_dir, runtime_dir, broker.socket_path, token
+        )
         runtime_before = _snapshot(runtime_dir)
         package_before = _snapshot(install_dir)
         try:
-            result = subprocess.run(command, cwd=runtime_dir, env=environment, check=False, text=True, capture_output=True)
+            result = subprocess.run(
+                command,
+                cwd=runtime_dir,
+                env=environment,
+                check=False,
+                text=True,
+                capture_output=True,
+            )
         except OSError as exc:
             result = None
             failures.append({"path": app, "reason": str(exc)})
@@ -164,16 +202,34 @@ class BogKernel:
             broker.stop()
 
         if result is not None and result.returncode != 0:
-            failures.append({"path": app, "reason": f"brokered app exited with code {result.returncode}"})
+            failures.append(
+                {
+                    "path": app,
+                    "reason": f"brokered app exited with code {result.returncode}",
+                }
+            )
         package_after = _snapshot(install_dir)
         if package_after != package_before:
-            failures.append({"path": str(install_dir), "reason": "installed package changed during brokered run"})
-        post_verification = self.workspace._verify_installed_package(app_info["package"])
+            failures.append(
+                {
+                    "path": str(install_dir),
+                    "reason": "installed package changed during brokered run",
+                }
+            )
+        post_verification = self.workspace._verify_installed_package(
+            app_info["package"]
+        )
         failures.extend(post_verification.get("failures", []))
-        brokered_writes = {call["path"] for call in broker.calls if call["operation"] == "write" and call["execution_status"] == "completed"}
+        brokered_writes = {
+            call["path"]
+            for call in broker.calls
+            if call["operation"] == "write" and call["execution_status"] == "completed"
+        }
         raw_changes = set(_snapshot_changes(runtime_before, _snapshot(runtime_dir)))
         for path in sorted(raw_changes - brokered_writes):
-            failures.append({"path": path, "reason": "raw runtime write outside BogK broker"})
+            failures.append(
+                {"path": path, "reason": "raw runtime write outside BogK broker"}
+            )
         final_writes = {
             call["path"]: call
             for call in broker.calls
@@ -181,12 +237,28 @@ class BogKernel:
         }
         for call in final_writes.values():
             target = runtime_dir / call["path"]
-            if target.is_symlink() or not target.resolve().is_relative_to(runtime_dir.resolve()):
-                failures.append({"path": call["path"], "reason": "brokered output replaced by unsafe path"})
+            if target.is_symlink() or not target.resolve().is_relative_to(
+                runtime_dir.resolve()
+            ):
+                failures.append(
+                    {
+                        "path": call["path"],
+                        "reason": "brokered output replaced by unsafe path",
+                    }
+                )
                 continue
-            actual_sha256 = hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() else None
+            actual_sha256 = (
+                hashlib.sha256(target.read_bytes()).hexdigest()
+                if target.is_file()
+                else None
+            )
             if actual_sha256 != call["sha256"]:
-                failures.append({"path": call["path"], "reason": "brokered output changed outside BogK broker"})
+                failures.append(
+                    {
+                        "path": call["path"],
+                        "reason": "brokered output changed outside BogK broker",
+                    }
+                )
 
         return self._finalize_brokered_process(
             state,
@@ -209,11 +281,18 @@ class BogKernel:
             original = json.loads(Path(receipt_path).read_text())
         except (OSError, json.JSONDecodeError) as exc:
             original = {}
-            failures = [{"path": str(receipt_path), "reason": f"invalid replay receipt: {exc}"}]
+            failures = [
+                {"path": str(receipt_path), "reason": f"invalid replay receipt: {exc}"}
+            ]
         else:
             failures = []
         if original.get("format") != "BOGK-brokered-process-receipt-8.0":
-            failures.append({"path": str(receipt_path), "reason": "replay requires a brokered v8 process receipt"})
+            failures.append(
+                {
+                    "path": str(receipt_path),
+                    "reason": "replay requires a brokered v8 process receipt",
+                }
+            )
         else:
             try:
                 validate_schema(original, "brokered-process-receipt.schema.json")
@@ -224,20 +303,41 @@ class BogKernel:
         app = original.get("app")
         self.workspace.state = self.workspace._read_state()
         app_info = self.workspace.state.get("apps", {}).get(app)
-        verification = self.workspace._verify_installed_package(app_info["package"]) if app_info else None
+        verification = (
+            self.workspace._verify_installed_package(app_info["package"])
+            if app_info
+            else None
+        )
         if not app_info or verification["execution_status"] != "completed":
-            failures.append({"path": str(app), "reason": "current app package verification failed"})
+            failures.append(
+                {"path": str(app), "reason": "current app package verification failed"}
+            )
         else:
-            policy = self.workspace._verify_app_runtime_policy(app, app_info, verification)
+            policy = self.workspace._verify_app_runtime_policy(
+                app, app_info, verification
+            )
             if _stable_hash(policy.get("policy")) != original.get("policy_sha256"):
-                failures.append({"path": "bog_app.json", "reason": "app policy changed since recorded process"})
+                failures.append(
+                    {
+                        "path": "bog_app.json",
+                        "reason": "app policy changed since recorded process",
+                    }
+                )
             calls = original.get("syscall_receipts", [])
-            if [call.get("sequence") for call in calls] != list(range(1, len(calls) + 1)):
-                failures.append({"path": str(receipt_path), "reason": "syscall sequence is not contiguous"})
+            if [call.get("sequence") for call in calls] != list(
+                range(1, len(calls) + 1)
+            ):
+                failures.append(
+                    {
+                        "path": str(receipt_path),
+                        "reason": "syscall sequence is not contiguous",
+                    }
+                )
             final_write_sequences = {
                 call["path"]: call["sequence"]
                 for call in calls
-                if call["operation"] == "write" and call["execution_status"] == "completed"
+                if call["operation"] == "write"
+                and call["execution_status"] == "completed"
             }
             for call in calls:
                 verify_write_output = (
@@ -245,36 +345,78 @@ class BogKernel:
                     or call["execution_status"] != "completed"
                     or final_write_sequences.get(call.get("path")) == call["sequence"]
                 )
-                replayed = self._replay_call(app_info, call, verify_write_output=verify_write_output)
+                replayed = self._replay_call(
+                    app_info, call, verify_write_output=verify_write_output
+                )
                 replayed_calls.append(replayed)
                 if replayed["evidence_sha256"] != call["evidence_sha256"]:
-                    failures.append({"path": call.get("path") or call.get("name") or call.get("package", ""), "reason": "syscall replay evidence mismatch"})
-            if verification.get("bundle_sha256") != original.get("package_bundle_sha256"):
-                failures.append({"path": app_info["package"], "reason": "package bundle changed since recorded process"})
+                    failures.append(
+                        {
+                            "path": call.get("path")
+                            or call.get("name")
+                            or call.get("package", ""),
+                            "reason": "syscall replay evidence mismatch",
+                        }
+                    )
+            if verification.get("bundle_sha256") != original.get(
+                "package_bundle_sha256"
+            ):
+                failures.append(
+                    {
+                        "path": app_info["package"],
+                        "reason": "package bundle changed since recorded process",
+                    }
+                )
 
         proof_material = dict(original.get("proof_material", {}))
-        stdout = original.get("stdout") if isinstance(original.get("stdout"), str) else ""
-        stderr = original.get("stderr") if isinstance(original.get("stderr"), str) else ""
-        if hashlib.sha256(stdout.encode()).hexdigest() != proof_material.get("stdout_sha256"):
-            failures.append({"path": str(receipt_path), "reason": "recorded stdout hash mismatch"})
-        if hashlib.sha256(stderr.encode()).hexdigest() != proof_material.get("stderr_sha256"):
-            failures.append({"path": str(receipt_path), "reason": "recorded stderr hash mismatch"})
+        stdout = (
+            original.get("stdout") if isinstance(original.get("stdout"), str) else ""
+        )
+        stderr = (
+            original.get("stderr") if isinstance(original.get("stderr"), str) else ""
+        )
+        if hashlib.sha256(stdout.encode()).hexdigest() != proof_material.get(
+            "stdout_sha256"
+        ):
+            failures.append(
+                {"path": str(receipt_path), "reason": "recorded stdout hash mismatch"}
+            )
+        if hashlib.sha256(stderr.encode()).hexdigest() != proof_material.get(
+            "stderr_sha256"
+        ):
+            failures.append(
+                {"path": str(receipt_path), "reason": "recorded stderr hash mismatch"}
+            )
         if original.get("returncode") != proof_material.get("returncode"):
-            failures.append({"path": str(receipt_path), "reason": "recorded returncode mismatch"})
+            failures.append(
+                {"path": str(receipt_path), "reason": "recorded returncode mismatch"}
+            )
         recorded_proof = _stable_hash(proof_material)
         if recorded_proof != original.get("proof_sha256"):
-            failures.append({"path": str(receipt_path), "reason": "recorded final proof hash mismatch"})
+            failures.append(
+                {
+                    "path": str(receipt_path),
+                    "reason": "recorded final proof hash mismatch",
+                }
+            )
         if app_info and verification:
             replay_material = {
                 **proof_material,
                 "package_bundle_sha256": verification.get("bundle_sha256"),
                 "installed_tree_sha256": verification.get("installed_tree_sha256"),
                 "policy_sha256": _stable_hash(policy.get("policy")),
-                "syscall_evidence": [call["evidence_sha256"] for call in replayed_calls],
+                "syscall_evidence": [
+                    call["evidence_sha256"] for call in replayed_calls
+                ],
             }
             replay_proof = _stable_hash(replay_material)
             if replay_proof != original.get("proof_sha256"):
-                failures.append({"path": str(receipt_path), "reason": "replayed final proof hash mismatch"})
+                failures.append(
+                    {
+                        "path": str(receipt_path),
+                        "reason": "replayed final proof hash mismatch",
+                    }
+                )
         else:
             replay_proof = None
         receipt = {
@@ -288,24 +430,42 @@ class BogKernel:
             "failures": failures,
             "execution_status": "completed" if not failures else "blocked",
         }
-        return self._record_receipt("replay", str(app or "unknown"), receipt, state=state)
+        return self._record_receipt(
+            "replay", str(app or "unknown"), receipt, state=state
+        )
 
     def _finalize_brokered_process(
-        self, state: dict, process_id: str, app: str, app_info: dict | None, verification: dict | None,
-        policy: dict | None, calls: list[dict], result: subprocess.CompletedProcess | None, failures: list[dict],
+        self,
+        state: dict,
+        process_id: str,
+        app: str,
+        app_info: dict | None,
+        verification: dict | None,
+        policy: dict | None,
+        calls: list[dict],
+        result: subprocess.CompletedProcess | None,
+        failures: list[dict],
         post_verification: dict | None = None,
     ) -> dict:
         policy_sha256 = _stable_hash(policy.get("policy")) if policy else None
         proof_material = {
             "app": app,
             "package": app_info.get("package") if app_info else None,
-            "package_bundle_sha256": verification.get("bundle_sha256") if verification else None,
-            "installed_tree_sha256": verification.get("installed_tree_sha256") if verification else None,
+            "package_bundle_sha256": (
+                verification.get("bundle_sha256") if verification else None
+            ),
+            "installed_tree_sha256": (
+                verification.get("installed_tree_sha256") if verification else None
+            ),
             "policy_sha256": policy_sha256,
             "syscall_evidence": [call["evidence_sha256"] for call in calls],
             "returncode": result.returncode if result else None,
-            "stdout_sha256": hashlib.sha256((result.stdout if result else "").encode()).hexdigest(),
-            "stderr_sha256": hashlib.sha256((result.stderr if result else "").encode()).hexdigest(),
+            "stdout_sha256": hashlib.sha256(
+                (result.stdout if result else "").encode()
+            ).hexdigest(),
+            "stderr_sha256": hashlib.sha256(
+                (result.stderr if result else "").encode()
+            ).hexdigest(),
         }
         process = {
             "format": "BOGK-process-8.0",
@@ -323,11 +483,15 @@ class BogKernel:
             "app": app,
             "process": process,
             "package_verification": verification,
-            "dependency_verification": verification.get("dependency_verifications", {}) if verification else {},
+            "dependency_verification": (
+                verification.get("dependency_verifications", {}) if verification else {}
+            ),
             "app_policy_verification": policy,
             "post_run_verification": post_verification,
             "policy_sha256": policy_sha256,
-            "package_bundle_sha256": verification.get("bundle_sha256") if verification else None,
+            "package_bundle_sha256": (
+                verification.get("bundle_sha256") if verification else None
+            ),
             "syscall_receipts": calls,
             "stdout": result.stdout if result else "",
             "stderr": result.stderr if result else "",
@@ -343,12 +507,19 @@ class BogKernel:
             raise BogKernelError(str(exc)) from exc
         return self._record_receipt("run-brokered", app, receipt, state=state)
 
-    def _replay_call(self, app_info: dict, call: dict, verify_write_output: bool = True) -> dict:
+    def _replay_call(
+        self, app_info: dict, call: dict, verify_write_output: bool = True
+    ) -> dict:
         operation = call["operation"]
         capabilities = app_info["capabilities"]
-        evidence = {"operation": operation, "execution_status": call["execution_status"]}
+        evidence = {
+            "operation": operation,
+            "execution_status": call["execution_status"],
+        }
         if operation in {"read", "write", "env", "dependency"}:
-            current_verification = self.workspace._verify_installed_package(app_info["package"])
+            current_verification = self.workspace._verify_installed_package(
+                app_info["package"]
+            )
             evidence.update(
                 package_verification_status=current_verification["execution_status"],
                 package_tree_sha256=current_verification.get("installed_tree_sha256"),
@@ -359,28 +530,49 @@ class BogKernel:
             if call["execution_status"] == "completed":
                 target = Path(app_info["install_dir"]) / path
                 install_dir = Path(app_info["install_dir"])
-                safe_target = not target.is_symlink() and target.resolve().is_relative_to(install_dir.resolve())
-                evidence["sha256"] = hashlib.sha256(target.read_bytes()).hexdigest() if safe_target and target.is_file() else None
+                safe_target = (
+                    not target.is_symlink()
+                    and target.resolve().is_relative_to(install_dir.resolve())
+                )
+                evidence["sha256"] = (
+                    hashlib.sha256(target.read_bytes()).hexdigest()
+                    if safe_target and target.is_file()
+                    else None
+                )
         elif operation == "write":
             path = call["path"]
             evidence.update(path=path, allowed=path in capabilities["write"])
             if call["execution_status"] == "completed" and verify_write_output:
                 target = self.workspace.bogos / "appdata" / app_info["name"] / path
                 runtime = self.workspace.bogos / "appdata" / app_info["name"]
-                safe_target = not target.is_symlink() and target.resolve().is_relative_to(runtime.resolve())
-                evidence["sha256"] = hashlib.sha256(target.read_bytes()).hexdigest() if safe_target and target.is_file() else None
+                safe_target = (
+                    not target.is_symlink()
+                    and target.resolve().is_relative_to(runtime.resolve())
+                )
+                evidence["sha256"] = (
+                    hashlib.sha256(target.read_bytes()).hexdigest()
+                    if safe_target and target.is_file()
+                    else None
+                )
             else:
                 evidence["sha256"] = call.get("sha256")
         elif operation == "env":
             name = call["name"]
-            evidence.update(name=name, allowed=name in capabilities["env"], value=app_info["environment"].get(name))
+            evidence.update(
+                name=name,
+                allowed=name in capabilities["env"],
+                value=app_info["environment"].get(name),
+            )
         elif operation == "dependency":
             package = call["package"]
             allowed = package in capabilities["dependencies"]
             evidence.update(package=package, allowed=allowed)
             if allowed:
                 verification = self.workspace._verify_installed_package(package)
-                evidence.update(bundle_sha256=verification.get("bundle_sha256"), verification_status=verification["execution_status"])
+                evidence.update(
+                    bundle_sha256=verification.get("bundle_sha256"),
+                    verification_status=verification["execution_status"],
+                )
         else:
             evidence["call_count"] = call.get("call_count")
         return {**evidence, "evidence_sha256": _stable_hash(evidence)}
@@ -438,7 +630,9 @@ class BogKernel:
             if not _is_safe_relpath(path):
                 failures.append({"path": path, "reason": "unsafe syscall path"})
             elif path not in app_info.get("write_policy", {}).get("allow", []):
-                failures.append({"path": path, "reason": "write blocked by app write_policy"})
+                failures.append(
+                    {"path": path, "reason": "write blocked by app write_policy"}
+                )
 
         target = None
         encoded = data.encode("utf-8")
@@ -446,7 +640,9 @@ class BogKernel:
             runtime_dir = (self.workspace.bogos / "appdata" / app).resolve()
             target = (runtime_dir / path).resolve()
             if not target.is_relative_to(runtime_dir):
-                failures.append({"path": path, "reason": "write escaped app runtime directory"})
+                failures.append(
+                    {"path": path, "reason": "write escaped app runtime directory"}
+                )
             else:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(encoded)
@@ -493,7 +689,9 @@ class BogKernel:
             return self._record_unbooted(operation, name, state=state)
         return state
 
-    def _record_unbooted(self, operation: str, name: str, state: dict | None = None) -> dict:
+    def _record_unbooted(
+        self, operation: str, name: str, state: dict | None = None
+    ) -> dict:
         state = state or {
             "format": KERNEL_STATE_FORMAT,
             "workspace": str(self.root),
@@ -527,10 +725,19 @@ class BogKernel:
         }
         self.syscall_log_path.parent.mkdir(parents=True, exist_ok=True)
         with self.syscall_log_path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(logged, sort_keys=True, separators=(",", ":")) + "\n")
-        return self._record_receipt(f"syscall-{receipt['syscall']}", receipt.get("app") or receipt.get("mount") or "unknown", receipt, state=state)
+            handle.write(
+                json.dumps(logged, sort_keys=True, separators=(",", ":")) + "\n"
+            )
+        return self._record_receipt(
+            f"syscall-{receipt['syscall']}",
+            receipt.get("app") or receipt.get("mount") or "unknown",
+            receipt,
+            state=state,
+        )
 
-    def _record_receipt(self, operation: str, name: str, receipt: dict, state: dict) -> dict:
+    def _record_receipt(
+        self, operation: str, name: str, receipt: dict, state: dict
+    ) -> dict:
         state["receipt_sequence"] += 1
         receipt = {
             **receipt,
@@ -542,15 +749,20 @@ class BogKernel:
             validate_schema(receipt, "kernel-receipt.schema.json")
         except SchemaError as exc:
             raise BogKernelError(str(exc)) from exc
-        path = self.receipts_dir / f"{state['receipt_sequence']:04d}_{_safe_name(operation)}_{_safe_name(name)}.json"
+        path = (
+            self.receipts_dir
+            / f"{state['receipt_sequence']:04d}_{_safe_name(operation)}_{_safe_name(name)}.json"
+        )
         _write_json(path, receipt)
-        state["receipts"].append({
-            "sequence": state["receipt_sequence"],
-            "operation": operation,
-            "name": name,
-            "path": str(path),
-            "execution_status": receipt["execution_status"],
-        })
+        state["receipts"].append(
+            {
+                "sequence": state["receipt_sequence"],
+                "operation": operation,
+                "name": name,
+                "path": str(path),
+                "execution_status": receipt["execution_status"],
+            }
+        )
         state["last_receipt"] = str(path)
         self._write_state(state)
         return receipt
@@ -562,16 +774,24 @@ class BogKernel:
     def _sync_mounts(self, state: dict) -> None:
         self.workspace.state = self.workspace._read_state()
         for name, mount in sorted(self.workspace.state.get("mounts", {}).items()):
-            _write_json(self.mounts_dir / f"{_safe_name(name)}.json", {
-                "format": "BOGK-mount-8.0",
-                "name": name,
-                "archive": mount["archive"],
-                "path": mount["path"],
-            })
+            _write_json(
+                self.mounts_dir / f"{_safe_name(name)}.json",
+                {
+                    "format": "BOGK-mount-8.0",
+                    "name": name,
+                    "archive": mount["archive"],
+                    "path": mount["path"],
+                },
+            )
         self._write_state(state)
 
     def _ensure_layout(self) -> None:
-        for path in (self.kernel_dir, self.receipts_dir, self.processes_dir, self.mounts_dir):
+        for path in (
+            self.kernel_dir,
+            self.receipts_dir,
+            self.processes_dir,
+            self.mounts_dir,
+        ):
             path.mkdir(parents=True, exist_ok=True)
         if not self.syscall_log_path.exists():
             self.syscall_log_path.write_text("")
@@ -585,7 +805,9 @@ class BogKernel:
             state["format"] = KERNEL_STATE_FORMAT
             self._write_state(state)
         elif state.get("format") != KERNEL_STATE_FORMAT:
-            raise BogKernelError(f"unsupported kernel state format: {state.get('format')}")
+            raise BogKernelError(
+                f"unsupported kernel state format: {state.get('format')}"
+            )
         return state
 
     def _write_state(self, state: dict) -> None:
@@ -610,7 +832,15 @@ def _write_json(path: Path, obj: dict) -> None:
 
 
 class _CapabilityBroker:
-    def __init__(self, kernel: BogKernel, state: dict, app: str, app_info: dict, verification: dict, token: str) -> None:
+    def __init__(
+        self,
+        kernel: BogKernel,
+        state: dict,
+        app: str,
+        app_info: dict,
+        verification: dict,
+        token: str,
+    ) -> None:
         self.kernel = kernel
         self.state = state
         self.app = app
@@ -618,9 +848,13 @@ class _CapabilityBroker:
         self.verification = verification
         self.token = token
         self.calls: list[dict] = []
-        self.socket_path = Path(tempfile.gettempdir()) / f"bogk_{secrets.token_hex(12)}.sock"
+        self.socket_path = (
+            Path(tempfile.gettempdir()) / f"bogk_{secrets.token_hex(12)}.sock"
+        )
         self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.thread = threading.Thread(target=self._serve, name=f"bogk-broker-{app}", daemon=True)
+        self.thread = threading.Thread(
+            target=self._serve, name=f"bogk-broker-{app}", daemon=True
+        )
         self.running = False
 
     def start(self) -> None:
@@ -655,7 +889,10 @@ class _CapabilityBroker:
                         "execution_status": "blocked",
                         "failures": [{"path": "broker", "reason": str(exc)}],
                     }
-                connection.sendall(json.dumps(response, sort_keys=True, separators=(",", ":")).encode() + b"\n")
+                connection.sendall(
+                    json.dumps(response, sort_keys=True, separators=(",", ":")).encode()
+                    + b"\n"
+                )
 
     def _handle(self, request: dict) -> dict:
         operation = request.get("operation")
@@ -664,9 +901,13 @@ class _CapabilityBroker:
         response: dict[str, Any] = {}
         capabilities = self.app_info["capabilities"]
         if request.get("token") != self.token:
-            failures.append({"path": "broker", "reason": "invalid broker capability token"})
+            failures.append(
+                {"path": "broker", "reason": "invalid broker capability token"}
+            )
         elif operation in {"read", "write", "env", "dependency"}:
-            current_verification = self.kernel.workspace._verify_installed_package(self.app_info["package"])
+            current_verification = self.kernel.workspace._verify_installed_package(
+                self.app_info["package"]
+            )
             evidence.update(
                 package_verification_status=current_verification["execution_status"],
                 package_tree_sha256=current_verification.get("installed_tree_sha256"),
@@ -680,14 +921,22 @@ class _CapabilityBroker:
             path = request.get("path")
             evidence.update(path=path, allowed=path in capabilities["read"])
             if not _is_safe_relpath(path) or path not in capabilities["read"]:
-                failures.append({"path": str(path), "reason": "read blocked by capability manifest"})
+                failures.append(
+                    {"path": str(path), "reason": "read blocked by capability manifest"}
+                )
             elif not failures:
                 target = Path(self.app_info["install_dir"]) / path
                 install_dir = Path(self.app_info["install_dir"])
-                if target.is_symlink() or not target.resolve().is_relative_to(install_dir.resolve()):
-                    failures.append({"path": path, "reason": "capability read target is unsafe"})
+                if target.is_symlink() or not target.resolve().is_relative_to(
+                    install_dir.resolve()
+                ):
+                    failures.append(
+                        {"path": path, "reason": "capability read target is unsafe"}
+                    )
                 elif not target.is_file():
-                    failures.append({"path": path, "reason": "capability read target missing"})
+                    failures.append(
+                        {"path": path, "reason": "capability read target missing"}
+                    )
                 else:
                     data = target.read_bytes()
                     evidence["sha256"] = hashlib.sha256(data).hexdigest()
@@ -699,24 +948,44 @@ class _CapabilityBroker:
                 data = bytes.fromhex(request.get("data_hex", ""))
             except ValueError:
                 data = b""
-                failures.append({"path": str(path), "reason": "invalid broker write data"})
+                failures.append(
+                    {"path": str(path), "reason": "invalid broker write data"}
+                )
             evidence["sha256"] = hashlib.sha256(data).hexdigest()
             if not _is_safe_relpath(path) or path not in capabilities["write"]:
-                failures.append({"path": str(path), "reason": "write blocked by capability manifest"})
+                failures.append(
+                    {
+                        "path": str(path),
+                        "reason": "write blocked by capability manifest",
+                    }
+                )
             if not failures:
-                target = (self.kernel.workspace.bogos / "appdata" / self.app / path).resolve()
+                target = (
+                    self.kernel.workspace.bogos / "appdata" / self.app / path
+                ).resolve()
                 runtime = (self.kernel.workspace.bogos / "appdata" / self.app).resolve()
                 if not target.is_relative_to(runtime):
-                    failures.append({"path": path, "reason": "broker write escaped appdata"})
+                    failures.append(
+                        {"path": path, "reason": "broker write escaped appdata"}
+                    )
                 else:
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_bytes(data)
                     response.update(size=len(data), sha256=evidence["sha256"])
         elif operation == "env":
             name = request.get("name")
-            evidence.update(name=name, allowed=name in capabilities["env"], value=self.app_info["environment"].get(name))
+            evidence.update(
+                name=name,
+                allowed=name in capabilities["env"],
+                value=self.app_info["environment"].get(name),
+            )
             if name not in capabilities["env"]:
-                failures.append({"path": str(name), "reason": "environment access blocked by capability manifest"})
+                failures.append(
+                    {
+                        "path": str(name),
+                        "reason": "environment access blocked by capability manifest",
+                    }
+                )
             elif not failures:
                 response["value"] = self.app_info["environment"][name]
         elif operation == "dependency":
@@ -724,9 +993,16 @@ class _CapabilityBroker:
             allowed = package in capabilities["dependencies"]
             evidence.update(package=package, allowed=allowed)
             if not allowed:
-                failures.append({"path": str(package), "reason": "dependency access blocked by capability manifest"})
+                failures.append(
+                    {
+                        "path": str(package),
+                        "reason": "dependency access blocked by capability manifest",
+                    }
+                )
             elif not failures:
-                dependency_verification = self.kernel.workspace._verify_installed_package(package)
+                dependency_verification = (
+                    self.kernel.workspace._verify_installed_package(package)
+                )
                 evidence.update(
                     bundle_sha256=dependency_verification.get("bundle_sha256"),
                     verification_status=dependency_verification["execution_status"],
@@ -739,7 +1015,12 @@ class _CapabilityBroker:
             evidence["call_count"] = len(self.calls)
             response["calls"] = list(self.calls)
         else:
-            failures.append({"path": str(operation), "reason": "unknown broker capability operation"})
+            failures.append(
+                {
+                    "path": str(operation),
+                    "reason": "unknown broker capability operation",
+                }
+            )
 
         evidence["execution_status"] = "completed" if not failures else "blocked"
         call = {
@@ -752,7 +1033,12 @@ class _CapabilityBroker:
             "execution_status": evidence["execution_status"],
         }
         self.calls.append(call)
-        return {**response, "receipt": call, "failures": failures, "execution_status": call["execution_status"]}
+        return {
+            **response,
+            "receipt": call,
+            "failures": failures,
+            "execution_status": call["execution_status"],
+        }
 
 
 def _socket_line(connection: socket.socket) -> str:
@@ -767,14 +1053,29 @@ def _socket_line(connection: socket.socket) -> str:
 
 def _resolve_entrypoint(install_dir: Path, entrypoint: list[str]) -> list[str]:
     command = [str(part) for part in entrypoint]
-    if len(command) >= 2 and _is_safe_relpath(command[1]) and (install_dir / command[1]).is_file():
+    if (
+        len(command) >= 2
+        and _is_safe_relpath(command[1])
+        and (install_dir / command[1]).is_file()
+    ):
         command[1] = str((install_dir / command[1]).resolve())
-    elif command and _is_safe_relpath(command[0]) and (install_dir / command[0]).is_file():
+    elif (
+        command
+        and _is_safe_relpath(command[0])
+        and (install_dir / command[0]).is_file()
+    ):
         command[0] = str((install_dir / command[0]).resolve())
     return command
 
 
-def _brokered_environment(app_info: dict, app: str, install_dir: Path, runtime_dir: Path, socket_path: Path, token: str) -> dict[str, str]:
+def _brokered_environment(
+    app_info: dict,
+    app: str,
+    install_dir: Path,
+    runtime_dir: Path,
+    socket_path: Path,
+    token: str,
+) -> dict[str, str]:
     repo = Path(__file__).resolve().parents[1]
     environment = {
         "PATH": os.environ.get("PATH", ""),
@@ -801,8 +1102,13 @@ def _snapshot(root: Path) -> dict[str, str]:
 
 
 def _snapshot_changes(before: dict[str, str], after: dict[str, str]) -> list[str]:
-    return sorted(set(before) ^ set(after) | {path for path in set(before) & set(after) if before[path] != after[path]})
+    return sorted(
+        set(before) ^ set(after)
+        | {path for path in set(before) & set(after) if before[path] != after[path]}
+    )
 
 
 def _stable_hash(obj: object) -> str:
-    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()

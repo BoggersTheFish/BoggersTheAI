@@ -4,9 +4,9 @@ from typing import Any
 
 import numpy as np
 
-from .linear import LINEAR_SOURCE
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
+from .linear import LINEAR_SOURCE
 
 
 def _validate_tensor_runtime(
@@ -15,9 +15,7 @@ def _validate_tensor_runtime(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
 
 def _require_fp32(
@@ -25,10 +23,7 @@ def _require_fp32(
     name: str,
 ) -> None:
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def linear_device(
@@ -42,14 +37,10 @@ def linear_device(
     tile_size: int = 16,
 ) -> tuple[DeviceTensor, dict[str, Any]]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     if tile_size not in {8, 16}:
-        raise ValueError(
-            "tile_size must currently be 8 or 16"
-        )
+        raise ValueError("tile_size must currently be 8 or 16")
 
     for name, tensor in (
         ("inputs", inputs),
@@ -68,19 +59,13 @@ def linear_device(
         )
 
     if inputs.ndim != 2:
-        raise ValueError(
-            "inputs must be two-dimensional"
-        )
+        raise ValueError("inputs must be two-dimensional")
 
     if weights.ndim != 2:
-        raise ValueError(
-            "weights must be two-dimensional"
-        )
+        raise ValueError("weights must be two-dimensional")
 
     if bias.ndim != 1:
-        raise ValueError(
-            "bias must be one-dimensional"
-        )
+        raise ValueError("bias must be one-dimensional")
 
     batch_size, input_features = inputs.shape
     weight_inputs, output_features = weights.shape
@@ -131,10 +116,7 @@ def linear_device(
 
     local_work_items = tile_size * tile_size
 
-    if (
-        local_work_items
-        > runtime.device.max_work_group_size
-    ):
+    if local_work_items > runtime.device.max_work_group_size:
         raise ValueError(
             f"Tile size {tile_size} requires "
             f"{local_work_items} work items, but "
@@ -142,9 +124,7 @@ def linear_device(
             f"{runtime.device.max_work_group_size}"
         )
 
-    compile_options = (
-        f"-DTILE_SIZE={tile_size}",
-    )
+    compile_options = (f"-DTILE_SIZE={tile_size}",)
 
     kernel = runtime.kernel(
         LINEAR_SOURCE,
@@ -204,31 +184,20 @@ def linear_device(
         if elapsed_ms is not None:
             timings_ms.append(elapsed_ms)
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
     floating_point_operations = (
-        2
-        * batch_size
-        * input_features
-        * output_features
-        + batch_size * output_features
+        2 * batch_size * input_features * output_features + batch_size * output_features
     )
 
     gflops = (
-        floating_point_operations
-        / (median_ms * 1e-3)
-        / 1e9
+        floating_point_operations / (median_ms * 1e-3) / 1e9
         if median_ms is not None
         else None
     )
 
     metadata: dict[str, Any] = {
-        "operation":
-            "linear_forward_device_fp32",
+        "operation": "linear_forward_device_fp32",
         "input_shape": list(inputs.shape),
         "weight_shape": list(weights.shape),
         "bias_shape": list(bias.shape),
@@ -238,12 +207,9 @@ def linear_device(
         "median_kernel_ms": median_ms,
         "gflops": gflops,
         "host_transfers_during_repetitions": 0,
-        "output_buffer_reused":
-            output is not None,
-        "source_sha256":
-            runtime.source_hash(LINEAR_SOURCE),
-        "compile_options":
-            list(compile_options),
+        "output_buffer_reused": output is not None,
+        "source_sha256": runtime.source_hash(LINEAR_SOURCE),
+        "compile_options": list(compile_options),
     }
 
     return output, metadata

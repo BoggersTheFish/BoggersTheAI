@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import sys
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -21,7 +21,9 @@ from .types import ReasoningChain
 
 
 def chain_to_graph(chain: ReasoningChain, cig: CIGCheck) -> GraphState:
-    graph = GraphState(metadata={"chain_id": chain.chain_id, "question": chain.question})
+    graph = GraphState(
+        metadata={"chain_id": chain.chain_id, "question": chain.question}
+    )
     for step in chain.steps:
         graph.add_node(
             Node(
@@ -37,7 +39,9 @@ def chain_to_graph(chain: ReasoningChain, cig: CIGCheck) -> GraphState:
             continue
         for symbol in (claim.subject, claim.predicate):
             if symbol not in graph.nodes:
-                graph.add_node(Node(symbol, kind="symbol", activation=0.0, stability=1.0))
+                graph.add_node(
+                    Node(symbol, kind="symbol", activation=0.0, stability=1.0)
+                )
         status = "premise" if claim.source_step_id.startswith("p") else "candidate"
         graph.add_edge(
             Edge(

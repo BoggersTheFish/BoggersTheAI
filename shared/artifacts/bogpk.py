@@ -9,11 +9,10 @@ from __future__ import annotations
 
 import json
 import struct
+import sys
 from enum import Enum
 from pathlib import Path
 from typing import Any
-
-import sys
 
 _CORE_VM = Path(__file__).resolve().parents[2] / "core-vm"
 if str(_CORE_VM) not in sys.path:
@@ -142,10 +141,14 @@ def serialize_artifact(
     """Unified entry point: bytes or dict → .bogpk artifact."""
     if isinstance(payload, dict):
         return serialize_json_payload(payload, path, kind=kind, validate=validate)
-    return serialize_bytes(payload, path, kind=kind, metadata=metadata, validate=validate)
+    return serialize_bytes(
+        payload, path, kind=kind, metadata=metadata, validate=validate
+    )
 
 
-def deserialize_artifact(path: str | Path, *, validate: bool = True) -> tuple[bytes, dict[str, Any]]:
+def deserialize_artifact(
+    path: str | Path, *, validate: bool = True
+) -> tuple[bytes, dict[str, Any]]:
     """Read a .bogpk artifact and return (payload_bytes, container_metadata)."""
     container = read_container(str(path))
     if validate:

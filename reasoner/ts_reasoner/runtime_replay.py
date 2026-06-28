@@ -83,7 +83,9 @@ def evaluate_runtime_replay_cases(cases: Iterable[dict[str, Any]]) -> dict[str, 
         expected_repairs = int(raw["expected_repair_target_count"])
         expected_branches = int(raw["expected_branch_world_count"])
         expected_patches = int(raw["expected_patch_count"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.actions == expected_actions

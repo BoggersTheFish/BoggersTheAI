@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 MSE_SOURCE = r"""
 __kernel void mse_loss_grad_fp32(
     __global const float *prediction,
@@ -45,15 +44,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def mse_loss_grad_device(
@@ -70,9 +64,7 @@ def mse_loss_grad_device(
     dict[str, Any],
 ]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     _validate_tensor(
         runtime,
@@ -95,9 +87,7 @@ def mse_loss_grad_device(
         )
 
     loss_terms_reused = loss_terms is not None
-    grad_prediction_reused = (
-        grad_prediction is not None
-    )
+    grad_prediction_reused = grad_prediction is not None
 
     if loss_terms is None:
         loss_terms = DeviceTensor.empty(
@@ -113,10 +103,7 @@ def mse_loss_grad_device(
         )
 
         if loss_terms.shape != prediction.shape:
-            raise ValueError(
-                "loss_terms shape must match "
-                "prediction"
-            )
+            raise ValueError("loss_terms shape must match " "prediction")
 
     if grad_prediction is None:
         grad_prediction = DeviceTensor.empty(
@@ -131,14 +118,8 @@ def mse_loss_grad_device(
             "grad_prediction",
         )
 
-        if (
-            grad_prediction.shape
-            != prediction.shape
-        ):
-            raise ValueError(
-                "grad_prediction shape must match "
-                "prediction"
-            )
+        if grad_prediction.shape != prediction.shape:
+            raise ValueError("grad_prediction shape must match " "prediction")
 
     kernel = runtime.kernel(
         MSE_SOURCE,
@@ -183,45 +164,29 @@ def mse_loss_grad_device(
         if elapsed_ms is not None:
             timings_ms.append(elapsed_ms)
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
     bytes_processed = (
-        prediction.nbytes
-        + target.nbytes
-        + loss_terms.nbytes
-        + grad_prediction.nbytes
+        prediction.nbytes + target.nbytes + loss_terms.nbytes + grad_prediction.nbytes
     )
 
     bandwidth_gbps = (
-        bytes_processed
-        / (median_ms * 1e-3)
-        / 1e9
-        if median_ms is not None
-        else None
+        bytes_processed / (median_ms * 1e-3) / 1e9 if median_ms is not None else None
     )
 
     metadata: dict[str, Any] = {
-        "operation":
-            "mse_loss_grad_device_fp32",
+        "operation": "mse_loss_grad_device_fp32",
         "shape": list(prediction.shape),
         "element_count": prediction.size,
         "repetitions": repetitions,
         "median_kernel_ms": median_ms,
-        "approximate_bandwidth_gbps":
-            bandwidth_gbps,
+        "approximate_bandwidth_gbps": bandwidth_gbps,
         "buffers_reused": {
-            "loss_terms":
-                loss_terms_reused,
-            "grad_prediction":
-                grad_prediction_reused,
+            "loss_terms": loss_terms_reused,
+            "grad_prediction": grad_prediction_reused,
         },
         "host_transfers_during_repetitions": 0,
-        "source_sha256":
-            runtime.source_hash(MSE_SOURCE),
+        "source_sha256": runtime.source_hash(MSE_SOURCE),
     }
 
     return (

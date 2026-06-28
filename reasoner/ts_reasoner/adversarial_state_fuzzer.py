@@ -34,7 +34,9 @@ def _state_copy(state: dict[str, Any]) -> dict[str, Any]:
     copied["accepted_claims"] = normalize_claims(copied.get("accepted_claims", []))
     copied.setdefault("branch_worlds", [])
     copied.setdefault("repair_targets", [])
-    copied["quarantined_claims"] = normalize_claims(copied.get("quarantined_claims", []))
+    copied["quarantined_claims"] = normalize_claims(
+        copied.get("quarantined_claims", [])
+    )
     copied.setdefault("patches", [])
     return copied
 
@@ -107,12 +109,16 @@ def run_state_fuzz_case(case: dict[str, Any]) -> FuzzResult:
             {
                 "target_claim": normalize_claim(str(mutation["target_claim"])),
                 "repair_type": "missing_bridge",
-                "candidate_bridges": [normalize_claim(str(mutation["candidate_bridge"]))],
+                "candidate_bridges": [
+                    normalize_claim(str(mutation["candidate_bridge"]))
+                ],
                 "accepted_as_proof": False,
             }
         )
         action = "open_repair"
-        explanation = "Bridge candidate opened repair target but was not accepted as proof."
+        explanation = (
+            "Bridge candidate opened repair target but was not accepted as proof."
+        )
 
     return FuzzResult(
         case_id=case_id,
@@ -141,7 +147,9 @@ def evaluate_state_fuzzer_cases(cases: Iterable[dict[str, Any]]) -> dict[str, ob
         expected_accepted = int(raw["expected_accepted_claim_count"])
         expected_quarantined = int(raw["expected_quarantined_claim_count"])
         expected_branches = int(raw["expected_branch_world_count"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.action == expected_action

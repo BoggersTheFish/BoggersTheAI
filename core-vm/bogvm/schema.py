@@ -18,7 +18,9 @@ def validate_schema(instance: object, schema_name: str) -> None:
     if errors:
         error = errors[0]
         location = ".".join(str(part) for part in error.path) or "$"
-        raise SchemaError(f"{schema_name} validation failed at {location}: {error.message}")
+        raise SchemaError(
+            f"{schema_name} validation failed at {location}: {error.message}"
+        )
 
 
 @lru_cache(maxsize=None)

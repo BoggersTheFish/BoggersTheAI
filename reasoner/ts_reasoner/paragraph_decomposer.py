@@ -4,10 +4,12 @@ import re
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from ts_reasoner.claim_normalizer import canonicalize_claim_surface, normalize_claim_surface
+from ts_reasoner.claim_normalizer import (
+    canonicalize_claim_surface,
+    normalize_claim_surface,
+)
 from ts_reasoner.runtime_kernel import normalize_claim
 from ts_reasoner.support_path_verifier import parse_claim
-
 
 SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 QUESTION_PREFIX_RE = re.compile(r"^(is|are|can|does|do|should|could|would)\b")
@@ -74,7 +76,7 @@ def _canonical_statement(sentence: str) -> str | None:
         "it is true that ",
     ):
         if cleaned.startswith(prefix):
-            cleaned = cleaned[len(prefix):].strip()
+            cleaned = cleaned[len(prefix) :].strip()
 
     observed = normalize_claim_surface(cleaned)
     if observed["parse_status"] == "parsed":
@@ -94,7 +96,9 @@ def _known_terms(premises: list[str] | None) -> list[str]:
     return sorted(terms, key=len, reverse=True)
 
 
-def _claim_from_tail_with_known_terms(tail: str, premises: list[str] | None) -> str | None:
+def _claim_from_tail_with_known_terms(
+    tail: str, premises: list[str] | None
+) -> str | None:
     tail = _clean(tail)
     terms = _known_terms(premises)
 
@@ -105,7 +109,7 @@ def _claim_from_tail_with_known_terms(tail: str, premises: list[str] | None) -> 
         if tail == term:
             continue
         if tail.startswith(term + " "):
-            predicate = tail[len(term):].strip()
+            predicate = tail[len(term) :].strip()
             if predicate:
                 return canonicalize_claim_surface(f"{term} is {predicate}")
 
@@ -160,11 +164,15 @@ def question_to_claim(question: str, premises: list[str] | None = None) -> str |
 
     match = DOES_COUNT_AS_RE.match(q)
     if match:
-        return canonicalize_claim_surface(f"{match.group(1)} counts as {match.group(2)}")
+        return canonicalize_claim_surface(
+            f"{match.group(1)} counts as {match.group(2)}"
+        )
 
     match = DOES_BELONG_TO_RE.match(q)
     if match:
-        return canonicalize_claim_surface(f"{match.group(1)} belongs to {match.group(2)}")
+        return canonicalize_claim_surface(
+            f"{match.group(1)} belongs to {match.group(2)}"
+        )
 
     match = DOES_REQUIRE_RE.match(q)
     if match:

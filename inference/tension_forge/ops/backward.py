@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 BACKWARD_SOURCE = r"""
 __kernel void tanh_backward_fp32(
     __global const float *output,
@@ -97,15 +96,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def _activation_backward_device(
@@ -119,9 +113,7 @@ def _activation_backward_device(
     repetitions: int = 1,
 ) -> tuple[DeviceTensor, dict[str, Any]]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     _validate_tensor(
         runtime,
@@ -136,9 +128,7 @@ def _activation_backward_device(
     )
 
     if output.shape != grad_output.shape:
-        raise ValueError(
-            "output and grad_output shapes must match"
-        )
+        raise ValueError("output and grad_output shapes must match")
 
     buffer_reused = grad_input is not None
 
@@ -156,9 +146,7 @@ def _activation_backward_device(
         )
 
         if grad_input.shape != output.shape:
-            raise ValueError(
-                "grad_input shape must match output"
-            )
+            raise ValueError("grad_input shape must match output")
 
     kernel = runtime.kernel(
         BACKWARD_SOURCE,
@@ -202,24 +190,12 @@ def _activation_backward_device(
         if elapsed_ms is not None:
             timings_ms.append(elapsed_ms)
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
-    bytes_processed = (
-        output.nbytes
-        + grad_output.nbytes
-        + grad_input.nbytes
-    )
+    bytes_processed = output.nbytes + grad_output.nbytes + grad_input.nbytes
 
     bandwidth_gbps = (
-        bytes_processed
-        / (median_ms * 1e-3)
-        / 1e9
-        if median_ms is not None
-        else None
+        bytes_processed / (median_ms * 1e-3) / 1e9 if median_ms is not None else None
     )
 
     metadata: dict[str, Any] = {
@@ -228,15 +204,10 @@ def _activation_backward_device(
         "element_count": output.size,
         "repetitions": repetitions,
         "median_kernel_ms": median_ms,
-        "approximate_bandwidth_gbps":
-            bandwidth_gbps,
-        "grad_input_buffer_reused":
-            buffer_reused,
+        "approximate_bandwidth_gbps": bandwidth_gbps,
+        "grad_input_buffer_reused": buffer_reused,
         "host_transfers_during_repetitions": 0,
-        "source_sha256":
-            runtime.source_hash(
-                BACKWARD_SOURCE
-            ),
+        "source_sha256": runtime.source_hash(BACKWARD_SOURCE),
     }
 
     return grad_input, metadata
@@ -298,9 +269,7 @@ def tension_update_backward_device(
     dict[str, Any],
 ]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     for name, tensor in (
         ("state", state),
@@ -314,16 +283,8 @@ def tension_update_backward_device(
             name,
         )
 
-    if not (
-        state.shape
-        == proposal.shape
-        == gate.shape
-        == grad_output.shape
-    ):
-        raise ValueError(
-            "state, proposal, gate, and grad_output "
-            "shapes must match"
-        )
+    if not (state.shape == proposal.shape == gate.shape == grad_output.shape):
+        raise ValueError("state, proposal, gate, and grad_output " "shapes must match")
 
     reused = {
         "grad_state": grad_state is not None,
@@ -364,9 +325,7 @@ def tension_update_backward_device(
         )
 
         if tensor.shape != state.shape:
-            raise ValueError(
-                f"{name} shape must match state"
-            )
+            raise ValueError(f"{name} shape must match state")
 
     kernel = runtime.kernel(
         BACKWARD_SOURCE,
@@ -414,11 +373,7 @@ def tension_update_backward_device(
         if elapsed_ms is not None:
             timings_ms.append(elapsed_ms)
 
-    median_ms = (
-        float(np.median(timings_ms))
-        if timings_ms
-        else None
-    )
+    median_ms = float(np.median(timings_ms)) if timings_ms else None
 
     bytes_processed = (
         state.nbytes
@@ -431,28 +386,19 @@ def tension_update_backward_device(
     )
 
     bandwidth_gbps = (
-        bytes_processed
-        / (median_ms * 1e-3)
-        / 1e9
-        if median_ms is not None
-        else None
+        bytes_processed / (median_ms * 1e-3) / 1e9 if median_ms is not None else None
     )
 
     metadata: dict[str, Any] = {
-        "operation":
-            "tension_update_backward_device_fp32",
+        "operation": "tension_update_backward_device_fp32",
         "shape": list(state.shape),
         "element_count": state.size,
         "repetitions": repetitions,
         "median_kernel_ms": median_ms,
-        "approximate_bandwidth_gbps":
-            bandwidth_gbps,
+        "approximate_bandwidth_gbps": bandwidth_gbps,
         "buffers_reused": reused,
         "host_transfers_during_repetitions": 0,
-        "source_sha256":
-            runtime.source_hash(
-                BACKWARD_SOURCE
-            ),
+        "source_sha256": runtime.source_hash(BACKWARD_SOURCE),
     }
 
     return (

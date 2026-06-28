@@ -103,6 +103,11 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",  # black handles line length
+    "E402",  # module level import not at top - legacy code in core-vm/reasoner
+    "E741",  # ambiguous var l - in legacy/demo code
+]
 
 [tool.isort]
 profile = "black"

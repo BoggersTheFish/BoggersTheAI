@@ -5,9 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .signing import canonical_bytes, sign_object, verify_object_signature
 from .schema import validate_schema
-
+from .signing import canonical_bytes, sign_object, verify_object_signature
 
 PROGRAM_FORMAT = "BOGCELL-program-10.0"
 BUILD_FORMAT = "BOGBUILD-receipt-10.0"
@@ -17,7 +16,9 @@ class BogCellError(Exception):
     pass
 
 
-def compile_source(source_path: str | Path, output_dir: str | Path, signing_key: str | Path) -> dict:
+def compile_source(
+    source_path: str | Path, output_dir: str | Path, signing_key: str | Path
+) -> dict:
     source_path = Path(source_path)
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -43,7 +44,13 @@ def compile_source(source_path: str | Path, output_dir: str | Path, signing_key:
             registers[parts[3]] = "receipt"
         elif len(parts) >= 3 and parts[0] == "write":
             value = " ".join(parts[2:])
-            instructions.append(["WRITE", parts[1], {"register": value[1:]} if value.startswith("$") else value])
+            instructions.append(
+                [
+                    "WRITE",
+                    parts[1],
+                    {"register": value[1:]} if value.startswith("$") else value,
+                ]
+            )
             capabilities["write"].append(parts[1])
         elif len(parts) == 2 and parts[0] == "exit" and parts[1].lstrip("-").isdigit():
             instructions.append(["EXIT", int(parts[1])])
@@ -68,7 +75,9 @@ def compile_source(source_path: str | Path, output_dir: str | Path, signing_key:
         "source_sha256": source_hash,
         "compiler": compiler,
         "bytecode_sha256": bytecode_hash,
-        "capabilities": {key: sorted(set(value)) for key, value in capabilities.items()},
+        "capabilities": {
+            key: sorted(set(value)) for key, value in capabilities.items()
+        },
     }
     receipt = {**unsigned, "compiler_signature": sign_object(unsigned, signing_key)}
     validate_schema(receipt, "bogbuild-receipt.schema.json")
@@ -88,7 +97,9 @@ class BogCell:
         app_info = self.workspace.state.get("apps", {}).get(app)
         failures = []
         if not app_info or not app_info.get("cell_program"):
-            failures.append({"path": app, "reason": "installed app is not a BogCell app"})
+            failures.append(
+                {"path": app, "reason": "installed app is not a BogCell app"}
+            )
             return self._receipt(app, None, None, [], {}, failures, None)
         verification = self.workspace._verify_installed_package(app_info["package"])
         failures.extend(verification.get("failures", []))
@@ -98,19 +109,37 @@ class BogCell:
         build_path = install_dir / app_info.get("build_receipt", "build_receipt.json")
         try:
             build_receipt = json.loads(build_path.read_text())
-            build_verification = verify_build_receipt(build_receipt, self.workspace._trusted_public_keys())
+            build_verification = verify_build_receipt(
+                build_receipt, self.workspace._trusted_public_keys()
+            )
             failures.extend(build_verification["failures"])
             if build_receipt.get("bytecode_sha256") != _file_hash(program_path):
-                failures.append({"path": str(program_path), "reason": "BogCell bytecode does not match signed build receipt"})
+                failures.append(
+                    {
+                        "path": str(program_path),
+                        "reason": "BogCell bytecode does not match signed build receipt",
+                    }
+                )
         except (OSError, json.JSONDecodeError) as exc:
-            failures.append({"path": str(build_path), "reason": f"invalid BogBuild receipt: {exc}"})
+            failures.append(
+                {"path": str(build_path), "reason": f"invalid BogBuild receipt: {exc}"}
+            )
         try:
             program = json.loads(program_path.read_text())
         except (OSError, json.JSONDecodeError) as exc:
-            failures.append({"path": str(program_path), "reason": f"invalid BogCell program: {exc}"})
-            return self._receipt(app, verification, build_verification, [], {}, failures, None)
+            failures.append(
+                {"path": str(program_path), "reason": f"invalid BogCell program: {exc}"}
+            )
+            return self._receipt(
+                app, verification, build_verification, [], {}, failures, None
+            )
         if program.get("format") != PROGRAM_FORMAT:
-            failures.append({"path": str(program_path), "reason": "unsupported BogCell program format"})
+            failures.append(
+                {
+                    "path": str(program_path),
+                    "reason": "unsupported BogCell program format",
+                }
+            )
         else:
             try:
                 validate_schema(program, "bogcell-program.schema.json")
@@ -122,7 +151,9 @@ class BogCell:
         exit_code = None
         if not failures:
             for sequence, instruction in enumerate(program.get("instructions", []), 1):
-                call, value = self._execute(app_info, capabilities, instruction, sequence, registers)
+                call, value = self._execute(
+                    app_info, capabilities, instruction, sequence, registers
+                )
                 calls.append(call)
                 if call["execution_status"] == "blocked":
                     failures.extend(call["failures"])
@@ -132,11 +163,32 @@ class BogCell:
                 if instruction[0] == "EXIT":
                     exit_code = instruction[1]
                     if exit_code != 0:
-                        failures.append({"path": app, "reason": f"BogCell exited with code {exit_code}"})
+                        failures.append(
+                            {
+                                "path": app,
+                                "reason": f"BogCell exited with code {exit_code}",
+                            }
+                        )
                     break
-        return self._receipt(app, verification, build_verification, calls, registers, failures, exit_code, program=program)
+        return self._receipt(
+            app,
+            verification,
+            build_verification,
+            calls,
+            registers,
+            failures,
+            exit_code,
+            program=program,
+        )
 
-    def _execute(self, app_info: dict, capabilities: dict, instruction: list, sequence: int, registers: dict) -> tuple[dict, Any]:
+    def _execute(
+        self,
+        app_info: dict,
+        capabilities: dict,
+        instruction: list,
+        sequence: int,
+        registers: dict,
+    ) -> tuple[dict, Any]:
         operation = instruction[0] if instruction else "INVALID"
         evidence: dict[str, Any] = {"operation": operation, "instruction": instruction}
         failures = []
@@ -145,8 +197,19 @@ class BogCell:
             path = instruction[1]
             evidence["allowed"] = path in capabilities.get("read", [])
             target = Path(app_info["install_dir"]) / path
-            if not evidence["allowed"] or not target.is_file() or not target.resolve().is_relative_to(Path(app_info["install_dir"]).resolve()):
-                failures.append({"path": path, "reason": "BogCell read blocked by capability manifest"})
+            if (
+                not evidence["allowed"]
+                or not target.is_file()
+                or not target.resolve().is_relative_to(
+                    Path(app_info["install_dir"]).resolve()
+                )
+            ):
+                failures.append(
+                    {
+                        "path": path,
+                        "reason": "BogCell read blocked by capability manifest",
+                    }
+                )
             else:
                 value = target.read_bytes()
                 evidence["sha256"] = hashlib.sha256(value).hexdigest()
@@ -154,33 +217,74 @@ class BogCell:
             path, raw = instruction[1], instruction[2]
             evidence["allowed"] = path in capabilities.get("write", [])
             if not evidence["allowed"]:
-                failures.append({"path": path, "reason": "BogCell write blocked by capability manifest"})
+                failures.append(
+                    {
+                        "path": path,
+                        "reason": "BogCell write blocked by capability manifest",
+                    }
+                )
             else:
-                value_data = registers.get(raw["register"]) if isinstance(raw, dict) and "register" in raw else raw
+                value_data = (
+                    registers.get(raw["register"])
+                    if isinstance(raw, dict) and "register" in raw
+                    else raw
+                )
                 if isinstance(value_data, dict):
                     value_data = json.dumps(value_data, sort_keys=True)
-                write = self.genesis.fs_write(path, value_data if value_data is not None else "", capability=app_info["name"])
-                evidence.update(object_sha256=write["object_sha256"], state_root_sha256=write["after_root_sha256"])
+                write = self.genesis.fs_write(
+                    path,
+                    value_data if value_data is not None else "",
+                    capability=app_info["name"],
+                )
+                evidence.update(
+                    object_sha256=write["object_sha256"],
+                    state_root_sha256=write["after_root_sha256"],
+                )
         elif operation == "ENV" and len(instruction) == 3:
             name = instruction[1]
             evidence["allowed"] = name in capabilities.get("env", [])
             if not evidence["allowed"]:
-                failures.append({"path": name, "reason": "BogCell environment access blocked by capability manifest"})
+                failures.append(
+                    {
+                        "path": name,
+                        "reason": "BogCell environment access blocked by capability manifest",
+                    }
+                )
             else:
                 value = app_info.get("cell_environment", {}).get(name)
-                evidence["value_sha256"] = hashlib.sha256(str(value).encode()).hexdigest()
+                evidence["value_sha256"] = hashlib.sha256(
+                    str(value).encode()
+                ).hexdigest()
         elif operation == "DEPENDENCY" and len(instruction) == 3:
             package = instruction[1]
             evidence["allowed"] = package in capabilities.get("dependencies", [])
-            value = self.workspace._verify_installed_package(package) if evidence["allowed"] else None
+            value = (
+                self.workspace._verify_installed_package(package)
+                if evidence["allowed"]
+                else None
+            )
             if not evidence["allowed"] or value["execution_status"] != "completed":
-                failures.append({"path": package, "reason": "BogCell dependency access blocked or unverified"})
+                failures.append(
+                    {
+                        "path": package,
+                        "reason": "BogCell dependency access blocked or unverified",
+                    }
+                )
             else:
                 evidence["bundle_sha256"] = value["bundle_sha256"]
-        elif operation == "EXIT" and len(instruction) == 2 and isinstance(instruction[1], int):
+        elif (
+            operation == "EXIT"
+            and len(instruction) == 2
+            and isinstance(instruction[1], int)
+        ):
             evidence["exit_code"] = instruction[1]
         else:
-            failures.append({"path": str(instruction), "reason": "unknown or malformed BogCell instruction"})
+            failures.append(
+                {
+                    "path": str(instruction),
+                    "reason": "unknown or malformed BogCell instruction",
+                }
+            )
         evidence["execution_status"] = "completed" if not failures else "blocked"
         call = {
             "format": "BOGCELL-capability-receipt-10.0",
@@ -192,10 +296,22 @@ class BogCell:
         }
         return call, value
 
-    def _receipt(self, app: str, verification: dict | None, build_verification: dict | None, calls: list, registers: dict, failures: list, exit_code: int | None, program: dict | None = None) -> dict:
+    def _receipt(
+        self,
+        app: str,
+        verification: dict | None,
+        build_verification: dict | None,
+        calls: list,
+        registers: dict,
+        failures: list,
+        exit_code: int | None,
+        program: dict | None = None,
+    ) -> dict:
         proof = {
             "app": app,
-            "package_bundle_sha256": verification.get("bundle_sha256") if verification else None,
+            "package_bundle_sha256": (
+                verification.get("bundle_sha256") if verification else None
+            ),
             "program_sha256": _stable_hash(program) if program else None,
             "call_evidence": [call["evidence_sha256"] for call in calls],
             "final_state_root_sha256": self.genesis.current_root(),
@@ -208,7 +324,10 @@ class BogCell:
             "build_verification": build_verification,
             "raw_syscall_surface": [],
             "capability_receipts": calls,
-            "register_hashes": {key: hashlib.sha256(_bytes(value)).hexdigest() for key, value in sorted(registers.items())},
+            "register_hashes": {
+                key: hashlib.sha256(_bytes(value)).hexdigest()
+                for key, value in sorted(registers.items())
+            },
             "final_state_root_sha256": self.genesis.current_root(),
             "exit_code": exit_code,
             "proof_material": proof,
@@ -226,13 +345,21 @@ def verify_build_receipt(receipt: dict, trusted_keys: list[str | Path]) -> dict:
         "compiler_signature_verified": result["verified"],
         "source_sha256": receipt.get("source_sha256"),
         "bytecode_sha256": receipt.get("bytecode_sha256"),
-        "failures": [] if result["verified"] else [{"path": "build_receipt.json", "reason": result["reason"]}],
+        "failures": (
+            []
+            if result["verified"]
+            else [{"path": "build_receipt.json", "reason": result["reason"]}]
+        ),
         "execution_status": "completed" if result["verified"] else "blocked",
     }
 
 
 def _bytes(value: Any) -> bytes:
-    return value if isinstance(value, bytes) else canonical_bytes(value) if isinstance(value, dict) else str(value).encode()
+    return (
+        value
+        if isinstance(value, bytes)
+        else canonical_bytes(value) if isinstance(value, dict) else str(value).encode()
+    )
 
 
 def _file_hash(path: Path) -> str:

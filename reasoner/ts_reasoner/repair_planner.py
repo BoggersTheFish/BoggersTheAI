@@ -11,13 +11,12 @@ Boundary:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from ts_reasoner.answer_arena import Relation
 from ts_reasoner.chat_repair import RepairTarget, repair_to_dict
 from ts_reasoner.common_ground import CommonGround
-
 
 SCHEMA = "ts_reasoner_repair_plan_v1"
 RELEASE = "v7.5.0"
@@ -90,7 +89,9 @@ def _step(step_id: str, action: str, text: str) -> RepairPlanStep:
     )
 
 
-def _missing_support_plans(common_ground: CommonGround, repair: RepairTarget) -> list[RepairPlan]:
+def _missing_support_plans(
+    common_ground: CommonGround, repair: RepairTarget
+) -> list[RepairPlan]:
     assert repair.relation is not None
     relation = repair.relation
     plans: list[RepairPlan] = []
@@ -105,7 +106,11 @@ def _missing_support_plans(common_ground: CommonGround, repair: RepairTarget) ->
             description="Add the exact bounded premise as typed support, if it is genuinely accepted.",
             steps=[
                 _step("step_001", "add_premise", relation_text(relation)),
-                _step("step_002", "verify", f"ask again: are all {relation.subject} {relation.object}?"),
+                _step(
+                    "step_002",
+                    "verify",
+                    f"ask again: are all {relation.subject} {relation.object}?",
+                ),
             ],
         )
     )
@@ -121,9 +126,19 @@ def _missing_support_plans(common_ground: CommonGround, repair: RepairTarget) ->
                 strategy="bridge_support",
                 description="Create a two-hop support path through a bounded bridge term.",
                 steps=[
-                    _step("step_001", "add_premise", f"all {relation.subject} are {bridge}"),
-                    _step("step_002", "add_premise", f"all {bridge} are {relation.object}"),
-                    _step("step_003", "verify", f"ask again: are all {relation.subject} {relation.object}?"),
+                    _step(
+                        "step_001",
+                        "add_premise",
+                        f"all {relation.subject} are {bridge}",
+                    ),
+                    _step(
+                        "step_002", "add_premise", f"all {bridge} are {relation.object}"
+                    ),
+                    _step(
+                        "step_003",
+                        "verify",
+                        f"ask again: are all {relation.subject} {relation.object}?",
+                    ),
                 ],
             )
         )
@@ -137,7 +152,11 @@ def _missing_support_plans(common_ground: CommonGround, repair: RepairTarget) ->
             strategy="keep_open",
             description="Keep the repair target open until real typed support is available.",
             steps=[
-                _step("step_001", "preserve_repair", f"leave unsupported claim unresolved: {relation_text(relation)}"),
+                _step(
+                    "step_001",
+                    "preserve_repair",
+                    f"leave unsupported claim unresolved: {relation_text(relation)}",
+                ),
             ],
         )
     )
@@ -145,7 +164,9 @@ def _missing_support_plans(common_ground: CommonGround, repair: RepairTarget) ->
     return plans
 
 
-def _contradiction_plans(common_ground: CommonGround, repair: RepairTarget) -> list[RepairPlan]:
+def _contradiction_plans(
+    common_ground: CommonGround, repair: RepairTarget
+) -> list[RepairPlan]:
     assert repair.relation is not None
     relation = repair.relation
     support_path = common_ground.support_path(relation)
@@ -160,7 +181,11 @@ def _contradiction_plans(common_ground: CommonGround, repair: RepairTarget) -> l
             description="Keep the negative claim rejected because positive support exists.",
             steps=[
                 _step("step_001", "keep_rejected", negative_relation_text(relation)),
-                _step("step_002", "preserve_support_path", "keep accepted support path unchanged"),
+                _step(
+                    "step_002",
+                    "preserve_support_path",
+                    "keep accepted support path unchanged",
+                ),
             ],
         )
     ]
@@ -175,8 +200,16 @@ def _contradiction_plans(common_ground: CommonGround, repair: RepairTarget) -> l
                 strategy="dispute_support_premise",
                 description="Resolve contradiction only by explicitly disputing one accepted support premise.",
                 steps=[
-                    _step("step_001", "inspect_premise", f"all {edge['subject']} are {edge['object']}"),
-                    _step("step_002", "require_evidence", "do not remove accepted support without explicit typed justification"),
+                    _step(
+                        "step_001",
+                        "inspect_premise",
+                        f"all {edge['subject']} are {edge['object']}",
+                    ),
+                    _step(
+                        "step_002",
+                        "require_evidence",
+                        "do not remove accepted support without explicit typed justification",
+                    ),
                 ],
             )
         )
@@ -190,8 +223,16 @@ def _contradiction_plans(common_ground: CommonGround, repair: RepairTarget) -> l
             strategy="split_or_refine",
             description="Refine the negative claim into a narrower bounded claim before rechecking.",
             steps=[
-                _step("step_001", "refine_claim", f"replace '{negative_relation_text(relation)}' with a narrower bounded claim"),
-                _step("step_002", "recheck", "run contradiction check again after refinement"),
+                _step(
+                    "step_001",
+                    "refine_claim",
+                    f"replace '{negative_relation_text(relation)}' with a narrower bounded claim",
+                ),
+                _step(
+                    "step_002",
+                    "recheck",
+                    "run contradiction check again after refinement",
+                ),
             ],
         )
     )
@@ -218,8 +259,17 @@ def _parse_failure_plans(repair: RepairTarget) -> list[RepairPlan]:
     ]
 
 
-def generate_repair_plans(common_ground: CommonGround, repair_id: str) -> dict[str, Any]:
-    repair = next((target for target in common_ground.repair_targets if target.repair_id == repair_id), None)
+def generate_repair_plans(
+    common_ground: CommonGround, repair_id: str
+) -> dict[str, Any]:
+    repair = next(
+        (
+            target
+            for target in common_ground.repair_targets
+            if target.repair_id == repair_id
+        ),
+        None,
+    )
     if repair is None:
         raise KeyError(f"Unknown repair target: {repair_id}")
 
@@ -259,10 +309,18 @@ def generate_repair_plans(common_ground: CommonGround, repair_id: str) -> dict[s
         "target_relation": _relation_to_dict(repair.relation),
         "plan_count": len(plan_dicts),
         "plans": plan_dicts,
-        "all_plans_create_no_proof": all(plan["creates_proof"] is False for plan in plan_dicts),
-        "all_plans_not_auto_applied": all(plan["auto_apply"] is False for plan in plan_dicts),
-        "all_plans_require_user_confirmation": all(plan["requires_user_confirmation"] is True for plan in plan_dicts),
-        "all_plans_require_typed_verifier": all(plan["requires_typed_verifier"] is True for plan in plan_dicts),
+        "all_plans_create_no_proof": all(
+            plan["creates_proof"] is False for plan in plan_dicts
+        ),
+        "all_plans_not_auto_applied": all(
+            plan["auto_apply"] is False for plan in plan_dicts
+        ),
+        "all_plans_require_user_confirmation": all(
+            plan["requires_user_confirmation"] is True for plan in plan_dicts
+        ),
+        "all_plans_require_typed_verifier": all(
+            plan["requires_typed_verifier"] is True for plan in plan_dicts
+        ),
         "candidate_graph_contamination_count": 0,
         "external_llm_used": False,
         "repair_plans_are_not_proof": True,

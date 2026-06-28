@@ -10,10 +10,9 @@ v5.6 boundary:
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
-
 
 VERSION = "ts_chat_v0.6"
 
@@ -66,9 +65,7 @@ def repair_targets_to_curriculum_entries(
             or f"repair_{index}"
         )
         repair_type = str(
-            _safe_get(target, "repair_type")
-            or _safe_get(target, "type")
-            or "unknown"
+            _safe_get(target, "repair_type") or _safe_get(target, "type") or "unknown"
         )
         source_turn_id = str(
             _safe_get(target, "source_turn_id")
@@ -82,8 +79,12 @@ def repair_targets_to_curriculum_entries(
             or turn_text_by_id.get(source_turn_id, "")
         )
 
-        target_claim_text = _safe_get(target, "target_claim_text") or _safe_get(target, "claim_text")
-        target_parse_text = _safe_get(target, "target_parse_text") or _safe_get(target, "parse_text")
+        target_claim_text = _safe_get(target, "target_claim_text") or _safe_get(
+            target, "claim_text"
+        )
+        target_parse_text = _safe_get(target, "target_parse_text") or _safe_get(
+            target, "parse_text"
+        )
 
         status = str(_safe_get(target, "status", "open"))
         expected_resolution_status = "resolved" if status == "resolved" else "open"
@@ -111,7 +112,9 @@ def repair_targets_to_curriculum_entries(
     return entries
 
 
-def write_curriculum_jsonl(entries: Iterable[RepairCurriculumEntry], path: str | Path) -> None:
+def write_curriculum_jsonl(
+    entries: Iterable[RepairCurriculumEntry], path: str | Path
+) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
@@ -143,13 +146,9 @@ def evaluate_curriculum_entries(entries: List[Dict[str, Any]]) -> Dict[str, Any]
     )
 
     unsupported_safe = all(
-        e.get("expected_status") == "repair_target"
-        for e in missing_support
+        e.get("expected_status") == "repair_target" for e in missing_support
     )
-    parse_safe = all(
-        e.get("expected_status") == "repair_target"
-        for e in parse_failure
-    )
+    parse_safe = all(e.get("expected_status") == "repair_target" for e in parse_failure)
 
     resolved_repairs_preserved = any(
         e.get("repair_type") == "missing_support"

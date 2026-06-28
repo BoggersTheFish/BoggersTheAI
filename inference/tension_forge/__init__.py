@@ -19,6 +19,7 @@ except ImportError:
     def find_opencl_device(*_args, **_kwargs):  # type: ignore[misc]
         return None
 
+
 __all__ = [
     "BogpkTensionForgeRuntime",
     "DeviceInfo",

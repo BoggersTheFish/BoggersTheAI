@@ -17,14 +17,19 @@ class LogicTransitivityChannel(TensionChannel):
         ]
 
     def _has_usable_edge(self, graph: GraphState, source: str, target: str) -> bool:
-        return any(edge.source == source and edge.target == target for edge in self._usable_edges(graph))
+        return any(
+            edge.source == source and edge.target == target
+            for edge in self._usable_edges(graph)
+        )
 
     def _missing(self, graph: GraphState) -> list[tuple[str, str, str]]:
         missing = []
         edges = self._usable_edges(graph)
         for left in edges:
             for right in edges:
-                if left.target == right.source and not self._has_usable_edge(graph, left.source, right.target):
+                if left.target == right.source and not self._has_usable_edge(
+                    graph, left.source, right.target
+                ):
                     missing.append((left.source, left.target, right.target))
         return missing
 

@@ -71,13 +71,17 @@ def generate_response_candidates(
 
     question_records = [r for r in records if r.get("kind") == "question"]
     accepted_questions = [r for r in question_records if r.get("status") == "accepted"]
-    abstained_questions = [r for r in question_records if r.get("status") == "abstained"]
+    abstained_questions = [
+        r for r in question_records if r.get("status") == "abstained"
+    ]
 
     requested_records = [r for r in records if r.get("kind") == "requested_claim"]
     rejected_requests = [r for r in requested_records if r.get("status") == "rejected"]
     accepted_requests = [r for r in requested_records if r.get("status") == "accepted"]
 
-    contradiction_records = [r for r in records if r.get("kind") == "contradiction_claim"]
+    contradiction_records = [
+        r for r in records if r.get("kind") == "contradiction_claim"
+    ]
     negative_records = [r for r in records if r.get("kind") == "negative_claim"]
 
     premise_records = [r for r in records if r.get("kind") == "asserted_premise"]
@@ -126,7 +130,9 @@ def generate_response_candidates(
     if abstained_questions:
         lines = []
         for record in abstained_questions:
-            lines.append(f"I cannot determine that {record_relation_text(record)} from the current common ground.")
+            lines.append(
+                f"I cannot determine that {record_relation_text(record)} from the current common ground."
+            )
             lines.append("Verifier: abstained; support is missing.")
         add(
             "abstain_missing_support",
@@ -138,8 +144,12 @@ def generate_response_candidates(
     if rejected_requests:
         lines = []
         for record in rejected_requests:
-            lines.append(f"I cannot support the requested claim: {record_relation_text(record)}.")
-            lines.append("Verifier: rejected; unsupported requested claim was not added to common ground.")
+            lines.append(
+                f"I cannot support the requested claim: {record_relation_text(record)}."
+            )
+            lines.append(
+                "Verifier: rejected; unsupported requested claim was not added to common ground."
+            )
         for repair in open_repairs:
             lines.append("Repair targets:")
             lines.append(f"- {repair['repair_id']}: {repair['message']}")
@@ -154,8 +164,12 @@ def generate_response_candidates(
         lines = []
         for record in contradiction_records:
             relation = record["relation"]
-            lines.append(f"Rejected contradiction: no {relation['subject']} are {relation['object']}.")
-            lines.append("Verifier: rejected; negative claim conflicts with accepted common-ground support.")
+            lines.append(
+                f"Rejected contradiction: no {relation['subject']} are {relation['object']}."
+            )
+            lines.append(
+                "Verifier: rejected; negative claim conflicts with accepted common-ground support."
+            )
             if record.get("support_path"):
                 lines.append("Contradiction path:")
                 for edge in record["support_path"]:
@@ -167,15 +181,23 @@ def generate_response_candidates(
             "reject_live_contradiction",
             "\n".join(lines),
             1.45 + 0.25 * len(contradiction_records),
-            ["blocks contradiction", "uses accepted support path", "creates repair target"],
+            [
+                "blocks contradiction",
+                "uses accepted support path",
+                "creates repair target",
+            ],
         )
 
     if negative_records:
         lines = []
         for record in negative_records:
             relation = record["relation"]
-            lines.append(f"I cannot accept the negative claim: no {relation['subject']} are {relation['object']}.")
-            lines.append("Verifier: abstained; no positive support path exists to contradict.")
+            lines.append(
+                f"I cannot accept the negative claim: no {relation['subject']} are {relation['object']}."
+            )
+            lines.append(
+                "Verifier: abstained; no positive support path exists to contradict."
+            )
         add(
             "abstain_negative_claim",
             "\n".join(lines),
@@ -186,7 +208,9 @@ def generate_response_candidates(
     if accepted_requests:
         lines = []
         for record in accepted_requests:
-            lines.append(f"I can support the requested claim: {record_relation_text(record)}.")
+            lines.append(
+                f"I can support the requested claim: {record_relation_text(record)}."
+            )
             lines.append("Verifier: accepted from common-ground support.")
         add(
             "accept_supported_requested_claim",
@@ -238,7 +262,10 @@ def generate_response_candidates(
 
     if discourse_markers and candidates:
         # Candidate language can notice discourse without owning truth.
-        best_text = candidates[0].text + f"\nDiscourse markers noticed: {', '.join(discourse_markers)}."
+        best_text = (
+            candidates[0].text
+            + f"\nDiscourse markers noticed: {', '.join(discourse_markers)}."
+        )
         add(
             "discourse_marker_append",
             best_text,

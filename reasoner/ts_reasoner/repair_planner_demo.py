@@ -13,7 +13,6 @@ from ts_reasoner.repair_planner import (
 )
 from ts_reasoner.ts_chat import TSChatSession, receipt_to_dict
 
-
 RELEASE = "v7.5.0"
 
 
@@ -35,16 +34,22 @@ def run_repair_planner_demo(out_dir: str | Path) -> dict[str, Any]:
     receipt_dicts = [receipt_to_dict(receipt) for receipt in receipts]
 
     missing_support_repair = next(
-        repair for repair in session.common_ground.repair_targets
+        repair
+        for repair in session.common_ground.repair_targets
         if repair.kind == "missing_support"
     )
     contradiction_repair = next(
-        repair for repair in session.common_ground.repair_targets
+        repair
+        for repair in session.common_ground.repair_targets
         if repair.kind == "contradiction"
     )
 
-    missing_support_bundle = generate_repair_plans(session.common_ground, missing_support_repair.repair_id)
-    contradiction_bundle = generate_repair_plans(session.common_ground, contradiction_repair.repair_id)
+    missing_support_bundle = generate_repair_plans(
+        session.common_ground, missing_support_repair.repair_id
+    )
+    contradiction_bundle = generate_repair_plans(
+        session.common_ground, contradiction_repair.repair_id
+    )
 
     missing_support_rendered = render_repair_plan_bundle(missing_support_bundle)
     contradiction_rendered = render_repair_plan_bundle(contradiction_bundle)
@@ -54,7 +59,9 @@ def run_repair_planner_demo(out_dir: str | Path) -> dict[str, Any]:
     report_path = out / "repair_planner_report.json"
     receipt_path = out / "repair_planner_receipt.json"
 
-    session_path.write_text(json.dumps(receipt_dicts, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    session_path.write_text(
+        json.dumps(receipt_dicts, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     bundle_path.write_text(
         json.dumps(
             {
@@ -71,19 +78,25 @@ def run_repair_planner_demo(out_dir: str | Path) -> dict[str, Any]:
     )
 
     gates = {
-        "missing_support_bundle_valid": repair_plan_bundle_valid(missing_support_bundle),
+        "missing_support_bundle_valid": repair_plan_bundle_valid(
+            missing_support_bundle
+        ),
         "contradiction_bundle_valid": repair_plan_bundle_valid(contradiction_bundle),
         "missing_support_has_bridge_plan": any(
-            plan["strategy"] == "bridge_support" for plan in missing_support_bundle["plans"]
+            plan["strategy"] == "bridge_support"
+            for plan in missing_support_bundle["plans"]
         ),
         "missing_support_has_direct_plan": any(
-            plan["strategy"] == "direct_support" for plan in missing_support_bundle["plans"]
+            plan["strategy"] == "direct_support"
+            for plan in missing_support_bundle["plans"]
         ),
         "contradiction_has_keep_rejected_plan": any(
-            plan["strategy"] == "keep_negative_rejected" for plan in contradiction_bundle["plans"]
+            plan["strategy"] == "keep_negative_rejected"
+            for plan in contradiction_bundle["plans"]
         ),
         "contradiction_has_dispute_support_plan": any(
-            plan["strategy"] == "dispute_support_premise" for plan in contradiction_bundle["plans"]
+            plan["strategy"] == "dispute_support_premise"
+            for plan in contradiction_bundle["plans"]
         ),
         "plans_create_no_proof": (
             missing_support_bundle["all_plans_create_no_proof"]
@@ -140,8 +153,12 @@ def run_repair_planner_demo(out_dir: str | Path) -> dict[str, Any]:
         "all_gates_passed": receipt["all_gates_passed"],
     }
 
-    receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    receipt_path.write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    report_path.write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     receipt["receipt_path"] = str(receipt_path)
     return receipt

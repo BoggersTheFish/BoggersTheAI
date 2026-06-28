@@ -21,6 +21,10 @@ def write_reasoner_receipt(
 ) -> Path:
     """Persist a verifier-gated reasoner receipt as .bogpk."""
     trail = artifact_trail_dir("reasoner", artifacts_root)
-    rid = receipt_id or receipt.get("receipt_id", f"receipt_{len(list(trail.glob('*.bogpk')))}")
+    rid = receipt_id or receipt.get(
+        "receipt_id", f"receipt_{len(list(trail.glob('*.bogpk')))}"
+    )
     payload = {"layer": "reasoner", **receipt, "receipt_id": rid}
-    return serialize_json_payload(payload, trail / rid, kind=ArtifactKind.REASONER_RECEIPT)
+    return serialize_json_payload(
+        payload, trail / rid, kind=ArtifactKind.REASONER_RECEIPT
+    )

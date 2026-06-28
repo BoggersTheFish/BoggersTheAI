@@ -4,7 +4,6 @@ import hashlib
 
 from .optimizer import optimize_chunked_residual_plan, optimize_residual_plan
 
-
 MAX_U16 = 65535
 
 
@@ -15,7 +14,9 @@ class PackerError(Exception):
 def pack_bytes_to_bogasm(data: bytes, data_name: str = "payload") -> str:
     _validate_data_name(data_name)
     if len(data) > MAX_U16:
-        raise PackerError("BOGBIN v1.2 single-block pack input length must be <= 65535 bytes")
+        raise PackerError(
+            "BOGBIN v1.2 single-block pack input length must be <= 65535 bytes"
+        )
 
     plan = optimize_residual_plan(data)
     lines = [
@@ -28,17 +29,21 @@ def pack_bytes_to_bogasm(data: bytes, data_name: str = "payload") -> str:
     for patch in plan["residuals"]:
         lines.append(f"STORE_RESIDUAL {data_name} {patch['offset']} {patch['byte']}")
 
-    lines.extend([
-        f"APPLY_RESIDUAL {data_name}",
-        f"VERIFY_HASH {data_name} {plan['sha256']}",
-        f"ACCEPT_DATA {data_name}",
-        "EMIT_RECEIPT",
-        "HALT",
-    ])
+    lines.extend(
+        [
+            f"APPLY_RESIDUAL {data_name}",
+            f"VERIFY_HASH {data_name} {plan['sha256']}",
+            f"ACCEPT_DATA {data_name}",
+            "EMIT_RECEIPT",
+            "HALT",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
-def pack_chunked_bytes_to_bogasm(data: bytes, data_name: str = "payload", chunk_size: int = 64) -> str:
+def pack_chunked_bytes_to_bogasm(
+    data: bytes, data_name: str = "payload", chunk_size: int = 64
+) -> str:
     _validate_data_name(data_name)
     plan = optimize_chunked_residual_plan(data, chunk_size)
 
@@ -51,30 +56,40 @@ def pack_chunked_bytes_to_bogasm(data: bytes, data_name: str = "payload", chunk_
 
     for chunk in plan["chunks"]:
         chunk_name = f"{data_name}_chunk_{chunk['index']:04d}"
-        lines.extend([
-            f"DATA_BLOCK {chunk_name}",
-            f"DECLARE_BASIS {chunk['basis']}",
-            f"LOAD_COEFFICIENTS {chunk_name} {chunk['start_byte']} {chunk['length']} {chunk.get('delta', 0)}",
-            f"SYNTHESIZE {chunk_name}",
-        ])
+        lines.extend(
+            [
+                f"DATA_BLOCK {chunk_name}",
+                f"DECLARE_BASIS {chunk['basis']}",
+                f"LOAD_COEFFICIENTS {chunk_name} {chunk['start_byte']} {chunk['length']} {chunk.get('delta', 0)}",
+                f"SYNTHESIZE {chunk_name}",
+            ]
+        )
 
         for patch in chunk["residuals"]:
-            lines.append(f"STORE_RESIDUAL {chunk_name} {patch['offset']} {patch['byte']}")
+            lines.append(
+                f"STORE_RESIDUAL {chunk_name} {patch['offset']} {patch['byte']}"
+            )
 
-        lines.extend([
-            f"APPLY_RESIDUAL {chunk_name}",
-            f"VERIFY_HASH {chunk_name} {chunk['sha256']}",
-            f"ACCEPT_DATA {chunk_name}",
-        ])
+        lines.extend(
+            [
+                f"APPLY_RESIDUAL {chunk_name}",
+                f"VERIFY_HASH {chunk_name} {chunk['sha256']}",
+                f"ACCEPT_DATA {chunk_name}",
+            ]
+        )
 
-    lines.extend([
-        "EMIT_RECEIPT",
-        "HALT",
-    ])
+    lines.extend(
+        [
+            "EMIT_RECEIPT",
+            "HALT",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
-def build_pack_receipt_metadata(data: bytes, chunk_size: int, single_block: bool) -> dict:
+def build_pack_receipt_metadata(
+    data: bytes, chunk_size: int, single_block: bool
+) -> dict:
     if single_block:
         plan = optimize_residual_plan(data)
         return {

@@ -189,7 +189,9 @@ def evaluate_bridge_cases(cases: Iterable[dict[str, object]]) -> dict[str, objec
             target_claim=str(raw["target_claim"]),
         )
         result = synthesize_missing_bridge(inp)
-        expected_bridges = [normalize_claim(str(claim)) for claim in raw["expected_missing_bridges"]]
+        expected_bridges = [
+            normalize_claim(str(claim)) for claim in raw["expected_missing_bridges"]
+        ]
         expected_count = int(raw["expected_bridge_count"])
 
         case_passed = (

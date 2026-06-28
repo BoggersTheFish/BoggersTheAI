@@ -6,7 +6,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from benchmarks.gpt2_boundary.procedural_curriculum import CurriculumConfig, generate_curriculum
+from benchmarks.gpt2_boundary.procedural_curriculum import (
+    CurriculumConfig,
+    generate_curriculum,
+)
 from training.v11_8.ts_proposer_mini import load_trace_splits, maybe_limit
 from training.v11_9.neural_ts_proposer_tiny import NeuralTinyConfig, train_classifier
 from ts_reasoner.paragraph_decomposer import decompose_paragraph
@@ -51,7 +54,11 @@ def _question_for_claim(claim: str) -> str:
 def _paragraph_from_task(task: dict[str, Any]) -> str:
     premises = list(task["premises"])
     claim = str(task["expected_claim"])
-    return " ".join(f"{premise}." for premise in premises) + " " + _question_for_claim(claim)
+    return (
+        " ".join(f"{premise}." for premise in premises)
+        + " "
+        + _question_for_claim(claim)
+    )
 
 
 def _make_input(paragraph: str, premises: list[str], claim: str) -> str:
@@ -105,17 +112,19 @@ def build_stack_cases(config: StackConfig | None = None) -> list[dict[str, Any]]
             else verifier_result.get("reason", "")
         )
 
-        cases.append({
-            "case_id": f"v12_stack_{len(cases):04d}",
-            "source_case_id": task["case_id"],
-            "source_family": task["family"],
-            "paragraph": paragraph,
-            "source_premises": premises,
-            "source_claim": claim,
-            "expected_answer": expected_answer,
-            "expected_status": expected_status,
-            "expected_channel_or_reason": expected_channel_or_reason,
-        })
+        cases.append(
+            {
+                "case_id": f"v12_stack_{len(cases):04d}",
+                "source_case_id": task["case_id"],
+                "source_family": task["family"],
+                "paragraph": paragraph,
+                "source_premises": premises,
+                "source_claim": claim,
+                "expected_answer": expected_answer,
+                "expected_status": expected_status,
+                "expected_channel_or_reason": expected_channel_or_reason,
+            }
+        )
 
         if len(cases) >= config.case_count:
             break
@@ -139,9 +148,15 @@ def train_stack_models(root: Path, config: StackConfig | None = None) -> dict[st
         test_limit=0,
     )
 
-    answer_model, answer_summary = train_classifier(train_rows, "answer", neural_config, seed_offset=101)
-    status_model, status_summary = train_classifier(train_rows, "status", neural_config, seed_offset=202)
-    channel_model, channel_summary = train_classifier(train_rows, "support_channel", neural_config, seed_offset=303)
+    answer_model, answer_summary = train_classifier(
+        train_rows, "answer", neural_config, seed_offset=101
+    )
+    status_model, status_summary = train_classifier(
+        train_rows, "status", neural_config, seed_offset=202
+    )
+    channel_model, channel_summary = train_classifier(
+        train_rows, "support_channel", neural_config, seed_offset=303
+    )
 
     return {
         "answer_model": answer_model,
@@ -203,7 +218,9 @@ def run_stack_on_paragraph(
             "final": {
                 "answer": "abstain",
                 "status": "abstained",
-                "channel_or_reason": decomposition.get("reason", "no_parseable_question"),
+                "channel_or_reason": decomposition.get(
+                    "reason", "no_parseable_question"
+                ),
                 "accepted_with_typed_support": False,
             },
             "candidate_graph_contamination_count": 0,
@@ -225,7 +242,9 @@ def run_stack_on_paragraph(
         if verifier_result.get("support")
         else verifier_result.get("reason", "")
     )
-    accepted_with_typed_support = bool(verifier_result.get("support", {}).get("verifier_passed", False))
+    accepted_with_typed_support = bool(
+        verifier_result.get("support", {}).get("verifier_passed", False)
+    )
 
     return {
         "paragraph": paragraph,
@@ -281,34 +300,44 @@ def evaluate_stack(root: Path, config: StackConfig | None = None) -> dict[str, A
 
         proposer_answer_correct += int(proposer["answer"] == case["expected_answer"])
         proposer_status_correct += int(proposer["status"] == case["expected_status"])
-        proposer_channel_correct += int(proposer["support_channel"] == case["expected_channel_or_reason"])
+        proposer_channel_correct += int(
+            proposer["support_channel"] == case["expected_channel_or_reason"]
+        )
 
         final_answer_correct += int(final["answer"] == case["expected_answer"])
         final_status_correct += int(final["status"] == case["expected_status"])
-        final_channel_correct += int(final["channel_or_reason"] == case["expected_channel_or_reason"])
+        final_channel_correct += int(
+            final["channel_or_reason"] == case["expected_channel_or_reason"]
+        )
 
         raw_wrong_yes = proposer["answer"] == "yes" and case["expected_answer"] != "yes"
-        final_wrong_accept = final["answer"] == "yes" and case["expected_answer"] != "yes"
+        final_wrong_accept = (
+            final["answer"] == "yes" and case["expected_answer"] != "yes"
+        )
 
         raw_wrong_yes_count += int(raw_wrong_yes)
         final_wrong_accept_count += int(final_wrong_accept)
-        candidate_graph_contamination_count += int(result["candidate_graph_contamination_count"])
+        candidate_graph_contamination_count += int(
+            result["candidate_graph_contamination_count"]
+        )
 
         if final["answer"] == "yes" and not final["accepted_with_typed_support"]:
             accepted_without_typed_support_count += 1
 
-        rows.append({
-            "case_id": case["case_id"],
-            "source_case_id": case["source_case_id"],
-            "source_family": case["source_family"],
-            "paragraph": case["paragraph"],
-            "expected_answer": case["expected_answer"],
-            "expected_status": case["expected_status"],
-            "expected_channel_or_reason": case["expected_channel_or_reason"],
-            "proposer": proposer,
-            "final": final,
-            "decomposition_status": result["decomposition_status"],
-        })
+        rows.append(
+            {
+                "case_id": case["case_id"],
+                "source_case_id": case["source_case_id"],
+                "source_family": case["source_family"],
+                "paragraph": case["paragraph"],
+                "expected_answer": case["expected_answer"],
+                "expected_status": case["expected_status"],
+                "expected_channel_or_reason": case["expected_channel_or_reason"],
+                "proposer": proposer,
+                "final": final,
+                "decomposition_status": result["decomposition_status"],
+            }
+        )
 
     case_count = len(cases)
     report = {
@@ -317,13 +346,27 @@ def evaluate_stack(root: Path, config: StackConfig | None = None) -> dict[str, A
         "config": asdict(config),
         "train_row_count": models["train_row_count"],
         "case_count": case_count,
-        "decomposition_success_rate": decomposition_success_count / case_count if case_count else 0.0,
-        "proposer_answer_accuracy": proposer_answer_correct / case_count if case_count else 0.0,
-        "proposer_status_accuracy": proposer_status_correct / case_count if case_count else 0.0,
-        "proposer_channel_accuracy": proposer_channel_correct / case_count if case_count else 0.0,
-        "final_answer_accuracy": final_answer_correct / case_count if case_count else 0.0,
-        "final_status_accuracy": final_status_correct / case_count if case_count else 0.0,
-        "final_channel_accuracy": final_channel_correct / case_count if case_count else 0.0,
+        "decomposition_success_rate": (
+            decomposition_success_count / case_count if case_count else 0.0
+        ),
+        "proposer_answer_accuracy": (
+            proposer_answer_correct / case_count if case_count else 0.0
+        ),
+        "proposer_status_accuracy": (
+            proposer_status_correct / case_count if case_count else 0.0
+        ),
+        "proposer_channel_accuracy": (
+            proposer_channel_correct / case_count if case_count else 0.0
+        ),
+        "final_answer_accuracy": (
+            final_answer_correct / case_count if case_count else 0.0
+        ),
+        "final_status_accuracy": (
+            final_status_correct / case_count if case_count else 0.0
+        ),
+        "final_channel_accuracy": (
+            final_channel_correct / case_count if case_count else 0.0
+        ),
         "raw_wrong_yes_count": raw_wrong_yes_count,
         "final_wrong_accept_count": final_wrong_accept_count,
         "accepted_without_typed_support_count": accepted_without_typed_support_count,
@@ -354,7 +397,9 @@ def evaluate_stack(root: Path, config: StackConfig | None = None) -> dict[str, A
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:

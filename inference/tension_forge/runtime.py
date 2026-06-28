@@ -37,9 +37,7 @@ class TensionForgeRuntime:
         queue_properties = 0
 
         if profiling:
-            queue_properties |= (
-                cl.command_queue_properties.PROFILING_ENABLE
-            )
+            queue_properties |= cl.command_queue_properties.PROFILING_ENABLE
 
         self.profiling = profiling
 
@@ -72,9 +70,7 @@ class TensionForgeRuntime:
 
     @staticmethod
     def source_hash(source: str) -> str:
-        return hashlib.sha256(
-            source.encode("utf-8")
-        ).hexdigest()
+        return hashlib.sha256(source.encode("utf-8")).hexdigest()
 
     @staticmethod
     def round_up(
@@ -82,15 +78,9 @@ class TensionForgeRuntime:
         multiple: int,
     ) -> int:
         if multiple <= 0:
-            raise ValueError(
-                "multiple must be greater than zero"
-            )
+            raise ValueError("multiple must be greater than zero")
 
-        return (
-            (value + multiple - 1)
-            // multiple
-            * multiple
-        )
+        return (value + multiple - 1) // multiple * multiple
 
     def compile_program(
         self,
@@ -106,9 +96,7 @@ class TensionForgeRuntime:
             options_tuple,
         )
 
-        cached = self._program_cache.get(
-            cache_key
-        )
+        cached = self._program_cache.get(cache_key)
 
         if cached is not None:
             return cached
@@ -147,9 +135,7 @@ class TensionForgeRuntime:
             kernel_name,
         )
 
-        cached = self._kernel_cache.get(
-            cache_key
-        )
+        cached = self._kernel_cache.get(cache_key)
 
         if cached is not None:
             return cached
@@ -166,8 +152,7 @@ class TensionForgeRuntime:
             )
         except Exception as exc:
             raise RuntimeError(
-                "Could not load OpenCL kernel "
-                f"{kernel_name!r}."
+                "Could not load OpenCL kernel " f"{kernel_name!r}."
             ) from exc
 
         self._kernel_cache[cache_key] = kernel
@@ -188,14 +173,9 @@ class TensionForgeRuntime:
         }
 
         if access not in access_flags:
-            raise ValueError(
-                "access must be read_only, "
-                "write_only, or read_write"
-            )
+            raise ValueError("access must be read_only, " "write_only, or read_write")
 
-        if contiguous.nbytes > (
-            self.info.max_allocation_bytes
-        ):
+        if contiguous.nbytes > (self.info.max_allocation_bytes):
             raise MemoryError(
                 "Requested OpenCL allocation exceeds "
                 "the device's maximum single-buffer "
@@ -207,8 +187,7 @@ class TensionForgeRuntime:
 
         buffer = cl.Buffer(
             self.context,
-            access_flags[access]
-            | cl.mem_flags.COPY_HOST_PTR,
+            access_flags[access] | cl.mem_flags.COPY_HOST_PTR,
             hostbuf=contiguous,
         )
         self.host_to_device_bytes += contiguous.nbytes
@@ -221,9 +200,7 @@ class TensionForgeRuntime:
         access: str = "read_write",
     ) -> cl.Buffer:
         if nbytes <= 0:
-            raise ValueError(
-                "Buffer size must be positive"
-            )
+            raise ValueError("Buffer size must be positive")
 
         if nbytes > self.info.max_allocation_bytes:
             raise MemoryError(
@@ -242,10 +219,7 @@ class TensionForgeRuntime:
         }
 
         if access not in access_flags:
-            raise ValueError(
-                "access must be read_only, "
-                "write_only, or read_write"
-            )
+            raise ValueError("access must be read_only, " "write_only, or read_write")
 
         return cl.Buffer(
             self.context,
@@ -306,10 +280,7 @@ class TensionForgeRuntime:
         if not self.profiling:
             return None
 
-        elapsed_nanoseconds = (
-            event.profile.end
-            - event.profile.start
-        )
+        elapsed_nanoseconds = event.profile.end - event.profile.start
 
         return elapsed_nanoseconds * 1e-6
 

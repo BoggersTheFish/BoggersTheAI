@@ -40,7 +40,9 @@ class LearnedTensionRanker:
         without_issue_kinds: bool = False,
     ) -> None:
         self.weights = {name: float(weights.get(name, 0.0)) for name in FEATURE_NAMES}
-        self.feature_means = {name: float((feature_means or {}).get(name, 0.0)) for name in FEATURE_NAMES}
+        self.feature_means = {
+            name: float((feature_means or {}).get(name, 0.0)) for name in FEATURE_NAMES
+        }
         self.feature_scales = {
             name: max(float((feature_scales or {}).get(name, 1.0)), 1e-6)
             for name in FEATURE_NAMES
@@ -63,7 +65,9 @@ class LearnedTensionRanker:
             without_issue_kinds=bool(data.get("without_issue_kinds", False)),
         )
 
-    def to_json(self, path: str | Path, metadata: Dict[str, object] | None = None) -> Path:
+    def to_json(
+        self, path: str | Path, metadata: Dict[str, object] | None = None
+    ) -> Path:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -78,10 +82,14 @@ class LearnedTensionRanker:
             "without_issue_kinds": self.without_issue_kinds,
             "metadata": metadata or {},
         }
-        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        target.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         return target
 
-    def score(self, chain: ReasoningChain, cig_check: CIGCheck | None = None) -> TensionScore:
+    def score(
+        self, chain: ReasoningChain, cig_check: CIGCheck | None = None
+    ) -> TensionScore:
         cig = cig_check or self.cig_checker.check(chain)
         heuristic = self.explainer.score(chain, cig)
         features = extract_chain_features(chain, cig, heuristic.issues)
@@ -101,7 +109,9 @@ class LearnedTensionRanker:
         for name in FEATURE_NAMES:
             value = float(features.get(name, 0.0))
             if name != "bias":
-                value = (value - self.feature_means.get(name, 0.0)) / self.feature_scales.get(name, 1.0)
+                value = (
+                    value - self.feature_means.get(name, 0.0)
+                ) / self.feature_scales.get(name, 1.0)
             total += self.weights.get(name, 0.0) * value
         return sigmoid(total)
 
@@ -112,8 +122,14 @@ class LearnedTensionRanker:
         probability: float,
     ) -> Dict[str, float]:
         if not heuristic.issues:
-            target = next((step.step_id for step in chain.steps if step.kind == "conclusion"), chain.steps[-1].step_id)
-            return {step.step_id: round(probability if step.step_id == target else 0.0, 4) for step in chain.steps}
+            target = next(
+                (step.step_id for step in chain.steps if step.kind == "conclusion"),
+                chain.steps[-1].step_id,
+            )
+            return {
+                step.step_id: round(probability if step.step_id == target else 0.0, 4)
+                for step in chain.steps
+            }
         issue_steps = {issue.step_id for issue in heuristic.issues}
         share = probability / max(1, len(issue_steps))
         return {
@@ -132,7 +148,11 @@ def train_logistic_ranker(
 ) -> LearnedTensionRanker:
     """Train a tiny logistic classifier with deterministic gradient descent."""
     feature_rows = [
-        mask_features(row["features"], without_cig=without_cig, without_issue_kinds=without_issue_kinds)
+        mask_features(
+            row["features"],
+            without_cig=without_cig,
+            without_issue_kinds=without_issue_kinds,
+        )
         for row in rows
     ]
     labels = [float(row["label"]) for row in rows]
@@ -143,7 +163,11 @@ def train_logistic_ranker(
         gradients = {name: 0.0 for name in FEATURE_NAMES}
         for features, label in zip(feature_rows, labels):
             x = _normalized_vector(features, means, scales)
-            prediction = sigmoid(sum(weights[name] * x[index] for index, name in enumerate(FEATURE_NAMES)))
+            prediction = sigmoid(
+                sum(
+                    weights[name] * x[index] for index, name in enumerate(FEATURE_NAMES)
+                )
+            )
             error = prediction - label
             for index, name in enumerate(FEATURE_NAMES):
                 gradients[name] += error * x[index]
@@ -161,7 +185,9 @@ def train_logistic_ranker(
     )
 
 
-def _feature_stats(rows: Iterable[Dict[str, float]]) -> tuple[Dict[str, float], Dict[str, float]]:
+def _feature_stats(
+    rows: Iterable[Dict[str, float]],
+) -> tuple[Dict[str, float], Dict[str, float]]:
     row_list = list(rows)
     means: Dict[str, float] = {}
     scales: Dict[str, float] = {}

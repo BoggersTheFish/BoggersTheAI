@@ -14,7 +14,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-
 VERSION = "ts_chat_v0.8"
 
 
@@ -42,14 +41,14 @@ class ConfirmedSuggestionCandidate:
 def _extract_claim_from_suggestion(suggested_text: str) -> str | None:
     prefix = "Did you mean: "
     if suggested_text.startswith(prefix):
-        claim = suggested_text[len(prefix):].strip()
+        claim = suggested_text[len(prefix) :].strip()
         if claim.endswith("?"):
             claim = claim[:-1].strip()
         return claim or None
 
     support_prefix = "Provide typed premises that support: "
     if suggested_text.startswith(support_prefix):
-        return suggested_text[len(support_prefix):].strip() or None
+        return suggested_text[len(support_prefix) :].strip() or None
 
     return None
 
@@ -67,7 +66,9 @@ def confirm_suggestion_as_candidate(
     """
 
     suggested_text = str(suggestion.get("suggested_text", ""))
-    candidate_claim_text = _extract_claim_from_suggestion(suggested_text) if user_confirmed else None
+    candidate_claim_text = (
+        _extract_claim_from_suggestion(suggested_text) if user_confirmed else None
+    )
 
     if not user_confirmed:
         confirmation_status = "not_confirmed"
@@ -103,7 +104,9 @@ def confirm_suggestion_as_candidate(
     )
 
 
-def confirm_suggestions_demo_cases(suggestions: Iterable[Dict[str, Any]]) -> List[ConfirmedSuggestionCandidate]:
+def confirm_suggestions_demo_cases(
+    suggestions: Iterable[Dict[str, Any]],
+) -> List[ConfirmedSuggestionCandidate]:
     """Deterministic demo confirmation cases.
 
     - parse suggestion is confirmed but rejected without typed support
@@ -127,7 +130,9 @@ def confirm_suggestions_demo_cases(suggestions: Iterable[Dict[str, Any]]) -> Lis
     return confirmations
 
 
-def write_confirmations_jsonl(confirmations: Iterable[ConfirmedSuggestionCandidate], path: str | Path) -> None:
+def write_confirmations_jsonl(
+    confirmations: Iterable[ConfirmedSuggestionCandidate], path: str | Path
+) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
@@ -146,15 +151,37 @@ def load_confirmations_jsonl(path: str | Path) -> List[Dict[str, Any]]:
     return rows
 
 
-def evaluate_suggestion_confirmations(confirmations: List[Dict[str, Any]]) -> Dict[str, Any]:
+def evaluate_suggestion_confirmations(
+    confirmations: List[Dict[str, Any]],
+) -> Dict[str, Any]:
     count = len(confirmations)
-    confirmed = [c for c in confirmations if c.get("confirmation_status") == "user_confirmed_candidate"]
-    accepted = [c for c in confirmations if c.get("verifier_status") == "verifier_accepted"]
-    rejected = [c for c in confirmations if c.get("verifier_status") == "verifier_rejected"]
+    confirmed = [
+        c
+        for c in confirmations
+        if c.get("confirmation_status") == "user_confirmed_candidate"
+    ]
+    accepted = [
+        c for c in confirmations if c.get("verifier_status") == "verifier_accepted"
+    ]
+    rejected = [
+        c for c in confirmations if c.get("verifier_status") == "verifier_rejected"
+    ]
 
-    suggestion_link_rate = sum(1 for c in confirmations if c.get("suggestion_id")) / count if count else 0.0
-    curriculum_entry_link_rate = sum(1 for c in confirmations if c.get("curriculum_entry_id")) / count if count else 0.0
-    repair_target_link_rate = sum(1 for c in confirmations if c.get("repair_target_id")) / count if count else 0.0
+    suggestion_link_rate = (
+        sum(1 for c in confirmations if c.get("suggestion_id")) / count
+        if count
+        else 0.0
+    )
+    curriculum_entry_link_rate = (
+        sum(1 for c in confirmations if c.get("curriculum_entry_id")) / count
+        if count
+        else 0.0
+    )
+    repair_target_link_rate = (
+        sum(1 for c in confirmations if c.get("repair_target_id")) / count
+        if count
+        else 0.0
+    )
 
     user_confirmation_is_not_proof = all(
         c.get("accepted_as_proof") is False
@@ -163,13 +190,11 @@ def evaluate_suggestion_confirmations(confirmations: List[Dict[str, Any]]) -> Di
     )
 
     accepted_only_with_verifier_support = all(
-        c.get("verifier_status") == "verifier_accepted"
-        for c in accepted
+        c.get("verifier_status") == "verifier_accepted" for c in accepted
     )
 
     rejected_candidates_not_proof = all(
-        c.get("accepted_as_proof") is False
-        for c in rejected
+        c.get("accepted_as_proof") is False for c in rejected
     )
 
     candidate_graph_contamination_count = 0

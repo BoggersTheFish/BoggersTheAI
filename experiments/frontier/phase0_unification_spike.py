@@ -26,40 +26,54 @@ make the advanced verifier the default path (no more default LLM synthesis).
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, List, Dict, Iterable
-
+from typing import Any, Dict, Iterable, List
 
 # =============================================================================
 # REAL LOGIC EXCERPTS (from your actual files — paths noted)
 # =============================================================================
 
+
 # From reasoner/ts_reasoner/proof_chain.py
 # (small transitive proof-chain helpers for "all A are B" style)
 class UniversalRelation:
-    def __init__(self, quantifier: str, subject: str | None, predicate: str | None, text: str = ""):
+    def __init__(
+        self,
+        quantifier: str,
+        subject: str | None,
+        predicate: str | None,
+        text: str = "",
+    ):
         self.quantifier = quantifier
         self.subject = subject
         self.predicate = predicate
         self.text = text
 
-def universal_bridge_path(relations: Iterable[UniversalRelation], subject: str, predicate: str) -> list[UniversalRelation]:
+
+def universal_bridge_path(
+    relations: Iterable[UniversalRelation], subject: str, predicate: str
+) -> list[UniversalRelation]:
     """Return a shortest all/all transitive path from subject to predicate."""
     subject_key = subject.lower()
     predicate_key = predicate.lower()
     edges: dict[str, list[tuple[str, UniversalRelation]]] = {}
     for relation in relations:
-        if relation.quantifier != "all" or not relation.subject or not relation.predicate:
+        if (
+            relation.quantifier != "all"
+            or not relation.subject
+            or not relation.predicate
+        ):
             continue
         s = relation.subject.lower()
         p = relation.predicate.lower()
         edges.setdefault(s, []).append((p, relation))
     # BFS for shortest path
     from collections import deque
+
     q = deque([(subject_key, [])])
     seen = set()
     while q:
@@ -79,8 +93,10 @@ def universal_bridge_path(relations: Iterable[UniversalRelation], subject: str, 
 def canonical_json(payload: Any) -> str:
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
+
 def canonical_hash(payload: Any) -> str:
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
+
 
 @dataclass(frozen=True)
 class TypedSupportObject:
@@ -98,6 +114,7 @@ class TypedSupportObject:
 # Minimal graph + wave (distilled from core/graph/universal_living_graph.py + rules_engine.py + wave_propagation)
 # This is the "physics" part. In full unification we call the real classes.
 
+
 @dataclass
 class Node:
     id: str
@@ -106,6 +123,7 @@ class Node:
     base_strength: float = 0.15
     stability: float = 0.6
     topics: set = field(default_factory=set)
+
 
 @dataclass
 class Edge:
@@ -133,18 +151,25 @@ class MiniGraph:
         updates = {}
         for e in self.edges:
             src = self.nodes.get(e.source)
-            if src and not getattr(src, 'collapsed', False):
-                updates[e.target] = updates.get(e.target, 0.0) + src.activation * e.weight * spread * damping
+            if src and not getattr(src, "collapsed", False):
+                updates[e.target] = (
+                    updates.get(e.target, 0.0)
+                    + src.activation * e.weight * spread * damping
+                )
         for nid, delta in updates.items():
             if nid in self.nodes:
-                self.nodes[nid].activation = min(1.0, self.nodes[nid].activation + delta)
+                self.nodes[nid].activation = min(
+                    1.0, self.nodes[nid].activation + delta
+                )
 
     def relax(self, decay=0.82):
         for n in self.nodes.values():
             n.activation = n.base_strength + (n.activation - n.base_strength) * decay
 
     def compute_tension(self):
-        return {nid: abs(n.activation - n.base_strength) for nid, n in self.nodes.items()}
+        return {
+            nid: abs(n.activation - n.base_strength) for nid, n in self.nodes.items()
+        }
 
     def run_waves(self, steps=3):
         logs = []
@@ -152,25 +177,36 @@ class MiniGraph:
             self.propagate()
             self.relax()
             tens = self.compute_tension()
-            logs.append({
-                "step": s,
-                "max_tension": round(max(tens.values() or [0]), 4),
-                "strongest": max(self.nodes.values(), key=lambda x: x.activation).content
-            })
+            logs.append(
+                {
+                    "step": s,
+                    "max_tension": round(max(tens.values() or [0]), 4),
+                    "strongest": max(
+                        self.nodes.values(), key=lambda x: x.activation
+                    ).content,
+                }
+            )
         return logs
 
     def summary(self):
         strongest = max(self.nodes.values(), key=lambda x: x.activation)
-        return {"nodes": len(self.nodes), "edges": len(self.edges), "strongest": strongest.content}
+        return {
+            "nodes": len(self.nodes),
+            "edges": len(self.edges),
+            "strongest": strongest.content,
+        }
 
 
 # =============================================================================
 # THE SPIKE
 # =============================================================================
 
+
 def main():
     print("=== TS FRONTIER Phase 0 Unification Spike ===")
-    print("Synthesizing: proof_chain (ts_reasoner) + typed_support (ts_reasoner) + wave physics (core/graph)\n")
+    print(
+        "Synthesizing: proof_chain (ts_reasoner) + typed_support (ts_reasoner) + wave physics (core/graph)\n"
+    )
 
     g = MiniGraph()
 
@@ -196,18 +232,28 @@ def main():
     print("\nRunning wave cycles (core/graph/rules_engine style)...")
     wave_logs = g.run_waves(4)
     for log in wave_logs:
-        print(f"  step {log['step']}: max_tension={log['max_tension']}, strongest≈{log['strongest']}")
+        print(
+            f"  step {log['step']}: max_tension={log['max_tension']}, strongest≈{log['strongest']}"
+        )
 
     # Build relations for proof_chain (real logic)
     relations = []
     for e in g.edges:
         s_node = g.nodes[e.source]
         t_node = g.nodes[e.target]
-        relations.append(UniversalRelation("all", s_node.content.lower(), t_node.content.lower(),
-                                           f"all {s_node.content} are {t_node.content}"))
+        relations.append(
+            UniversalRelation(
+                "all",
+                s_node.content.lower(),
+                t_node.content.lower(),
+                f"all {s_node.content} are {t_node.content}",
+            )
+        )
 
     # Use the *real* proof_chain algorithm
-    print("\nRunning universal_bridge_path from reasoner/ts_reasoner/proof_chain.py ...")
+    print(
+        "\nRunning universal_bridge_path from reasoner/ts_reasoner/proof_chain.py ..."
+    )
     chain = universal_bridge_path(relations, "whale", "mortal")
     chain_texts = [r.text for r in chain]
     print(f"  Chain found: {chain_texts}")
@@ -221,7 +267,9 @@ def main():
         verifier_passed=bool(chain),
         trace_hash=canonical_hash({"chain": chain_texts}),
     )
-    print(f"\nTyped verifier (reasoner/ts_reasoner/typed_support.py style): passed={support.verifier_passed}")
+    print(
+        f"\nTyped verifier (reasoner/ts_reasoner/typed_support.py style): passed={support.verifier_passed}"
+    )
 
     # Full receipt
     receipt = {
@@ -243,9 +291,13 @@ def main():
     print(f"\nReceipt saved to {out}")
 
     print("\nPhase 0 spike complete. This is the shape of the real system:")
-    print("- Deterministic reasoning (proof_chain) + physics (waves) + verifier receipts")
+    print(
+        "- Deterministic reasoning (proof_chain) + physics (waves) + verifier receipts"
+    )
     print("- No black box. Everything inspectable.")
-    print("Next in plan: make ts_reasoner components native, scale emergence/dynamics, remove LLM default.")
+    print(
+        "Next in plan: make ts_reasoner components native, scale emergence/dynamics, remove LLM default."
+    )
 
 
 if __name__ == "__main__":

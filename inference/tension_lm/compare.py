@@ -20,7 +20,7 @@ from pathlib import Path
 def read_csv(path: str):
     """Return (train_steps, train_ppls, val_steps, val_ppls)."""
     train_steps, train_ppls = [], []
-    val_steps,   val_ppls   = [], []
+    val_steps, val_ppls = [], []
     with open(path) as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -36,6 +36,7 @@ def read_csv(path: str):
 
 def plot(tension_csv: str, transformer_csv: str, out_path: str):
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
@@ -44,15 +45,24 @@ def plot(tension_csv: str, transformer_csv: str, out_path: str):
     ts_b, tp_b, vs_b, vp_b = read_csv(transformer_csv)
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    fig.suptitle("TensionLM vs Transformer — WikiText-2", fontsize=14, fontweight="bold")
+    fig.suptitle(
+        "TensionLM vs Transformer — WikiText-2", fontsize=14, fontweight="bold"
+    )
 
     # ── Train PPL ──
     ax = axes[0]
     ax.set_title("Train perplexity (lower is better)")
     if ts_t:
-        ax.plot(ts_t, tp_t, label="TensionLM",   color="#2196F3", linewidth=1.8)
+        ax.plot(ts_t, tp_t, label="TensionLM", color="#2196F3", linewidth=1.8)
     if ts_b:
-        ax.plot(ts_b, tp_b, label="Transformer", color="#F44336", linewidth=1.8, linestyle="--")
+        ax.plot(
+            ts_b,
+            tp_b,
+            label="Transformer",
+            color="#F44336",
+            linewidth=1.8,
+            linestyle="--",
+        )
     ax.set_xlabel("Optimiser steps")
     ax.set_ylabel("Perplexity")
     ax.set_yscale("log")
@@ -64,7 +74,7 @@ def plot(tension_csv: str, transformer_csv: str, out_path: str):
     ax = axes[1]
     ax.set_title("Validation perplexity (lower is better)")
     if vs_t:
-        ax.plot(vs_t, vp_t, "o-", label="TensionLM",   color="#2196F3", linewidth=1.8)
+        ax.plot(vs_t, vp_t, "o-", label="TensionLM", color="#2196F3", linewidth=1.8)
     if vs_b:
         ax.plot(vs_b, vp_b, "s--", label="Transformer", color="#F44336", linewidth=1.8)
     ax.set_xlabel("Optimiser steps")
@@ -77,12 +87,15 @@ def plot(tension_csv: str, transformer_csv: str, out_path: str):
         best_t = min(vp_t)
         best_b = min(vp_b)
         winner = "TensionLM" if best_t < best_b else "Transformer"
-        delta  = abs(best_t - best_b)
+        delta = abs(best_t - best_b)
         fig.text(
-            0.5, 0.01,
+            0.5,
+            0.01,
             f"Best val PPL — TensionLM: {best_t:.1f}  |  Transformer: {best_b:.1f}  "
             f"|  Gap: {delta:.1f}  ({winner} wins)",
-            ha="center", fontsize=10, color="#333333",
+            ha="center",
+            fontsize=10,
+            color="#333333",
         )
 
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
@@ -103,9 +116,9 @@ def plot(tension_csv: str, transformer_csv: str, out_path: str):
 
 def main():
     p = argparse.ArgumentParser(description="Plot TensionLM vs Transformer comparison")
-    p.add_argument("--tension",     required=True, help="CSV log from TensionLM run")
+    p.add_argument("--tension", required=True, help="CSV log from TensionLM run")
     p.add_argument("--transformer", required=True, help="CSV log from Transformer run")
-    p.add_argument("--out",         default="results/comparison.png")
+    p.add_argument("--out", default="results/comparison.png")
     args = p.parse_args()
 
     for path in [args.tension, args.transformer]:

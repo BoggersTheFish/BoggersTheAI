@@ -11,9 +11,7 @@ def test_ingest_waves_jsonl_creates_nodes(tmp_path: Path) -> None:
     trace_dir.mkdir()
     log = trace_dir / "waves.jsonl"
     log.write_text(
-        json.dumps(
-            {"kind": "wave_cycle", "timestamp": "t1", "event": {"cycle": 1}}
-        )
+        json.dumps({"kind": "wave_cycle", "timestamp": "t1", "event": {"cycle": 1}})
         + "\n"
         + json.dumps({"kind": "next_grok_prompt", "prompt_text": "x"})
         + "\n",

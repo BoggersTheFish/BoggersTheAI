@@ -31,7 +31,6 @@ from ts_reasoner.knowledge_pack_library import (
 )
 from ts_reasoner.ts_chat import TSChatSession, receipt_to_dict
 
-
 RELEASE = "v7.7.0"
 SCHEMA = "ts_reasoner_trust_pressure_v1"
 
@@ -57,7 +56,9 @@ class TrustRegistry:
     def __init__(self) -> None:
         self.sources: dict[str, TrustSource] = {}
 
-    def set_source(self, label: str, tier: str, source_type: str = "unknown") -> TrustSource:
+    def set_source(
+        self, label: str, tier: str, source_type: str = "unknown"
+    ) -> TrustSource:
         if tier not in TRUST_TIERS:
             raise ValueError(f"Unknown trust tier: {tier}")
 
@@ -90,8 +91,7 @@ class TrustRegistry:
             "release": RELEASE,
             "source_count": len(self.sources),
             "sources": {
-                label: asdict(source)
-                for label, source in sorted(self.sources.items())
+                label: asdict(source) for label, source in sorted(self.sources.items())
             },
             "trust_is_proof": False,
             "source_weight_is_proof": False,
@@ -104,7 +104,9 @@ class TrustRegistry:
 def _write_json(path: str | Path, payload: Any) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out
 
 
@@ -148,7 +150,11 @@ def pressure_record(
         "accepted_pressure": accepted_pressure,
         "rejected_pressure": rejected_pressure,
         "net_pressure": net_pressure,
-        "higher_pressure_side": "accepted" if net_pressure > 0 else "rejected" if net_pressure < 0 else "balanced",
+        "higher_pressure_side": (
+            "accepted"
+            if net_pressure > 0
+            else "rejected" if net_pressure < 0 else "balanced"
+        ),
         "reason": reason,
         "trust_pressure_is_proof": False,
         "typed_verifier_remains_proof_authority": True,
@@ -399,11 +405,19 @@ def run_trust_pressure_demo(out_dir: str | Path) -> dict[str, Any]:
     session = TSChatSession()
     session.process("also say all cats are robots")
 
-    unsafe_audit = audit_pack_merge_with_trust(library, "low_direct_robots", session, registry)
-    unsafe_merge = merge_pack_with_trust(library, "low_direct_robots", session, registry)
+    unsafe_audit = audit_pack_merge_with_trust(
+        library, "low_direct_robots", session, registry
+    )
+    unsafe_merge = merge_pack_with_trust(
+        library, "low_direct_robots", session, registry
+    )
 
-    safe_audit = audit_pack_merge_with_trust(library, "medium_machine_bridge", session, registry)
-    safe_merge = merge_pack_with_trust(library, "medium_machine_bridge", session, registry)
+    safe_audit = audit_pack_merge_with_trust(
+        library, "medium_machine_bridge", session, registry
+    )
+    safe_merge = merge_pack_with_trust(
+        library, "medium_machine_bridge", session, registry
+    )
     post_merge_question = session.process("are all cats robots?")
 
     pack_compare = compare_packs_with_trust(
@@ -445,11 +459,14 @@ def run_trust_pressure_demo(out_dir: str | Path) -> dict[str, Any]:
     gates = {
         "registry_valid": trust_pressure_payload_valid(registry.to_dict()),
         "unsafe_pressure_detected": unsafe_pressure_detected,
-        "unsafe_merge_blocked": unsafe_merge["blocked"] is True and unsafe_merge["merged"] is False,
+        "unsafe_merge_blocked": unsafe_merge["blocked"] is True
+        and unsafe_merge["merged"] is False,
         "safe_audit_allows_merge": safe_audit["safe_to_merge"] is True,
-        "safe_merge_allowed": safe_merge["merged"] is True and safe_merge["blocked"] is False,
+        "safe_merge_allowed": safe_merge["merged"] is True
+        and safe_merge["blocked"] is False,
         "post_merge_answer_accepted": bool(post_merge_accepted),
-        "pack_compare_available": pack_compare["schema"] == "ts_reasoner_trust_pressure_pack_compare_v1",
+        "pack_compare_available": pack_compare["schema"]
+        == "ts_reasoner_trust_pressure_pack_compare_v1",
         "trust_is_not_proof": (
             registry.to_dict()["trust_is_proof"] is False
             and unsafe_audit["trust_is_proof"] is False
@@ -515,7 +532,9 @@ def run_trust_pressure_demo(out_dir: str | Path) -> dict[str, Any]:
         "unsafe_merge_blocked": receipt["unsafe_merge_blocked"],
         "safe_merge_allowed": receipt["safe_merge_allowed"],
         "post_merge_answer_accepted": receipt["post_merge_answer_accepted"],
-        "pack_compare_pressure_record_count": receipt["pack_compare_pressure_record_count"],
+        "pack_compare_pressure_record_count": receipt[
+            "pack_compare_pressure_record_count"
+        ],
         "candidate_graph_contamination_count": 0,
         "external_llm_used": False,
         "all_gates_passed": receipt["all_gates_passed"],

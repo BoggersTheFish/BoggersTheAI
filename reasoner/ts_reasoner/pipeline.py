@@ -29,8 +29,14 @@ class TSReasoner:
             coordinator=self.tension_coordinator,
         )
 
-    def run(self, question: str, premises: Optional[Iterable[str]] = None) -> ReasonerOutput:
-        premise_list = [p.strip() for p in premises] if premises is not None else infer_premises_from_question(question)
+    def run(
+        self, question: str, premises: Optional[Iterable[str]] = None
+    ) -> ReasonerOutput:
+        premise_list = (
+            [p.strip() for p in premises]
+            if premises is not None
+            else infer_premises_from_question(question)
+        )
         candidates = self.generator.generate(question, premise_list)
         scored = []
         for chain in candidates:
@@ -39,7 +45,13 @@ class TSReasoner:
             field = self.tension_coordinator.coordinate(chain, cig, score)
             loop = self.operation_router.run_until_stable(chain)
             scored.append((chain, cig, score, field, loop))
-        selected_original, _original_cig, _original_score, _original_field, selected_loop = min(
+        (
+            selected_original,
+            _original_cig,
+            _original_score,
+            _original_field,
+            selected_loop,
+        ) = min(
             scored,
             key=lambda item: (
                 item[4]["score"].global_tension,
@@ -88,9 +100,13 @@ class TSReasoner:
             },
             "candidate_scores": candidate_score_rows,
             "chosen_action": self._chosen_action(selected_loop),
-            "rejected_alternatives": self._rejected_alternatives(candidate_score_rows, selected_chain.chain_id),
+            "rejected_alternatives": self._rejected_alternatives(
+                candidate_score_rows, selected_chain.chain_id
+            ),
             "settled_answer": selected_chain.final_answer,
-            "failure_reason": None if selected_loop["settled"] else selected_loop["status"],
+            "failure_reason": (
+                None if selected_loop["settled"] else selected_loop["status"]
+            ),
             "coordinated_tension_field": selected_field,
             "operation_loop": self._operation_trace(selected_loop),
             "candidate_operation_loops": {
@@ -133,10 +149,14 @@ class TSReasoner:
 
     def _typed_trace_section(self, selected_chain, selected_cig):
         try:
-            from .ts_core_adapter import channel_context, channel_results_to_trace, chain_to_graph
             from ts_core import TypedTensionRuntime
 
             from .reasoning_channels import default_reasoning_channels
+            from .ts_core_adapter import (
+                chain_to_graph,
+                channel_context,
+                channel_results_to_trace,
+            )
         except ModuleNotFoundError as exc:
             return {
                 "tension_channels": {},
@@ -148,21 +168,29 @@ class TSReasoner:
 
         typed_graph = chain_to_graph(selected_chain, selected_cig)
         typed_context = channel_context(selected_chain, selected_cig)
-        typed_trace = TypedTensionRuntime(default_reasoning_channels()).run(typed_graph, typed_context)
+        typed_trace = TypedTensionRuntime(default_reasoning_channels()).run(
+            typed_graph, typed_context
+        )
         return {
             "tension_channels": channel_results_to_trace(typed_trace.channel_results),
             "typed_runtime": {
                 "available": True,
                 "settled": typed_trace.settled,
                 "global_tension": typed_trace.global_tension,
-                "resolver_events": [event.to_dict() for event in typed_trace.resolver_events],
+                "resolver_events": [
+                    event.to_dict() for event in typed_trace.resolver_events
+                ],
                 "context": {
                     "blocked_edges": typed_context.get("blocked_edges", []),
                     "blocked_equalities": typed_context.get("blocked_equalities", []),
                     "surface_tags": typed_context.get("surface_tags", {}),
                     "abstention": typed_context.get("abstention"),
-                    "contradiction_flagged": typed_context.get("contradiction_flagged", False),
-                    "quantifier_scope_blocked": typed_context.get("quantifier_scope_blocked", False),
+                    "contradiction_flagged": typed_context.get(
+                        "contradiction_flagged", False
+                    ),
+                    "quantifier_scope_blocked": typed_context.get(
+                        "quantifier_scope_blocked", False
+                    ),
                 },
             },
         }
@@ -178,11 +206,16 @@ class TSReasoner:
             "final_global_tension": transition["score"].global_tension,
         }
 
-    def _rejected_alternatives(self, candidate_rows: list[dict], selected_chain_id: str) -> list[dict]:
+    def _rejected_alternatives(
+        self, candidate_rows: list[dict], selected_chain_id: str
+    ) -> list[dict]:
         rejected = []
         for row in candidate_rows:
             post_loop_chain_id = row["post_loop_chain_id"]
-            if row["chain_id"] == selected_chain_id or post_loop_chain_id == selected_chain_id:
+            if (
+                row["chain_id"] == selected_chain_id
+                or post_loop_chain_id == selected_chain_id
+            ):
                 continue
             rejected.append(
                 {

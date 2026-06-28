@@ -44,7 +44,9 @@ def load_benchmark(path: str | Path) -> List[BenchmarkTask]:
                     external_prompt=str(row.get("external_prompt", "")),
                     question=str(row["question"]),
                     premises=[str(premise) for premise in row.get("premises", [])],
-                    acceptable_answers=[str(answer) for answer in row["acceptable_answers"]],
+                    acceptable_answers=[
+                        str(answer) for answer in row["acceptable_answers"]
+                    ],
                     expected_status=str(row.get("expected_status", "expected_pass")),
                     notes=str(row.get("notes", "")),
                 )
@@ -55,7 +57,11 @@ def load_benchmark(path: str | Path) -> List[BenchmarkTask]:
 class BenchmarkRunner:
     """Run externalized tasks through simple baselines and the control loop."""
 
-    def __init__(self, tension_coordinator: TensionCoordinator | None = None, random_seed: int = 17) -> None:
+    def __init__(
+        self,
+        tension_coordinator: TensionCoordinator | None = None,
+        random_seed: int = 17,
+    ) -> None:
         self.generator = DeterministicHeuristicGenerator()
         self.checker = CIGChecker()
         self.ranker = HeuristicTensionRanker()
@@ -66,8 +72,7 @@ class BenchmarkRunner:
         rows = [self._evaluate_task(task) for task in tasks]
         baselines = ["direct", "random_selector", "ranker_only", "full_control_loop"]
         baseline_summary = {
-            baseline: self._summarize_baseline(rows, baseline)
-            for baseline in baselines
+            baseline: self._summarize_baseline(rows, baseline) for baseline in baselines
         }
         by_category = {
             category: {
@@ -112,10 +117,14 @@ class BenchmarkRunner:
             "baselines": {
                 "direct": self._baseline_row(direct, task),
                 "random_selector": self._baseline_row(random_candidate, task),
-                "ranker_only": self._baseline_row(ranker_chain, task, ranker_score.global_tension),
+                "ranker_only": self._baseline_row(
+                    ranker_chain, task, ranker_score.global_tension
+                ),
                 "full_control_loop": {
                     "answer": full.final_answer,
-                    "correct": answer_matches(full.final_answer, task.acceptable_answers),
+                    "correct": answer_matches(
+                        full.final_answer, task.acceptable_answers
+                    ),
                     "selected_chain_id": full.selected_chain.chain_id,
                     "global_tension": full.tension_score.global_tension,
                     "cycles_used": full_loop["cycle_count"],
@@ -141,18 +150,31 @@ class BenchmarkRunner:
             "global_tension": tension,
         }
 
-    def _random_candidate(self, task: BenchmarkTask, candidates: Sequence[ReasoningChain]) -> ReasoningChain:
+    def _random_candidate(
+        self, task: BenchmarkTask, candidates: Sequence[ReasoningChain]
+    ) -> ReasoningChain:
         rng = random.Random(f"{self.random_seed}:{task.task_id}")
         return list(candidates)[rng.randrange(len(candidates))]
 
-    def _ranker_only(self, candidates: Sequence[ReasoningChain]) -> tuple[ReasoningChain, object]:
+    def _ranker_only(
+        self, candidates: Sequence[ReasoningChain]
+    ) -> tuple[ReasoningChain, object]:
         scored = []
         for chain in candidates:
             score = self.ranker.score(chain, self.checker.check(chain))
             scored.append((chain, score))
-        return min(scored, key=lambda item: (item[1].global_tension, -item[1].stability, item[0].chain_id))
+        return min(
+            scored,
+            key=lambda item: (
+                item[1].global_tension,
+                -item[1].stability,
+                item[0].chain_id,
+            ),
+        )
 
-    def _summarize_baseline(self, rows: Sequence[Dict[str, object]], baseline: str) -> Dict[str, object]:
+    def _summarize_baseline(
+        self, rows: Sequence[Dict[str, object]], baseline: str
+    ) -> Dict[str, object]:
         if not rows:
             return {"accuracy": 0.0, "correct": 0, "total": 0}
         baseline_rows = [row["baselines"][baseline] for row in rows]
@@ -162,7 +184,8 @@ class BenchmarkRunner:
             "correct": correct,
             "total": len(baseline_rows),
             "mean_global_tension": round(
-                sum(float(row["global_tension"]) for row in baseline_rows) / len(baseline_rows),
+                sum(float(row["global_tension"]) for row in baseline_rows)
+                / len(baseline_rows),
                 4,
             ),
         }
@@ -172,7 +195,8 @@ class BenchmarkRunner:
                 4,
             )
             summary["mean_cycles_used"] = round(
-                sum(int(row["cycles_used"]) for row in baseline_rows) / len(baseline_rows),
+                sum(int(row["cycles_used"]) for row in baseline_rows)
+                / len(baseline_rows),
                 4,
             )
         return summary
@@ -196,7 +220,9 @@ class BenchmarkRunner:
 
 def answer_matches(answer: str, acceptable_answers: Iterable[str]) -> bool:
     normalized = _normalize(answer)
-    return any(_normalize(acceptable) in normalized for acceptable in acceptable_answers)
+    return any(
+        _normalize(acceptable) in normalized for acceptable in acceptable_answers
+    )
 
 
 def _normalize(text: str) -> str:

@@ -12,8 +12,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from .candidates import CandidateClaim
 from .candidate_bridge import run_tensionlm_candidate_bridge
+from .candidates import CandidateClaim
 from .tensionlm_adapter import normalize_candidate_claim_text
 
 
@@ -147,7 +147,9 @@ def parse_natural_language_claim(input_text: str) -> ParsedNaturalLanguageClaim:
     )
 
 
-def run_natural_language_claim_ingestion(input_text: str, case_id: str = "nl_claim_case") -> dict[str, Any]:
+def run_natural_language_claim_ingestion(
+    input_text: str, case_id: str = "nl_claim_case"
+) -> dict[str, Any]:
     """Parse bounded NL and verify the parsed candidate through typed channels."""
 
     parsed = parse_natural_language_claim(input_text)
@@ -160,7 +162,9 @@ def run_natural_language_claim_ingestion(input_text: str, case_id: str = "nl_cla
                 "accepted": [],
                 "rejected": [],
                 "abstained": [],
-                "channels": {"nl_claim_parser": "safe abstain on unsupported or malformed bounded NL input"},
+                "channels": {
+                    "nl_claim_parser": "safe abstain on unsupported or malformed bounded NL input"
+                },
                 "candidate_results": [],
             },
             "trace_receipt": {
@@ -207,8 +211,12 @@ def _split_sentences(text: str) -> list[str]:
     normalized = " ".join(text.strip().split())
     if not normalized:
         return []
-    raw_parts = [part.strip() for part in _BOUNDARY_RE.split(normalized) if part.strip()]
-    return [part.rstrip(".!?").strip() for part in raw_parts if part.rstrip(".!?").strip()]
+    raw_parts = [
+        part.strip() for part in _BOUNDARY_RE.split(normalized) if part.strip()
+    ]
+    return [
+        part.rstrip(".!?").strip() for part in raw_parts if part.rstrip(".!?").strip()
+    ]
 
 
 def _parse_query_sentence(sentence: str) -> str | None:

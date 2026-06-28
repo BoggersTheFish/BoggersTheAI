@@ -3,7 +3,13 @@ from __future__ import annotations
 from typing import Any
 
 from .features import extract_candidate_features
-from .model import CHANNEL_LABELS, RESOLVER_LABELS, STATUS_LABELS, TinyCandidateModel, dot
+from .model import (
+    CHANNEL_LABELS,
+    RESOLVER_LABELS,
+    STATUS_LABELS,
+    TinyCandidateModel,
+    dot,
+)
 
 
 def examples_from_cases(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -24,7 +30,9 @@ def examples_from_cases(cases: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return examples
 
 
-def train_model(cases: list[dict[str, Any]], epochs: int = 18, learning_rate: float = 0.35) -> TinyCandidateModel:
+def train_model(
+    cases: list[dict[str, Any]], epochs: int = 18, learning_rate: float = 0.35
+) -> TinyCandidateModel:
     examples = examples_from_cases(cases)
     model = TinyCandidateModel(
         ranking_weights={},
@@ -70,7 +78,12 @@ def train_model(cases: list[dict[str, Any]], epochs: int = 18, learning_rate: fl
     return model
 
 
-def update_binary(weights: dict[str, float], features: dict[str, float], target: bool, learning_rate: float) -> None:
+def update_binary(
+    weights: dict[str, float],
+    features: dict[str, float],
+    target: bool,
+    learning_rate: float,
+) -> None:
     predicted = dot(weights, features) >= 0.0
     if predicted == target:
         return
@@ -90,5 +103,9 @@ def update_multiclass(
     if predicted == target:
         return
     for name, value in features.items():
-        weights_by_label[target][name] = weights_by_label[target].get(name, 0.0) + learning_rate * value
-        weights_by_label[predicted][name] = weights_by_label[predicted].get(name, 0.0) - learning_rate * value
+        weights_by_label[target][name] = (
+            weights_by_label[target].get(name, 0.0) + learning_rate * value
+        )
+        weights_by_label[predicted][name] = (
+            weights_by_label[predicted].get(name, 0.0) - learning_rate * value
+        )

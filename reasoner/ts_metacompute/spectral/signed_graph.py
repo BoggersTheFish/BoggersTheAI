@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any, Iterable
 
-
 SUPPORT_RELATIONS = frozenset({"support", "supports", "entails", "align"})
 CONFLICT_RELATIONS = frozenset({"conflict", "conflicts", "contradicts", "anti_align"})
 NON_PROOF_STATUSES = frozenset({"candidate", "unsupported", "rejected", "abstained"})
@@ -74,7 +73,9 @@ class SignedEdge:
         if edge.weight <= 0.0:
             raise ValueError(f"edge {edge.edge_id!r} weight must be positive")
         if edge.provenance_weight < 0.0:
-            raise ValueError(f"edge {edge.edge_id!r} provenance_weight must be non-negative")
+            raise ValueError(
+                f"edge {edge.edge_id!r} provenance_weight must be non-negative"
+            )
         relation_sign(edge.relation)
         return edge
 
@@ -116,12 +117,14 @@ class SignedGraph:
         nodes: Iterable[str] = (),
         metadata: dict[str, Any] | None = None,
     ) -> "SignedGraph":
-        return cls.from_dict({
-            "case_id": case_id,
-            "nodes": list(nodes),
-            "edges": [edge.to_dict() for edge in edges],
-            "metadata": metadata or {},
-        })
+        return cls.from_dict(
+            {
+                "case_id": case_id,
+                "nodes": list(nodes),
+                "edges": [edge.to_dict() for edge in edges],
+                "metadata": metadata or {},
+            }
+        )
 
     def without_edge(self, edge_id: str) -> "SignedGraph":
         return SignedGraph(
@@ -135,7 +138,10 @@ class SignedGraph:
         return SignedGraph(
             case_id=self.case_id,
             nodes=self.nodes,
-            edges=tuple(edge.flipped() if edge.edge_id == edge_id else edge for edge in self.edges),
+            edges=tuple(
+                edge.flipped() if edge.edge_id == edge_id else edge
+                for edge in self.edges
+            ),
             metadata=dict(self.metadata or {}),
         )
 

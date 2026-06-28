@@ -80,7 +80,9 @@ def detect_tension(
     return tensions
 
 
-def _graph_native_evolve(source_content: str, neighbor_contents: List[str], topics: str) -> str:
+def _graph_native_evolve(
+    source_content: str, neighbor_contents: List[str], topics: str
+) -> str:
     """Phase 0: Pure graph-native emergence (no LLM).
     Deterministic synthesis for frontier mode. See PHASE0_DETAIL_PLAN.md P0.4.
     """
@@ -131,7 +133,9 @@ def spawn_emergence(
                     )
                 except Exception as exc:
                     logger.warning("LLM evolve failed for %s: %s", node_id, exc)
-                    content = _graph_native_evolve(source.content, neighbor_contents, ",".join(source.topics))
+                    content = _graph_native_evolve(
+                        source.content, neighbor_contents, ",".join(source.topics)
+                    )
 
         nodes[emergent_id] = GraphNode(
             id=emergent_id,
@@ -143,7 +147,11 @@ def spawn_emergence(
             ),
             stability=EMERGENCE_BASE_STABILITY,
             base_strength=EMERGENCE_BASE_STRENGTH,
-            attributes={"type": "emergent", "source": node_id, "graph_native": use_native},
+            attributes={
+                "type": "emergent",
+                "source": node_id,
+                "graph_native": use_native,
+            },
         )
         edges.append((node_id, emergent_id, 0.3))
         created.append(emergent_id)

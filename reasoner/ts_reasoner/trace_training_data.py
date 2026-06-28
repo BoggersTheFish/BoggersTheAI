@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 STATUS_TO_QUALITY = {
     "accepted": 1.0,
     "abstained": 0.25,
@@ -17,7 +16,9 @@ STATUS_TO_QUALITY = {
 }
 
 
-def export_training_rows_from_candidate_report(report: dict[str, Any]) -> list[dict[str, Any]]:
+def export_training_rows_from_candidate_report(
+    report: dict[str, Any],
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for split_name in ("eval", "stress"):
         split = report.get(split_name, {})
@@ -26,7 +27,9 @@ def export_training_rows_from_candidate_report(report: dict[str, Any]) -> list[d
     return rows
 
 
-def export_training_rows_from_case(case: dict[str, Any], split_name: str) -> list[dict[str, Any]]:
+def export_training_rows_from_case(
+    case: dict[str, Any], split_name: str
+) -> list[dict[str, Any]]:
     scored_by_id = {
         candidate["candidate_id"]: candidate
         for candidate in case.get("scored_candidates", [])
@@ -64,8 +67,12 @@ def export_training_rows_from_case(case: dict[str, Any], split_name: str) -> lis
                     "blocked_edges": context.get("blocked_edges", []),
                     "blocked_equalities": context.get("blocked_equalities", []),
                     "abstention": context.get("abstention"),
-                    "contradiction_flagged": context.get("contradiction_flagged", False),
-                    "quantifier_scope_blocked": context.get("quantifier_scope_blocked", False),
+                    "contradiction_flagged": context.get(
+                        "contradiction_flagged", False
+                    ),
+                    "quantifier_scope_blocked": context.get(
+                        "quantifier_scope_blocked", False
+                    ),
                     "surface_tags": context.get("surface_tags", {}),
                 },
             },
@@ -80,7 +87,9 @@ def export_training_rows_from_case(case: dict[str, Any], split_name: str) -> lis
     return rows
 
 
-def training_target(status: str, channels: dict[str, Any], reason: str | None) -> dict[str, Any]:
+def training_target(
+    status: str, channels: dict[str, Any], reason: str | None
+) -> dict[str, Any]:
     channel_names = set(channels)
     return {
         "proposal_quality": STATUS_TO_QUALITY.get(status, 0.25),
@@ -90,7 +99,9 @@ def training_target(status: str, channels: dict[str, Any], reason: str | None) -
         "should_reject": status == "rejected",
         "should_abstain": status == "abstained",
         "failure_reason": None if status == "accepted" else reason,
-        "is_supported": bool({"logic_transitivity", "surface_structure"} & channel_names),
+        "is_supported": bool(
+            {"logic_transitivity", "surface_structure"} & channel_names
+        ),
         "is_reverse_error": "directionality" in channel_names,
         "is_identity_error": "identity_preservation" in channel_names,
         "is_quantifier_error": "quantifier_scope" in channel_names,

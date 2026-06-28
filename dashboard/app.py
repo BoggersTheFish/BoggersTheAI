@@ -163,9 +163,7 @@ def graph(_: None = Depends(_check_auth)) -> dict[str, Any]:
             "stability": n.stability,
             "collapsed": n.collapsed,
             "folded_wave": (
-                1
-                if (n.id.startswith("meta:") or "waves_jsonl" in n.topics)
-                else 0
+                1 if (n.id.startswith("meta:") or "waves_jsonl" in n.topics) else 0
             ),
         }
         for n in get_runtime().graph.nodes.values()

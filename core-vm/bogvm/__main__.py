@@ -14,9 +14,18 @@ from .container import (
     write_bog_container,
     write_bogpk_container,
 )
-from .packer import build_pack_receipt_metadata, pack_bytes_to_bogasm, pack_chunked_bytes_to_bogasm
-from .store import init_store, install_bundle, package_directory, verify_installed_package
+from .packer import (
+    build_pack_receipt_metadata,
+    pack_bytes_to_bogasm,
+    pack_chunked_bytes_to_bogasm,
+)
 from .signing import generate_keypair
+from .store import (
+    init_store,
+    install_bundle,
+    package_directory,
+    verify_installed_package,
+)
 from .vm import run_file_with_block_receipt
 
 
@@ -141,7 +150,9 @@ def main() -> None:
 
         if output_path.suffix in {".bog", ".bogpk"}:
             if args.single_block:
-                raise SystemExit("--single-block is only supported for direct .bogbin pack output")
+                raise SystemExit(
+                    "--single-block is only supported for direct .bogbin pack output"
+                )
             container = build_bog_container_v1(
                 data,
                 chunk_size=args.chunk_size,
@@ -161,17 +172,37 @@ def main() -> None:
                 "chunk_count": container["chunk_count"],
                 "total_residual_count": container["total_residual_count"],
                 "whole_sha256": container["whole_sha256"],
-                "chunk_tournament_enabled": container.get("chunk_tournament_enabled", False),
-                "candidate_chunk_sizes": container.get("candidate_chunk_sizes", [container["chunk_size"]]),
-                "selected_chunk_size": container.get("selected_chunk_size", container["chunk_size"]),
-                "selected_total_residual_count": container.get("selected_total_residual_count", container["total_residual_count"]),
-                "selected_residual_density": container.get("selected_residual_density", 0.0),
-                "chunk_tournament_results": container.get("chunk_tournament_results", []),
-                "transform_tournament_enabled": container.get("transform_tournament_enabled", False),
-                "candidate_transforms": container.get("candidate_transforms", ["identity"]),
-                "selected_transform_counts": container.get("selected_transform_counts", {"identity": container["chunk_count"]}),
+                "chunk_tournament_enabled": container.get(
+                    "chunk_tournament_enabled", False
+                ),
+                "candidate_chunk_sizes": container.get(
+                    "candidate_chunk_sizes", [container["chunk_size"]]
+                ),
+                "selected_chunk_size": container.get(
+                    "selected_chunk_size", container["chunk_size"]
+                ),
+                "selected_total_residual_count": container.get(
+                    "selected_total_residual_count", container["total_residual_count"]
+                ),
+                "selected_residual_density": container.get(
+                    "selected_residual_density", 0.0
+                ),
+                "chunk_tournament_results": container.get(
+                    "chunk_tournament_results", []
+                ),
+                "transform_tournament_enabled": container.get(
+                    "transform_tournament_enabled", False
+                ),
+                "candidate_transforms": container.get(
+                    "candidate_transforms", ["identity"]
+                ),
+                "selected_transform_counts": container.get(
+                    "selected_transform_counts", {"identity": container["chunk_count"]}
+                ),
             }
-            Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+            Path(args.receipt).write_text(
+                json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+            )
             print(f"container written: {args.output}")
             print(f"receipt written: {args.receipt}")
             return
@@ -181,7 +212,9 @@ def main() -> None:
         if args.auto_chunk:
             raise SystemExit("--auto-chunk is only supported for .bog container output")
         if args.transform_tournament:
-            raise SystemExit("--transform-tournament is only supported for .bog container output")
+            raise SystemExit(
+                "--transform-tournament is only supported for .bog container output"
+            )
         if args.bogasm is None:
             raise SystemExit("--bogasm is required for direct .bogbin pack output")
 
@@ -199,15 +232,17 @@ def main() -> None:
         bogbin_path.write_bytes(assembler.assemble_text(bogasm))
 
         receipt, exit_code = run_file_with_block_receipt(bogbin_path)
-        receipt.update(build_pack_receipt_metadata(data, args.chunk_size, single_block=not chunked))
+        receipt.update(
+            build_pack_receipt_metadata(data, args.chunk_size, single_block=not chunked)
+        )
         receipt_text = json.dumps(receipt, indent=2, sort_keys=True)
         Path(args.receipt).write_text(receipt_text + "\n")
 
         accepted_names = receipt.get("accepted_data_block_names", [])
         expected_names = (
             [f"payload_chunk_{index:04d}" for index in range(receipt["chunk_count"])]
-            if chunked else
-            ["payload"]
+            if chunked
+            else ["payload"]
         )
         if (
             exit_code != 0
@@ -246,7 +281,9 @@ def main() -> None:
             "per_chunk_verified_count": container["chunk_count"],
             "execution_status": "completed",
         }
-        Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        Path(args.receipt).write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+        )
         print(f"unpacked: {args.container} -> {args.output}")
         print(f"receipt written: {args.receipt}")
 
@@ -274,13 +311,19 @@ def main() -> None:
         input_sha256 = hashlib.sha256(data).hexdigest()
         reconstructed_sha256 = hashlib.sha256(reconstructed).hexdigest()
         accepted_names = run_receipt.get("accepted_data_block_names", [])
-        expected_names = [f"payload_chunk_{index:04d}" for index in range(container["chunk_count"])]
-        execution_status = "completed" if (
-            exit_code == 0
-            and run_receipt.get("execution_status") == "completed"
-            and accepted_names == expected_names
-            and input_sha256 == reconstructed_sha256 == container["whole_sha256"]
-        ) else "blocked"
+        expected_names = [
+            f"payload_chunk_{index:04d}" for index in range(container["chunk_count"])
+        ]
+        execution_status = (
+            "completed"
+            if (
+                exit_code == 0
+                and run_receipt.get("execution_status") == "completed"
+                and accepted_names == expected_names
+                and input_sha256 == reconstructed_sha256 == container["whole_sha256"]
+            )
+            else "blocked"
+        )
 
         receipt = {
             "format": container["format"],
@@ -299,12 +342,18 @@ def main() -> None:
             "per_chunk_verified_count": container["chunk_count"],
             "vm_execution_status": run_receipt.get("execution_status"),
             "accepted_data_block_names": accepted_names,
-            "transform_tournament_enabled": container.get("transform_tournament_enabled", False),
+            "transform_tournament_enabled": container.get(
+                "transform_tournament_enabled", False
+            ),
             "candidate_transforms": container.get("candidate_transforms", ["identity"]),
-            "selected_transform_counts": container.get("selected_transform_counts", {"identity": container["chunk_count"]}),
+            "selected_transform_counts": container.get(
+                "selected_transform_counts", {"identity": container["chunk_count"]}
+            ),
             "execution_status": execution_status,
         }
-        Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        Path(args.receipt).write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+        )
 
         if execution_status != "completed":
             print(json.dumps(receipt, indent=2, sort_keys=True))
@@ -332,13 +381,17 @@ def main() -> None:
             "tree_sha256": manifest["tree_sha256"],
             "execution_status": "completed",
         }
-        Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        Path(args.receipt).write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+        )
         print(f"archive written: {args.archive_dir}")
         print(f"receipt written: {args.receipt}")
 
     elif args.cmd == "restore":
         receipt = restore_directory_archive(args.archive_dir, args.output_dir)
-        Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        Path(args.receipt).write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+        )
         print(f"restored: {args.archive_dir} -> {args.output_dir}")
         print(f"receipt written: {args.receipt}")
 
@@ -368,7 +421,9 @@ def main() -> None:
                 dependencies=args.dependency,
                 signing_key=args.signing_key,
             )
-            Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+            Path(args.receipt).write_text(
+                json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+            )
             print(f"package written: {args.bundle_dir}")
             print(f"receipt written: {args.receipt}")
         elif args.store_cmd == "install":
@@ -378,7 +433,9 @@ def main() -> None:
                 trusted_public_keys=args.trusted_key,
                 require_signature=args.require_signature,
             )
-            Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+            Path(args.receipt).write_text(
+                json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+            )
             print(f"installed: {receipt['package']}")
             print(f"receipt written: {args.receipt}")
         elif args.store_cmd == "verify":
@@ -388,7 +445,9 @@ def main() -> None:
                 trusted_public_keys=args.trusted_key,
                 require_signature=args.require_signature,
             )
-            Path(args.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+            Path(args.receipt).write_text(
+                json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+            )
             print(json.dumps(receipt, indent=2, sort_keys=True))
             if receipt["execution_status"] != "completed":
                 raise SystemExit(1)

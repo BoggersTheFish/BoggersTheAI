@@ -11,22 +11,31 @@ import re
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Protocol
 
-from .cig_checker import CIGChecker
-from .generator import ParsedRelation, extract_relations, infer_premises_from_question, infer_query_relation
-from .proof_chain import has_universal_bridge
-from .ts_core_adapter import channel_context, channel_results_to_trace, chain_to_graph
-from .types import ReasoningChain, ReasoningStep
 from .candidates import CandidateClaim, CandidateVerification
+from .cig_checker import CIGChecker
+from .generator import (
+    ParsedRelation,
+    extract_relations,
+    infer_premises_from_question,
+    infer_query_relation,
+)
+from .proof_chain import has_universal_bridge
 from .reasoning_channels import default_reasoning_channels
+from .ts_core_adapter import chain_to_graph, channel_context, channel_results_to_trace
+from .types import ReasoningChain, ReasoningStep
 
 try:
     from ts_core import TypedTensionRuntime
-except ModuleNotFoundError:  # pragma: no cover - ts_core_adapter inserts sibling path first in normal local use.
+except (
+    ModuleNotFoundError
+):  # pragma: no cover - ts_core_adapter inserts sibling path first in normal local use.
     from .ts_core_adapter import TypedTensionRuntime  # type: ignore
 
 
 class CandidateProposer(Protocol):
-    def propose(self, input_text: str, premises: Iterable[str] | None = None) -> list[CandidateClaim]:
+    def propose(
+        self, input_text: str, premises: Iterable[str] | None = None
+    ) -> list[CandidateClaim]:
         """Return candidate graph claims for TS-Reasoner verification."""
 
 
@@ -35,9 +44,15 @@ class MockTensionLMCandidateProposer:
 
     source = "candidate_bridge"
 
-    def propose(self, input_text: str, premises: Iterable[str] | None = None) -> list[CandidateClaim]:
+    def propose(
+        self, input_text: str, premises: Iterable[str] | None = None
+    ) -> list[CandidateClaim]:
         premise_list = _premise_list(input_text, premises)
-        premise_relations = [relation for premise in premise_list for relation in extract_relations(premise)]
+        premise_relations = [
+            relation
+            for premise in premise_list
+            for relation in extract_relations(premise)
+        ]
         query = infer_query_relation(input_text)
         if query is None:
             return [
@@ -56,13 +71,17 @@ class MockTensionLMCandidateProposer:
                 candidate_id="mock_candidate_1",
                 claim=_claim_text(query),
                 source=self.source,
-                confidence=0.82 if _relation_supported(query, premise_relations) else 0.58,
+                confidence=(
+                    0.82 if _relation_supported(query, premise_relations) else 0.58
+                ),
                 raw_output=input_text,
                 metadata={"proposal_rule": "query_relation"},
             )
         ]
         if query.subject.lower() != query.predicate.lower():
-            reverse = ParsedRelation(query.quantifier, query.predicate, query.subject, "")
+            reverse = ParsedRelation(
+                query.quantifier, query.predicate, query.subject, ""
+            )
             proposals.append(
                 CandidateClaim(
                     candidate_id="mock_candidate_2",
@@ -81,15 +100,22 @@ class ExternalTensionLMCandidateProposer:
 
     def __init__(
         self,
-        hook: Callable[[str, list[str]], Iterable[CandidateClaim | dict[str, Any] | str]] | None = None,
+        hook: (
+            Callable[[str, list[str]], Iterable[CandidateClaim | dict[str, Any] | str]]
+            | None
+        ) = None,
         source: str = "external_tensionlm",
     ) -> None:
         self.hook = hook
         self.source = source
 
-    def propose(self, input_text: str, premises: Iterable[str] | None = None) -> list[CandidateClaim]:
+    def propose(
+        self, input_text: str, premises: Iterable[str] | None = None
+    ) -> list[CandidateClaim]:
         if self.hook is None:
-            raise RuntimeError("External mode requires a hook that returns candidate claims.")
+            raise RuntimeError(
+                "External mode requires a hook that returns candidate claims."
+            )
         premise_list = _premise_list(input_text, premises)
         candidates = []
         for index, item in enumerate(self.hook(input_text, premise_list), start=1):
@@ -101,21 +127,28 @@ class ExternalTensionLMCandidateProposer:
 class TensionLMCandidateBridge:
     proposer: CandidateProposer
 
-    def run(self, input_text: str, premises: Iterable[str] | None = None) -> dict[str, Any]:
+    def run(
+        self, input_text: str, premises: Iterable[str] | None = None
+    ) -> dict[str, Any]:
         premise_list = _premise_list(input_text, premises)
         candidate_claims = self.proposer.propose(input_text, premise_list)
         verifications = [
             verify_candidate_claim(input_text, premise_list, candidate, index)
             for index, candidate in enumerate(candidate_claims, start=1)
         ]
-        return build_bridge_payload(input_text, premise_list, candidate_claims, verifications)
+        return build_bridge_payload(
+            input_text, premise_list, candidate_claims, verifications
+        )
 
 
 def run_tensionlm_candidate_bridge(
     input_text: str,
     premises: Iterable[str] | None = None,
     mode: str = "mock",
-    external_hook: Callable[[str, list[str]], Iterable[CandidateClaim | dict[str, Any] | str]] | None = None,
+    external_hook: (
+        Callable[[str, list[str]], Iterable[CandidateClaim | dict[str, Any] | str]]
+        | None
+    ) = None,
 ) -> dict[str, Any]:
     if mode == "mock":
         proposer: CandidateProposer = MockTensionLMCandidateProposer()
@@ -159,7 +192,9 @@ def verify_candidate_claim(
     if not relations:
         identity_pair = _identity_pair(candidate.claim)
         if identity_pair is not None:
-            return _verify_identity_candidate(premises, candidate, provenance, identity_pair, index)
+            return _verify_identity_candidate(
+                premises, candidate, provenance, identity_pair, index
+            )
         return CandidateVerification(
             candidate_id=candidate.candidate_id,
             claim=candidate.claim,
@@ -243,7 +278,9 @@ def build_bridge_payload(
             "accepted_count": len(accepted),
             "rejected_count": len(rejected),
             "abstained_count": len(abstained),
-            "provenance_preserved": all(bool(item.provenance.get("source")) for item in verifications),
+            "provenance_preserved": all(
+                bool(item.provenance.get("source")) for item in verifications
+            ),
         },
     }
 
@@ -261,7 +298,11 @@ def _decide(
         return channels, "rejected", "candidate reverses a directed support path"
     if context.get("quantifier_scope_blocked"):
         channels["quantifier_scope"] = "blocked some-to-all upgrade"
-        return channels, "rejected", "candidate upgrades existential support into a universal claim"
+        return (
+            channels,
+            "rejected",
+            "candidate upgrades existential support into a universal claim",
+        )
     if context.get("contradiction_flagged"):
         channels["contradiction"] = "flagged contradiction"
         return channels, "rejected", "premise graph is contradictory for this candidate"
@@ -269,20 +310,35 @@ def _decide(
     support = _support_status(graph, relation)
     if support == "inferred":
         channels["logic_transitivity"] = "accepted inferred edge"
-        return channels, "accepted", "candidate is supported by a typed transitive inference"
+        return (
+            channels,
+            "accepted",
+            "candidate is supported by a typed transitive inference",
+        )
     if support == "premise":
         channels["surface_structure"] = "accepted premise edge"
-        return channels, "accepted", "candidate is directly present in the premise graph"
+        return (
+            channels,
+            "accepted",
+            "candidate is directly present in the premise graph",
+        )
 
     channels["typed_support"] = "abstained no accepted channel support"
-    return channels, "abstained", "no typed channel produced support or a typed rejection"
+    return (
+        channels,
+        "abstained",
+        "no typed channel produced support or a typed rejection",
+    )
 
 
 def _support_status(graph: Any, relation: ParsedRelation) -> str | None:
     for edge in graph.edges:
         if edge.relation != relation.quantifier:
             continue
-        if edge.source.lower() != relation.subject.lower() or edge.target.lower() != relation.predicate.lower():
+        if (
+            edge.source.lower() != relation.subject.lower()
+            or edge.target.lower() != relation.predicate.lower()
+        ):
             continue
         status = edge.data.get("status")
         if status in {"premise", "inferred"}:
@@ -294,7 +350,10 @@ def _candidate_contradicts_premises(relation: ParsedRelation, graph: Any) -> boo
     if relation.quantifier not in {"all", "some", "no"}:
         return False
     for edge in graph.edges:
-        if edge.source.lower() != relation.subject.lower() or edge.target.lower() != relation.predicate.lower():
+        if (
+            edge.source.lower() != relation.subject.lower()
+            or edge.target.lower() != relation.predicate.lower()
+        ):
             continue
         if edge.data.get("status") not in {"premise", "inferred"}:
             continue
@@ -342,14 +401,18 @@ def _verify_identity_candidate(
             "available": True,
             "settled": typed_trace.settled,
             "global_tension": typed_trace.global_tension,
-            "resolver_events": [event.to_dict() for event in typed_trace.resolver_events],
+            "resolver_events": [
+                event.to_dict() for event in typed_trace.resolver_events
+            ],
             "context": {
                 "blocked_edges": context.get("blocked_edges", []),
                 "blocked_equalities": blocked_equalities,
                 "surface_tags": context.get("surface_tags", {}),
                 "abstention": context.get("abstention"),
                 "contradiction_flagged": context.get("contradiction_flagged", False),
-                "quantifier_scope_blocked": context.get("quantifier_scope_blocked", False),
+                "quantifier_scope_blocked": context.get(
+                    "quantifier_scope_blocked", False
+                ),
             },
         },
         provenance=provenance,
@@ -399,7 +462,11 @@ def _identity_verification_chain(
 def _premise_list(input_text: str, premises: Iterable[str] | None) -> list[str]:
     if premises is not None:
         return [premise.strip() for premise in premises if premise.strip()]
-    return [premise.strip() for premise in infer_premises_from_question(input_text) if premise.strip()]
+    return [
+        premise.strip()
+        for premise in infer_premises_from_question(input_text)
+        if premise.strip()
+    ]
 
 
 def _claim_text(relation: ParsedRelation) -> str:
@@ -422,7 +489,9 @@ def _question_text(relation: ParsedRelation) -> str:
     return f"Are {relation.quantifier} {relation.subject} {relation.predicate}?"
 
 
-def _relation_supported(relation: ParsedRelation, premise_relations: list[ParsedRelation]) -> bool:
+def _relation_supported(
+    relation: ParsedRelation, premise_relations: list[ParsedRelation]
+) -> bool:
     if any(
         item.quantifier == relation.quantifier
         and item.subject.lower() == relation.subject.lower()
@@ -431,11 +500,15 @@ def _relation_supported(relation: ParsedRelation, premise_relations: list[Parsed
     ):
         return True
     if relation.quantifier == "all":
-        return has_universal_bridge(premise_relations, relation.subject, relation.predicate)
+        return has_universal_bridge(
+            premise_relations, relation.subject, relation.predicate
+        )
     return False
 
 
-def _coerce_candidate(item: CandidateClaim | dict[str, Any] | str, index: int, default_source: str) -> CandidateClaim:
+def _coerce_candidate(
+    item: CandidateClaim | dict[str, Any] | str, index: int, default_source: str
+) -> CandidateClaim:
     if isinstance(item, CandidateClaim):
         return item
     if isinstance(item, str):

@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from .container import (
     BOG_FORMAT,
     BOGPK_VERSION,
     build_bog_container_v1,
-    reconstruct_bog_container_bytes,
     read_bogpk_container,
+    reconstruct_bog_container_bytes,
     write_bogpk_container,
 )
 from .schema import SchemaError, validate_schema
@@ -54,12 +54,14 @@ def build_directory_archive(
                 transform_tournament=transform_tournament,
             )
             write_bogpk_container(container, str(object_path))
-        files.append({
-            "path": rel,
-            "size": len(data),
-            "sha256": sha256,
-            "object": f"objects/{object_name}",
-        })
+        files.append(
+            {
+                "path": rel,
+                "size": len(data),
+                "sha256": sha256,
+                "object": f"objects/{object_name}",
+            }
+        )
 
     manifest = {
         "format": ARCHIVE_FORMAT,
@@ -89,11 +91,13 @@ def restore_directory_archive(archive_dir: str | Path, output_dir: str | Path) -
         target.parent.mkdir(parents=True, exist_ok=True)
         data = read_archive_file(archive, entry["path"], manifest=manifest)
         target.write_bytes(data)
-        restored.append({
-            "path": entry["path"],
-            "size": len(data),
-            "sha256": hashlib.sha256(data).hexdigest(),
-        })
+        restored.append(
+            {
+                "path": entry["path"],
+                "size": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
 
     receipt = {
         "format": "BOGARCHIVE-restore-receipt-2.0",
@@ -103,7 +107,11 @@ def restore_directory_archive(archive_dir: str | Path, output_dir: str | Path) -
         "tree_sha256": _tree_hash(restored),
         "expected_tree_sha256": manifest["tree_sha256"],
         "all_hashes_match": _tree_hash(restored) == manifest["tree_sha256"],
-        "execution_status": "completed" if _tree_hash(restored) == manifest["tree_sha256"] else "blocked",
+        "execution_status": (
+            "completed"
+            if _tree_hash(restored) == manifest["tree_sha256"]
+            else "blocked"
+        ),
     }
     if receipt["execution_status"] != "completed":
         raise ArchiveError("restored directory hash mismatch")
@@ -132,18 +140,22 @@ def verify_directory_archive(archive_dir: str | Path) -> dict:
         except Exception as exc:
             failures.append({"path": entry["path"], "reason": str(exc)})
             continue
-        verified.append({
-            "path": entry["path"],
-            "size": len(data),
-            "sha256": hashlib.sha256(data).hexdigest(),
-        })
+        verified.append(
+            {
+                "path": entry["path"],
+                "size": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
 
     tree_sha256 = _tree_hash(verified)
     if not failures and tree_sha256 != manifest["tree_sha256"]:
-        failures.append({
-            "path": ".",
-            "reason": "verified archive tree hash mismatch",
-        })
+        failures.append(
+            {
+                "path": ".",
+                "reason": "verified archive tree hash mismatch",
+            }
+        )
 
     return {
         "format": "BOGARCHIVE-verify-receipt-2.0",
@@ -179,7 +191,9 @@ def read_archive_manifest(archive_dir: str | Path) -> dict:
     return manifest
 
 
-def read_archive_file(archive_dir: str | Path, relative_path: str, manifest: dict | None = None) -> bytes:
+def read_archive_file(
+    archive_dir: str | Path, relative_path: str, manifest: dict | None = None
+) -> bytes:
     archive = Path(archive_dir)
     manifest = manifest or read_archive_manifest(archive)
     if Path(relative_path).is_absolute() or ".." in Path(relative_path).parts:
@@ -191,7 +205,10 @@ def read_archive_file(archive_dir: str | Path, relative_path: str, manifest: dic
     object_path = archive / entry["object"]
     container = read_bogpk_container(str(object_path))
     data = reconstruct_bog_container_bytes(container)
-    if len(data) != entry["size"] or hashlib.sha256(data).hexdigest() != entry["sha256"]:
+    if (
+        len(data) != entry["size"]
+        or hashlib.sha256(data).hexdigest() != entry["sha256"]
+    ):
         raise ArchiveError(f"archive object verification failed: {relative_path}")
     return data
 
@@ -212,11 +229,13 @@ def tree_hash_for_directory(root: str | Path) -> str:
     files = []
     for path in sorted(p for p in Path(root).rglob("*") if p.is_file()):
         data = path.read_bytes()
-        files.append({
-            "path": path.relative_to(root).as_posix(),
-            "size": len(data),
-            "sha256": hashlib.sha256(data).hexdigest(),
-        })
+        files.append(
+            {
+                "path": path.relative_to(root).as_posix(),
+                "size": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
     return _tree_hash(files)
 
 

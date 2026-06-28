@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Iterable
 
-
 HIGH_TRUST = {"high", "trusted", "verified"}
 LOW_TRUST = {"low", "untrusted", "hostile"}
 
@@ -58,7 +57,11 @@ def is_direct_contradiction(accepted_claim: str, incoming_claim: str) -> bool:
     if accepted.startswith("no ") and incoming.startswith("all "):
         return accepted[3:] == incoming[4:]
 
-    if incoming.startswith("some ") and " do not " in incoming and accepted.startswith("all "):
+    if (
+        incoming.startswith("some ")
+        and " do not " in incoming
+        and accepted.startswith("all ")
+    ):
         return True
 
     return False
@@ -220,7 +223,9 @@ def evaluate_policy_cases(cases: Iterable[dict[str, object]]) -> dict[str, objec
         "failed_cases": total - passed,
         "policy_accuracy": passed / total if total else 0.0,
         "candidate_graph_contamination_count": contamination,
-        "accepted_claims_preserved": all(row["accepted_claim_preserved"] for row in results),
+        "accepted_claims_preserved": all(
+            row["accepted_claim_preserved"] for row in results
+        ),
         "all_gates_passed": total > 0 and passed == total and contamination == 0,
         "results": results,
     }

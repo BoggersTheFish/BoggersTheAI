@@ -23,23 +23,25 @@ This demonstrates the scaled dynamics: coherent reasoning at larger scale, faste
 Still on-device, deterministic, transparent.
 """
 
+import json
 import sys
 import time
-import json
-from pathlib import Path
 from collections import deque
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 try:
+    from core.graph.rules_engine import EMERGENCE_MAX_SPAWN
     from core.graph.universal_living_graph import UniversalLivingGraph
     from core.graph.wave_propagation import HAS_NUMPY
-    from core.graph.rules_engine import EMERGENCE_MAX_SPAWN
+
     HAS_REAL_GRAPH = True
 except Exception as e:
     print(f"[demo] Falling back to minimal simulation due to imports: {e}")
     HAS_REAL_GRAPH = False
     HAS_NUMPY = False
+
 
 # --- Minimal sim for fallback / demo reliability ---
 class SimNode:
@@ -51,6 +53,7 @@ class SimNode:
         self.stability = 0.6
         self.topics = set(topics or [])
         self.collapsed = False
+
 
 class SimGraph:
     def __init__(self):
@@ -80,7 +83,9 @@ class SimGraph:
             n.activation = n.base_strength + (n.activation - n.base_strength) * 0.82
 
     def detect_tensions(self):
-        return {nid: abs(n.activation - n.base_strength) for nid, n in self.nodes.items()}
+        return {
+            nid: abs(n.activation - n.base_strength) for nid, n in self.nodes.items()
+        }
 
     def run_waves(self, steps=5, adaptive=False):
         trace = []
@@ -90,7 +95,7 @@ class SimGraph:
             tens = self.detect_tensions()
             max_t = max(tens.values() or [0])
             trace.append({"step": s, "max_tension": round(max_t, 4)})
-            if adaptive and max_t > 0.15 and s < steps-1:
+            if adaptive and max_t > 0.15 and s < steps - 1:
                 # extra step on high tension
                 self.propagate()
                 self.relax()
@@ -105,27 +110,43 @@ class SimGraph:
         return cid
 
     def snapshot(self):
-        return {"nodes": len(self.nodes), "max_act": max((n.activation for n in self.nodes.values()), default=0)}
+        return {
+            "nodes": len(self.nodes),
+            "max_act": max((n.activation for n in self.nodes.values()), default=0),
+        }
+
 
 # Proof helper (same as before)
 class UnivRel:
-    def __init__(self, q, s, p, text=""): self.quantifier=q; self.subject=s; self.predicate=p; self.text=text
+    def __init__(self, q, s, p, text=""):
+        self.quantifier = q
+        self.subject = s
+        self.predicate = p
+        self.text = text
+
 
 def universal_bridge_path(rels, subj, pred):
-    sk = subj.lower(); pk = pred.lower()
+    sk = subj.lower()
+    pk = pred.lower()
     edges = {}
     for r in rels:
-        if r.quantifier != "all": continue
+        if r.quantifier != "all":
+            continue
         edges.setdefault(r.subject.lower(), []).append((r.predicate.lower(), r.text))
-    q = deque([(sk, [])]); seen = set()
+    q = deque([(sk, [])])
+    seen = set()
     while q:
         cur, path = q.popleft()
-        if cur in seen: continue
+        if cur in seen:
+            continue
         seen.add(cur)
-        if cur == pk: return path
+        if cur == pk:
+            return path
         for nxt, txt in edges.get(cur, []):
-            if nxt not in seen: q.append((nxt, path + [txt]))
+            if nxt not in seen:
+                q.append((nxt, path + [txt]))
     return []
+
 
 def build_large_synthetic_graph(n=2000, g=None):
     if g is None:
@@ -135,7 +156,7 @@ def build_large_synthetic_graph(n=2000, g=None):
         nid = g.add_node(f"Entity_{i}", {f"e{i%20}"})
         ids.append(nid)
         if i > 0:
-            g.add_edge(ids[i-1], nid, "is_a", 0.85)  # long chain
+            g.add_edge(ids[i - 1], nid, "is_a", 0.85)  # long chain
     # Add branches and one contradiction for interesting tension
     if n > 100:
         g.add_edge(ids[50], ids[10], "is_a", 0.7)  # branch
@@ -144,6 +165,7 @@ def build_large_synthetic_graph(n=2000, g=None):
         g.add_node("ConflictPoint", {"conflict"})
         g.add_edge(ids[30], "ConflictPoint", "contradicts", 0.9)
     return g, ids
+
 
 def main():
     print("=== Phase 1 Scale Demo ===")
@@ -157,34 +179,45 @@ def main():
         print(f"--- Building graph with ~{sz} nodes ---")
         g, ids = build_large_synthetic_graph(sz)
         t0 = time.perf_counter()
-        trace = g.run_waves(steps=6, adaptive=True) if hasattr(g, 'run_waves') else []
-        if hasattr(g, 'create_cluster'):
-            g.create_cluster("main", ids[:min(50, len(ids))])
-            if hasattr(g, 'propagate_to_clusters'):
+        trace = g.run_waves(steps=6, adaptive=True) if hasattr(g, "run_waves") else []
+        if hasattr(g, "create_cluster"):
+            g.create_cluster("main", ids[: min(50, len(ids))])
+            if hasattr(g, "propagate_to_clusters"):
                 g.propagate_to_clusters()
         dt = time.perf_counter() - t0
 
-        snap = g.snapshot() if hasattr(g, 'snapshot') else {"nodes": sz}
+        snap = g.snapshot() if hasattr(g, "snapshot") else {"nodes": sz}
         max_t = max([t.get("max_tension", 0) for t in trace] or [0])
-        print(f"  Time for waves+adaptive: {dt:.3f}s | nodes={snap.get('nodes', sz)} | peak tension={max_t:.4f}")
+        print(
+            f"  Time for waves+adaptive: {dt:.3f}s | nodes={snap.get('nodes', sz)} | peak tension={max_t:.4f}"
+        )
 
         # Multi-hop query simulation
         if ids and len(ids) > 100:
             # Build rels for proof
             rels = []
             # simplistic
-            for i in range(min(100, len(ids)-1)):
+            for i in range(min(100, len(ids) - 1)):
                 rels.append(UnivRel("all", f"entity_{i}", f"entity_{i+1}"))
             chain = universal_bridge_path(rels, "entity_5", "entity_50")
-            print(f"  Multi-hop proof (5->50): {'found ' + str(len(chain)) + ' steps' if chain else 'no path (tension controlled)'}")
+            print(
+                f"  Multi-hop proof (5->50): {'found ' + str(len(chain)) + ' steps' if chain else 'no path (tension controlled)'}"
+            )
 
-        results.append({"size": sz, "time": round(dt, 3), "peak_tension": round(max_t, 4)})
+        results.append(
+            {"size": sz, "time": round(dt, 3), "peak_tension": round(max_t, 4)}
+        )
 
     print("\n=== Phase 1 Results Summary ===")
     print(json.dumps(results, indent=2))
-    print("\nDemo shows: larger scale handled, adaptive compute, hierarchical attempt, vectorized path engaged when numpy present.")
+    print(
+        "\nDemo shows: larger scale handled, adaptive compute, hierarchical attempt, vectorized path engaged when numpy present."
+    )
     print("Full receipts and traces available in real runs via the graph API.")
-    print("This is the scaled dynamics foundation for coherent reasoning at 10k+ nodes.")
+    print(
+        "This is the scaled dynamics foundation for coherent reasoning at 10k+ nodes."
+    )
+
 
 if __name__ == "__main__":
     main()

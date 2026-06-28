@@ -5,7 +5,6 @@ from typing import Any, Iterable
 
 from ts_reasoner.runtime_kernel import VerifierFirstRuntimeKernel
 
-
 POLICY_CONTRACT_SCHEMA = "ts_reasoner_runtime_policy_contracts_v1"
 
 ACTION_CONTRACTS: dict[str, dict[str, Any]] = {
@@ -70,7 +69,14 @@ ACTION_CONTRACTS: dict[str, dict[str, Any]] = {
         "candidate_may_mutate_accepted_common_ground": False,
     },
     "checkpoint": {
-        "required_checkpoint_keys": ["schema", "case_id", "state", "actions", "ledger", "head_hash"],
+        "required_checkpoint_keys": [
+            "schema",
+            "case_id",
+            "state",
+            "actions",
+            "ledger",
+            "head_hash",
+        ],
         "candidate_may_mutate_accepted_common_ground": False,
     },
     "restore": {
@@ -151,7 +157,9 @@ def validate_runtime_action_contract(
     )
 
 
-def evaluate_policy_contract_cases(cases: Iterable[dict[str, Any]]) -> dict[str, object]:
+def evaluate_policy_contract_cases(
+    cases: Iterable[dict[str, Any]],
+) -> dict[str, object]:
     kernel = VerifierFirstRuntimeKernel()
     results = []
     passed = 0
@@ -175,7 +183,9 @@ def evaluate_policy_contract_cases(cases: Iterable[dict[str, Any]]) -> dict[str,
 
         expected_action = str(raw["expected_action"])
         expected_contract_valid = bool(raw["expected_contract_valid"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.action == expected_action

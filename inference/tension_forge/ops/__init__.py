@@ -69,24 +69,24 @@ from .workspace_backward import (
     cross_entropy_device,
     embedding_backward_device,
     embedding_forward_device,
-    fill_device as workspace_fill_device,
     gather_backward_device,
     gelu_backward_device,
     layer_norm_backward_device,
-    row_delta_norm_backward_device,
     route_scores_backward_device,
     route_scores_device,
+    row_delta_norm_backward_device,
     scale_inplace_device,
     scatter_backward_device,
     softmax_backward_device,
     table_row_backward_device,
-    training_auxiliary_loss_device,
     tension_penalty_backward_device,
     tension_update_broadcast_backward_device,
     topk_backward_device,
+    training_auxiliary_loss_device,
     weighted_sum_backward_device,
     workspace_reduce_backward_device,
 )
+from .workspace_backward import fill_device as workspace_fill_device
 
 __all__ = [
     "ACTIVATION_SOURCE",

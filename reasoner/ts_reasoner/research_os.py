@@ -8,14 +8,13 @@ candidate structure until verifier/gate/receipt support accepts it.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from pathlib import Path
-from typing import Any, Iterable
 import difflib
 import hashlib
 import json
 import time
-
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 V40_CLAIM = (
@@ -72,7 +71,9 @@ class OntologyIR:
 class OntologyCompiler:
     """Compile taught domain text into a typed operational ontology."""
 
-    def compile(self, domain_text: str, domain: str = "scientific_experiment_reports") -> OntologyIR:
+    def compile(
+        self, domain_text: str, domain: str = "scientific_experiment_reports"
+    ) -> OntologyIR:
         text = domain_text.lower()
         if "scientific" in text or "experiment" in text:
             objects = [
@@ -134,11 +135,27 @@ class OntologyCompiler:
         return OntologyIR(
             domain=domain,
             objects=objects,
-            relations=["supports", "contradicts", "requires", "evidenced_by", "blocked_by"],
+            relations=[
+                "supports",
+                "contradicts",
+                "requires",
+                "evidenced_by",
+                "blocked_by",
+            ],
             operations=operations,
-            risks=["unsupported_claim", "overclaim", "missing_receipt", "replication_gap"],
+            risks=[
+                "unsupported_claim",
+                "overclaim",
+                "missing_receipt",
+                "replication_gap",
+            ],
             examples=[example for op in operations for example in op["examples"]],
-            failure_modes=["unsupported_claim", "missing_metric", "method_gap", "receipt_gap"],
+            failure_modes=[
+                "unsupported_claim",
+                "missing_metric",
+                "method_gap",
+                "receipt_gap",
+            ],
             hard_negatives=hard_negatives,
             receipt_schema={
                 "artifact": "ontology_compiler_receipt",
@@ -173,7 +190,8 @@ class OntologyCompiler:
             "examples_route_to_typed_operations": len(ontology.examples) > 0,
             "hard_negatives_rejected": len(ontology.hard_negatives),
             "candidate_graph_contamination_count": 0,
-            "all_gates_passed": len(ontology.operations) > 0 and len(ontology.hard_negatives) > 0,
+            "all_gates_passed": len(ontology.operations) > 0
+            and len(ontology.hard_negatives) > 0,
         }
 
 
@@ -207,30 +225,50 @@ class VerifierGatedMemoryLedger:
         self.events: list[dict[str, Any]] = []
 
     def add_candidate(self, text: str, provenance: Iterable[str] = ()) -> MemoryItem:
-        item_id = "mem_" + stable_hash({"text": text, "provenance": list(provenance)})[:12]
+        item_id = (
+            "mem_" + stable_hash({"text": text, "provenance": list(provenance)})[:12]
+        )
         item = MemoryItem(item_id=item_id, text=text, provenance=list(provenance))
         self.items[item_id] = item
         self.events.append({"event": "candidate_added", "item_id": item_id})
         return item
 
-    def promote(self, item_id: str, receipt: str | None = None, confirmed: bool = False) -> MemoryItem:
+    def promote(
+        self, item_id: str, receipt: str | None = None, confirmed: bool = False
+    ) -> MemoryItem:
         item = self.items[item_id]
         lowered = item.text.lower()
         if "self-learning agi" in lowered or "proof by confidence" in lowered:
             item.state = "quarantined"
-            self.events.append({"event": "quarantined", "item_id": item_id, "reason": "unsafe_overclaim"})
+            self.events.append(
+                {
+                    "event": "quarantined",
+                    "item_id": item_id,
+                    "reason": "unsafe_overclaim",
+                }
+            )
             return item
         if not confirmed:
             item.state = "candidate"
-            self.events.append({"event": "promotion_blocked", "item_id": item_id, "reason": "missing_confirmation"})
+            self.events.append(
+                {
+                    "event": "promotion_blocked",
+                    "item_id": item_id,
+                    "reason": "missing_confirmation",
+                }
+            )
             return item
         if not receipt:
             item.state = "confirmed"
-            self.events.append({"event": "confirmed_without_receipt", "item_id": item_id})
+            self.events.append(
+                {"event": "confirmed_without_receipt", "item_id": item_id}
+            )
             return item
         item.receipts.append(receipt)
         item.state = "active"
-        self.events.append({"event": "promoted_active", "item_id": item_id, "receipt": receipt})
+        self.events.append(
+            {"event": "promoted_active", "item_id": item_id, "receipt": receipt}
+        )
         return item
 
     def forbidden_claims(self) -> list[str]:
@@ -238,9 +276,14 @@ class VerifierGatedMemoryLedger:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "items": {item_id: item.to_dict() for item_id, item in sorted(self.items.items())},
+            "items": {
+                item_id: item.to_dict() for item_id, item in sorted(self.items.items())
+            },
             "events": self.events,
-            "state_count": {state: sum(1 for item in self.items.values() if item.state == state) for state in sorted(self.STATES)},
+            "state_count": {
+                state: sum(1 for item in self.items.values() if item.state == state)
+                for state in sorted(self.STATES)
+            },
             "candidate_graph_contamination_count": 0,
         }
 
@@ -288,7 +331,14 @@ class TSAGLPlanCompiler:
             "detect_stale_docs",
         ]
         if "fix" in lowered or "patch" in lowered or "prepare" in lowered:
-            operations.extend(["stage_doc_patch", "require_confirmation", "run_tests", "emit_release_candidate_receipt"])
+            operations.extend(
+                [
+                    "stage_doc_patch",
+                    "require_confirmation",
+                    "run_tests",
+                    "emit_release_candidate_receipt",
+                ]
+            )
         else:
             operations.append("emit_plan_receipt")
 
@@ -296,24 +346,39 @@ class TSAGLPlanCompiler:
             PlanStep(
                 step_id=f"step_{index:02d}",
                 operation=operation,
-                risk="reversible_write" if operation in {"stage_doc_patch"} else "read_only",
-                requires_confirmation=operation in {"stage_doc_patch", "require_confirmation"},
+                risk=(
+                    "reversible_write"
+                    if operation in {"stage_doc_patch"}
+                    else "read_only"
+                ),
+                requires_confirmation=operation
+                in {"stage_doc_patch", "require_confirmation"},
             )
             for index, operation in enumerate(operations, start=1)
         ]
         return OperationPlan(
-            plan_id="plan_" + stable_hash({"intent": intent, "operations": operations})[:12],
+            plan_id="plan_"
+            + stable_hash({"intent": intent, "operations": operations})[:12],
             intent=intent,
             steps=steps,
-            required_confirmations=[step.step_id for step in steps if step.requires_confirmation],
-            blocked_side_effects=["network_call", "external_side_effect", "destructive_write"],
+            required_confirmations=[
+                step.step_id for step in steps if step.requires_confirmation
+            ],
+            blocked_side_effects=[
+                "network_call",
+                "external_side_effect",
+                "destructive_write",
+            ],
             receipt_path="artifacts/ts_agl_plan_receipt.json",
         )
 
 
 class AutomatedResearchForge:
     def forge(self, claim: str) -> dict[str, Any]:
-        slug = "_".join(part for part in claim.lower().split()[:5] if part.isalnum()) or "research_claim"
+        slug = (
+            "_".join(part for part in claim.lower().split()[:5] if part.isalnum())
+            or "research_claim"
+        )
         artifacts = {
             "dataset": f"data/{slug}_cases.jsonl",
             "script": f"scripts/evaluate_{slug}.py",
@@ -328,14 +393,22 @@ class AutomatedResearchForge:
             "hypothesis": {"text": claim, "status": "candidate"},
             "variables": ["repair_strategy", "contradiction_graph", "receipt_support"],
             "baseline": "naive_repair",
-            "metrics": ["resolved_contradictions", "false_repairs", "receipt_gap_count"],
+            "metrics": [
+                "resolved_contradictions",
+                "false_repairs",
+                "receipt_gap_count",
+            ],
             "falsification_cases": [
                 "unsupported improvement claim",
                 "metric improves but receipt gap remains",
                 "confidence trap accepted without typed support",
             ],
             "artifacts": artifacts,
-            "bounded_result": "claim supported under bounded synthetic conditions" if supported else "claim not supported",
+            "bounded_result": (
+                "claim supported under bounded synthetic conditions"
+                if supported
+                else "claim not supported"
+            ),
             "public_non_claim": "Result does not prove broad scientific autonomy.",
             "candidate_graph_contamination_count": 0,
         }
@@ -344,7 +417,11 @@ class AutomatedResearchForge:
 class SelfRepairingReasoningKernel:
     def audit(self, repo: str | Path = ".") -> dict[str, Any]:
         base = Path(repo)
-        readme = (base / "README.md").read_text(encoding="utf-8") if (base / "README.md").exists() else ""
+        readme = (
+            (base / "README.md").read_text(encoding="utf-8")
+            if (base / "README.md").exists()
+            else ""
+        )
         unsafe = "proves broad AGI" in readme or "self-learning AGI" in readme
         missing_receipts = [
             path
@@ -359,7 +436,9 @@ class SelfRepairingReasoningKernel:
             repairs.append("unsupported_claim_removal")
         if missing_receipts:
             repairs.append("receipt_gap_repair")
-        repairs.extend(["missing_bridge_synthesis", "domain_pack_hard_negative_addition"])
+        repairs.extend(
+            ["missing_bridge_synthesis", "domain_pack_hard_negative_addition"]
+        )
         return {
             "artifact": "reasoning_state_audit",
             "unsafe_claim_detected": unsafe,
@@ -381,7 +460,9 @@ class PatchPlan:
     new_contents: dict[str, str]
     risk: str = "reversible_write"
     requires_confirmation: bool = True
-    verification_commands: list[str] = field(default_factory=lambda: ["python3 -m unittest discover -q"])
+    verification_commands: list[str] = field(
+        default_factory=lambda: ["python3 -m unittest discover -q"]
+    )
     receipt_path: str = "artifacts/patch_execution_receipt.json"
 
     def to_dict(self) -> dict[str, Any]:
@@ -394,9 +475,15 @@ class ConfirmedPatchExecutionEngine:
 
     def stage_doc_patch(self, path: str, new_text: str, description: str) -> PatchPlan:
         target = self.root / path
-        old_lines = target.read_text(encoding="utf-8").splitlines(keepends=True) if target.exists() else []
+        old_lines = (
+            target.read_text(encoding="utf-8").splitlines(keepends=True)
+            if target.exists()
+            else []
+        )
         new_lines = new_text.splitlines(keepends=True)
-        diff = "".join(difflib.unified_diff(old_lines, new_lines, fromfile=path, tofile=path))
+        diff = "".join(
+            difflib.unified_diff(old_lines, new_lines, fromfile=path, tofile=path)
+        )
         return PatchPlan(
             plan_id="patch_" + stable_hash({"path": path, "new_text": new_text})[:12],
             description=description,
@@ -424,7 +511,10 @@ class ConfirmedPatchExecutionEngine:
                     "candidate_graph_contamination_count": 0,
                 }
             target = (self.root / raw_path).resolve()
-            if self.root.resolve() != target and self.root.resolve() not in target.parents:
+            if (
+                self.root.resolve() != target
+                and self.root.resolve() not in target.parents
+            ):
                 return {
                     "status": "failed",
                     "plan": plan.to_dict(),
@@ -435,7 +525,9 @@ class ConfirmedPatchExecutionEngine:
             old_text = target.read_text(encoding="utf-8") if target.exists() else None
             rollback[raw_path] = {
                 "existed_before": old_text is not None,
-                "previous_sha256": stable_hash(old_text) if old_text is not None else None,
+                "previous_sha256": (
+                    stable_hash(old_text) if old_text is not None else None
+                ),
             }
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(new_text, encoding="utf-8")
@@ -465,14 +557,27 @@ class EcosystemBrain:
         nodes = [{"repo": repo, "kind": "project"} for repo in self.REPOS]
         stale = [
             {"repo": "TS-Start-Here", "issue": "may point to old TS-Reasoner release"},
-            {"repo": "model cards", "issue": "must avoid unsupported AGI/self-learning claims"},
+            {
+                "repo": "model cards",
+                "issue": "must avoid unsupported AGI/self-learning claims",
+            },
             {"repo": "site", "issue": "public framing must match proof boundary"},
         ]
         return {
-            "ecosystem_graph": {"nodes": nodes, "edge_types": ["documents", "depends_on", "claims", "releases"]},
+            "ecosystem_graph": {
+                "nodes": nodes,
+                "edge_types": ["documents", "depends_on", "claims", "releases"],
+            },
             "stale_surface_report": stale,
-            "sync_plan": ["audit public claims", "sync release ladder", "emit dry-run patch plans"],
-            "proof_boundary_map": {"model_confidence_is_proof": False, "typed_verifier_support_is_authority": True},
+            "sync_plan": [
+                "audit public claims",
+                "sync release ladder",
+                "emit dry-run patch plans",
+            ],
+            "proof_boundary_map": {
+                "model_confidence_is_proof": False,
+                "typed_verifier_support_is_authority": True,
+            },
             "dry_run_only": True,
             "candidate_graph_contamination_count": 0,
         }
@@ -491,7 +596,12 @@ class VerifierModelCoEvolution:
                 "tensionlm_exports",
                 "spectral_features",
             ],
-            "outputs": ["tiny_router", "tiny_proposer", "verifier_override_dashboard", "model_boundary_receipt"],
+            "outputs": [
+                "tiny_router",
+                "tiny_proposer",
+                "verifier_override_dashboard",
+                "model_boundary_receipt",
+            ],
             "metrics": {
                 "proposal_quality_improved": True,
                 "confidence_traps_fail": True,
@@ -510,29 +620,42 @@ class SelfHostingResearchOS:
         memory = VerifierGatedMemoryLedger()
         for lesson in FORBIDDEN_LESSONS:
             item = memory.add_candidate(lesson, provenance=["v40_bootstrap"])
-            memory.promote(item.item_id, receipt="artifacts/research_os_receipt.json", confirmed=True)
-        unsafe = memory.add_candidate("TS-Reasoner is self-learning AGI.", provenance=["hostile_demo"])
-        memory.promote(unsafe.item_id, receipt="artifacts/research_os_receipt.json", confirmed=True)
+            memory.promote(
+                item.item_id,
+                receipt="artifacts/research_os_receipt.json",
+                confirmed=True,
+            )
+        unsafe = memory.add_candidate(
+            "TS-Reasoner is self-learning AGI.", provenance=["hostile_demo"]
+        )
+        memory.promote(
+            unsafe.item_id, receipt="artifacts/research_os_receipt.json", confirmed=True
+        )
 
         plan = TSAGLPlanCompiler().compile(mission)
-        research = AutomatedResearchForge().forge("Test whether spectral tension ranking helps repair contradiction graphs.")
+        research = AutomatedResearchForge().forge(
+            "Test whether spectral tension ranking helps repair contradiction graphs."
+        )
         repair = SelfRepairingReasoningKernel().audit(repo)
-        patch_text = json.dumps(
-            {
-                "artifact": "v40_release_candidate_note",
-                "release": "v40.0.0",
-                "claim": "Self-hosting verifier-first research OS release candidate prepared.",
-                "boundary": [
-                    "Generated text is not proof.",
-                    "Model confidence is not proof.",
-                    "Memory is not proof.",
-                    "Confirmation authorizes bounded writes, not truth.",
-                    "Typed verifier support remains the proof boundary.",
-                ],
-            },
-            indent=2,
-            sort_keys=True,
-        ) + "\n"
+        patch_text = (
+            json.dumps(
+                {
+                    "artifact": "v40_release_candidate_note",
+                    "release": "v40.0.0",
+                    "claim": "Self-hosting verifier-first research OS release candidate prepared.",
+                    "boundary": [
+                        "Generated text is not proof.",
+                        "Model confidence is not proof.",
+                        "Memory is not proof.",
+                        "Confirmation authorizes bounded writes, not truth.",
+                        "Typed verifier support remains the proof boundary.",
+                    ],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        )
         patch = ConfirmedPatchExecutionEngine(repo).stage_doc_patch(
             "artifacts/v40_release_candidate_note.json",
             patch_text,
@@ -544,14 +667,18 @@ class SelfHostingResearchOS:
         gates = {
             "ontology_compiled": len(ontology.operations) >= 3,
             "memory_loaded": len(memory.items) >= len(FORBIDDEN_LESSONS),
-            "unsafe_memory_quarantined": memory.items[unsafe.item_id].state == "quarantined",
+            "unsafe_memory_quarantined": memory.items[unsafe.item_id].state
+            == "quarantined",
             "plan_compiled": len(plan.steps) >= 4,
             "research_forge_ready": bool(research["artifacts"]["receipt"]),
             "repair_audit_ready": repair["confirmation_required"],
             "patch_staged_unapplied": patch.requires_confirmation and bool(patch.diff),
             "ecosystem_dry_run_ready": ecosystem["dry_run_only"],
             "model_boundary_preserved": model["model_is_proof_authority"] is False,
-            "accepted_without_typed_support_zero": model["metrics"]["accepted_without_typed_support"] == 0,
+            "accepted_without_typed_support_zero": model["metrics"][
+                "accepted_without_typed_support"
+            ]
+            == 0,
             "candidate_graph_contamination_zero": True,
         }
         return {
@@ -592,7 +719,9 @@ class SelfHostingResearchOS:
 
 
 def build_v32_v40_receipts(mission: str, repo: str | Path = ".") -> dict[str, Any]:
-    ontology = OntologyCompiler().compile("Here is a domain: scientific experiment reports.")
+    ontology = OntologyCompiler().compile(
+        "Here is a domain: scientific experiment reports."
+    )
     ontology_receipt = {
         "artifact": "ontology_compiler_receipt",
         "release": "v32.0.0",
@@ -604,17 +733,26 @@ def build_v32_v40_receipts(mission: str, repo: str | Path = ".") -> dict[str, An
         "all_gates_passed": True,
     }
     memory = VerifierGatedMemoryLedger()
-    unsafe = memory.add_candidate("TS-Reasoner is self-learning AGI.", provenance=["demo"])
-    memory.promote(unsafe.item_id, receipt="artifacts/verifier_gated_memory_receipt.json", confirmed=True)
+    unsafe = memory.add_candidate(
+        "TS-Reasoner is self-learning AGI.", provenance=["demo"]
+    )
+    memory.promote(
+        unsafe.item_id,
+        receipt="artifacts/verifier_gated_memory_receipt.json",
+        confirmed=True,
+    )
     memory_receipt = {
         "artifact": "verifier_gated_memory_receipt",
         "release": "v33.0.0",
         "memory": memory.to_dict(),
         "forbidden_claims": memory.forbidden_claims(),
-        "unsafe_lesson_quarantined": memory.items[unsafe.item_id].state == "quarantined",
+        "unsafe_lesson_quarantined": memory.items[unsafe.item_id].state
+        == "quarantined",
         "all_gates_passed": True,
     }
-    plan = TSAGLPlanCompiler().compile("audit this repo for release readiness and prepare the next safe action")
+    plan = TSAGLPlanCompiler().compile(
+        "audit this repo for release readiness and prepare the next safe action"
+    )
     plan_receipt = {
         "artifact": "ts_agl_plan_receipt",
         "release": "v34.0.0",
@@ -624,7 +762,9 @@ def build_v32_v40_receipts(mission: str, repo: str | Path = ".") -> dict[str, An
     research_receipt = {
         "artifact": "research_forge_receipt",
         "release": "v35.0.0",
-        **AutomatedResearchForge().forge("Investigate whether provenance weighted contradiction repair beats naive repair."),
+        **AutomatedResearchForge().forge(
+            "Investigate whether provenance weighted contradiction repair beats naive repair."
+        ),
         "all_gates_passed": True,
     }
     repair_receipt = {
@@ -633,22 +773,25 @@ def build_v32_v40_receipts(mission: str, repo: str | Path = ".") -> dict[str, An
         "audit": SelfRepairingReasoningKernel().audit(repo),
         "all_gates_passed": True,
     }
-    patch_note = json.dumps(
-        {
-            "artifact": "v40_release_candidate_note",
-            "release": "v40.0.0",
-            "claim": "Self-hosting verifier-first research OS release candidate prepared.",
-            "boundary": [
-                "Generated text is not proof.",
-                "Model confidence is not proof.",
-                "Memory is not proof.",
-                "Confirmation authorizes bounded writes, not truth.",
-                "Typed verifier support remains the proof boundary.",
-            ],
-        },
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+    patch_note = (
+        json.dumps(
+            {
+                "artifact": "v40_release_candidate_note",
+                "release": "v40.0.0",
+                "claim": "Self-hosting verifier-first research OS release candidate prepared.",
+                "boundary": [
+                    "Generated text is not proof.",
+                    "Model confidence is not proof.",
+                    "Memory is not proof.",
+                    "Confirmation authorizes bounded writes, not truth.",
+                    "Typed verifier support remains the proof boundary.",
+                ],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
     patch = ConfirmedPatchExecutionEngine(repo).stage_doc_patch(
         "artifacts/v40_release_candidate_note.json",
         patch_note,
@@ -658,7 +801,9 @@ def build_v32_v40_receipts(mission: str, repo: str | Path = ".") -> dict[str, An
         "artifact": "patch_execution_receipt",
         "release": "v37.0.0",
         "patch": patch.to_dict(),
-        "unconfirmed_apply": ConfirmedPatchExecutionEngine().apply(patch, confirmed=False),
+        "unconfirmed_apply": ConfirmedPatchExecutionEngine().apply(
+            patch, confirmed=False
+        ),
         "all_gates_passed": True,
     }
     ecosystem_receipt = {
@@ -706,13 +851,17 @@ def write_v32_v40_receipts(
         "v40": "research_os_receipt.json",
     }
     for key, filename in names.items():
-        (base / filename).write_text(json.dumps(receipts[key], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        (base / filename).write_text(
+            json.dumps(receipts[key], indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
     summary = {
         "artifact": "v32_v40_research_os_summary",
         "release": "v40.0.0",
         "receipt_count": len(receipts),
         "receipts": {key: f"artifacts/{filename}" for key, filename in names.items()},
-        "all_gates_passed": all(receipt.get("all_gates_passed", False) for receipt in receipts.values()),
+        "all_gates_passed": all(
+            receipt.get("all_gates_passed", False) for receipt in receipts.values()
+        ),
         "candidate_graph_contamination_count": 0,
     }
     (base / "v32_v40_research_os_summary.json").write_text(

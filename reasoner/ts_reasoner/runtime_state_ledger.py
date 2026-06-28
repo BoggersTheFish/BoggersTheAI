@@ -75,7 +75,10 @@ def run_runtime_ledger(
             )
         )
 
-    append_only = all(after == before + 1 for before, after in zip(previous_lengths, range(1, len(ledger) + 1)))
+    append_only = all(
+        after == before + 1
+        for before, after in zip(previous_lengths, range(1, len(ledger) + 1))
+    )
 
     return RuntimeLedgerResult(
         case_id=case_id,
@@ -105,7 +108,9 @@ def evaluate_runtime_ledger_cases(cases: Iterable[dict[str, Any]]) -> dict[str, 
         expected_entry_count = int(raw["expected_ledger_entry_count"])
         expected_actions = [str(action) for action in raw["expected_actions"]]
         expected_append_only = bool(raw["expected_append_only"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             len(result.ledger) == expected_entry_count

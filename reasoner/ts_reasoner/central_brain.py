@@ -9,19 +9,20 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Iterable
 
-
 CENTRAL_BRAIN_SCHEMA = "ts_reasoner_central_brain_v1"
 GENESIS_HASH = "0" * 64
 MEMORY_STATUSES = frozenset({"accepted", "proposed", "rejected", "forgotten"})
-POSITIVE_EDGE_TYPES = frozenset({
-    "SUPPORTS",
-    "MATERIALIZES",
-    "VERIFIED_BY",
-    "RECORDED_IN",
-    "REPAIR_TARGETS",
-    "HAS_BRANCH",
-    "CONTAINS_ALTERNATIVE",
-})
+POSITIVE_EDGE_TYPES = frozenset(
+    {
+        "SUPPORTS",
+        "MATERIALIZES",
+        "VERIFIED_BY",
+        "RECORDED_IN",
+        "REPAIR_TARGETS",
+        "HAS_BRANCH",
+        "CONTAINS_ALTERNATIVE",
+    }
+)
 NEGATIVE_EDGE_TYPES = frozenset({"CONTRADICTS", "REJECTED_BY"})
 
 
@@ -34,7 +35,12 @@ def stable_hash(payload: Any) -> str:
 
 
 def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def normalize_id(value: str) -> str:
@@ -131,8 +137,7 @@ class CentralBrainRuntime:
         self.conn.close()
 
     def _init_db(self) -> None:
-        self.conn.executescript(
-            """
+        self.conn.executescript("""
             CREATE TABLE IF NOT EXISTS nodes (
                 node_id TEXT PRIMARY KEY,
                 node_type TEXT NOT NULL,
@@ -168,8 +173,7 @@ class CentralBrainRuntime:
                 payload_json TEXT NOT NULL,
                 created_at TEXT NOT NULL
             );
-            """
-        )
+            """)
         self.conn.commit()
 
     def _ensure_foundation_nodes(self) -> None:
@@ -206,29 +210,80 @@ class CentralBrainRuntime:
                     "accepted",
                     0.6,
                     0.0,
-                    {"receipt_hash": receipt["receipt_hash"], "receipt_type": receipt["receipt_type"]},
+                    {
+                        "receipt_hash": receipt["receipt_hash"],
+                        "receipt_type": receipt["receipt_type"],
+                    },
                 )
             )
 
     def _foundation_nodes(self) -> tuple[BrainNode, ...]:
         return (
-            BrainNode("brain:ts_reasoner_core", "reasoner_core", "accepted", 1.0, 0.0, {"loop": "propose_verify_receipt_accept_reject_repair_record"}),
-            BrainNode("ledger:receipt_ledger", "receipt_ledger", "accepted", 0.9, 0.0, {"hash_chained": True}),
-            BrainNode("scheduler:wave_scheduler", "wave_scheduler", "accepted", 0.7, 0.0, {"cycle": "activation_then_tension_relaxation"}),
-            BrainNode("boundary:typed_verifier", "proof_boundary", "accepted", 1.0, 0.0, {"generated_text_is_not_proof": True}),
-            BrainNode("repair:target_registry", "repair_registry", "accepted", 0.65, 0.0, {"purpose": "index_explicit_repair_targets"}),
-            BrainNode("branch:world_registry", "branch_registry", "accepted", 0.6, 0.0, {"purpose": "index_temporary_branch_worlds"}),
+            BrainNode(
+                "brain:ts_reasoner_core",
+                "reasoner_core",
+                "accepted",
+                1.0,
+                0.0,
+                {"loop": "propose_verify_receipt_accept_reject_repair_record"},
+            ),
+            BrainNode(
+                "ledger:receipt_ledger",
+                "receipt_ledger",
+                "accepted",
+                0.9,
+                0.0,
+                {"hash_chained": True},
+            ),
+            BrainNode(
+                "scheduler:wave_scheduler",
+                "wave_scheduler",
+                "accepted",
+                0.7,
+                0.0,
+                {"cycle": "activation_then_tension_relaxation"},
+            ),
+            BrainNode(
+                "boundary:typed_verifier",
+                "proof_boundary",
+                "accepted",
+                1.0,
+                0.0,
+                {"generated_text_is_not_proof": True},
+            ),
+            BrainNode(
+                "repair:target_registry",
+                "repair_registry",
+                "accepted",
+                0.65,
+                0.0,
+                {"purpose": "index_explicit_repair_targets"},
+            ),
+            BrainNode(
+                "branch:world_registry",
+                "branch_registry",
+                "accepted",
+                0.6,
+                0.0,
+                {"purpose": "index_temporary_branch_worlds"},
+            ),
         )
 
     def _head_hash(self) -> str:
-        row = self.conn.execute("SELECT receipt_hash FROM receipts ORDER BY sequence DESC LIMIT 1").fetchone()
+        row = self.conn.execute(
+            "SELECT receipt_hash FROM receipts ORDER BY sequence DESC LIMIT 1"
+        ).fetchone()
         return str(row["receipt_hash"]) if row else GENESIS_HASH
 
     def _next_sequence(self) -> int:
-        row = self.conn.execute("SELECT COALESCE(MAX(sequence), -1) + 1 AS next_sequence FROM receipts").fetchone()
+        row = self.conn.execute(
+            "SELECT COALESCE(MAX(sequence), -1) + 1 AS next_sequence FROM receipts"
+        ).fetchone()
         return int(row["next_sequence"])
 
-    def _write_receipt(self, receipt_type: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def _write_receipt(
+        self, receipt_type: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         previous_hash = self._head_hash()
         created_at = utc_now_iso()
         sequence = self._next_sequence()
@@ -244,7 +299,14 @@ class CentralBrainRuntime:
         receipt["receipt_hash"] = receipt_hash
         self.conn.execute(
             "INSERT INTO receipts(receipt_hash, previous_hash, sequence, receipt_type, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (receipt_hash, previous_hash, sequence, receipt_type, canonical_json(receipt), created_at),
+            (
+                receipt_hash,
+                previous_hash,
+                sequence,
+                receipt_type,
+                canonical_json(receipt),
+                created_at,
+            ),
         )
         self.conn.commit()
         return receipt
@@ -311,13 +373,19 @@ class CentralBrainRuntime:
 
     def _node_exists(self, node_id: str, *, accepted_only: bool = False) -> bool:
         if accepted_only:
-            row = self.conn.execute("SELECT 1 FROM nodes WHERE node_id=? AND status='accepted'", (node_id,)).fetchone()
+            row = self.conn.execute(
+                "SELECT 1 FROM nodes WHERE node_id=? AND status='accepted'", (node_id,)
+            ).fetchone()
         else:
-            row = self.conn.execute("SELECT 1 FROM nodes WHERE node_id=?", (node_id,)).fetchone()
+            row = self.conn.execute(
+                "SELECT 1 FROM nodes WHERE node_id=?", (node_id,)
+            ).fetchone()
         return row is not None
 
     def _get_node(self, node_id: str) -> BrainNode | None:
-        row = self.conn.execute("SELECT * FROM nodes WHERE node_id=?", (node_id,)).fetchone()
+        row = self.conn.execute(
+            "SELECT * FROM nodes WHERE node_id=?", (node_id,)
+        ).fetchone()
         if row is None:
             return None
         return BrainNode(
@@ -330,12 +398,23 @@ class CentralBrainRuntime:
             provenance=json.loads(str(row["provenance_json"])),
         )
 
-    def submit_candidate(self, candidate: dict[str, Any], *, proposer_id: str = "local") -> BrainDecision:
+    def submit_candidate(
+        self, candidate: dict[str, Any], *, proposer_id: str = "local"
+    ) -> BrainDecision:
         candidate_payload = deepcopy(candidate)
         candidate_node_id = f"candidate:{stable_hash({'candidate': candidate_payload, 'proposer': proposer_id})[:16]}"
         proposer_node_id = f"proposer:{normalize_id(proposer_id)}"
         before_summary = self._state_summary()
-        self._upsert_node(BrainNode(proposer_node_id, "proposer", "accepted", 0.55, 0.0, {"local_first": True}))
+        self._upsert_node(
+            BrainNode(
+                proposer_node_id,
+                "proposer",
+                "accepted",
+                0.55,
+                0.0,
+                {"local_first": True},
+            )
+        )
         self._upsert_node(
             BrainNode(
                 candidate_node_id,
@@ -368,7 +447,9 @@ class CentralBrainRuntime:
             action = self._apply_candidate(candidate_payload, candidate_node_id)
             state_delta = action["state_delta"]
             repair_branch_delta = action.get("repair_branch_delta", {})
-            self._set_node_status(candidate_node_id, "accepted", activation=0.9, tension=0.0)
+            self._set_node_status(
+                candidate_node_id, "accepted", activation=0.9, tension=0.0
+            )
             self._upsert_edge(
                 BrainEdge(
                     f"edge:{stable_hash({'s': candidate_node_id, 't': 'boundary:typed_verifier', 'type': 'VERIFIED_BY'})[:16]}",
@@ -382,7 +463,9 @@ class CentralBrainRuntime:
             )
             action_name = action["action"]
         else:
-            self._set_node_status(candidate_node_id, "rejected", activation=0.25, tension=tension)
+            self._set_node_status(
+                candidate_node_id, "rejected", activation=0.25, tension=tension
+            )
             self._upsert_edge(
                 BrainEdge(
                     f"edge:{stable_hash({'s': candidate_node_id, 't': 'boundary:typed_verifier', 'type': 'REJECTED_BY', 'reason': gate['reason']})[:16]}",
@@ -432,7 +515,10 @@ class CentralBrainRuntime:
                 "accepted",
                 0.6,
                 0.0,
-                {"receipt_hash": receipt["receipt_hash"], "receipt_type": receipt["receipt_type"]},
+                {
+                    "receipt_hash": receipt["receipt_hash"],
+                    "receipt_type": receipt["receipt_type"],
+                },
             )
         )
         self._upsert_edge(
@@ -456,7 +542,14 @@ class CentralBrainRuntime:
             tension_telemetry=telemetry,
         )
 
-    def _set_node_status(self, node_id: str, status: str, *, activation: float | None = None, tension: float | None = None) -> None:
+    def _set_node_status(
+        self,
+        node_id: str,
+        status: str,
+        *,
+        activation: float | None = None,
+        tension: float | None = None,
+    ) -> None:
         node = self._get_node(node_id)
         if node is None:
             raise ValueError(f"unknown node: {node_id}")
@@ -473,8 +566,12 @@ class CentralBrainRuntime:
         )
 
     def _state_summary(self) -> dict[str, Any]:
-        rows = self.conn.execute("SELECT node_type, status, tension FROM nodes").fetchall()
-        edge_count = int(self.conn.execute("SELECT COUNT(*) AS count FROM edges").fetchone()["count"])
+        rows = self.conn.execute(
+            "SELECT node_type, status, tension FROM nodes"
+        ).fetchall()
+        edge_count = int(
+            self.conn.execute("SELECT COUNT(*) AS count FROM edges").fetchone()["count"]
+        )
         counts_by_type: dict[str, int] = {}
         counts_by_status: dict[str, int] = {}
         for row in rows:
@@ -503,7 +600,13 @@ class CentralBrainRuntime:
                     merged[key] = value
         return merged
 
-    def _edge_id(self, source_id: str, target_id: str, edge_type: str, payload: dict[str, Any] | None = None) -> str:
+    def _edge_id(
+        self,
+        source_id: str,
+        target_id: str,
+        edge_type: str,
+        payload: dict[str, Any] | None = None,
+    ) -> str:
         return f"edge:{stable_hash({'s': source_id, 't': target_id, 'type': edge_type, 'payload': payload or {}})[:16]}"
 
     def _create_repair_target(
@@ -596,7 +699,12 @@ class CentralBrainRuntime:
             if alt_id and self._node_exists(alt_id):
                 self._upsert_edge(
                     BrainEdge(
-                        self._edge_id(branch_node.node_id, alt_id, "CONTAINS_ALTERNATIVE", alternative),
+                        self._edge_id(
+                            branch_node.node_id,
+                            alt_id,
+                            "CONTAINS_ALTERNATIVE",
+                            alternative,
+                        ),
                         branch_node.node_id,
                         alt_id,
                         "CONTAINS_ALTERNATIVE",
@@ -615,7 +723,9 @@ class CentralBrainRuntime:
         gate: dict[str, Any],
         tension: float,
     ) -> dict[str, Any]:
-        evidence = [str(item) for item in candidate.get("support", []) if str(item).strip()]
+        evidence = [
+            str(item) for item in candidate.get("support", []) if str(item).strip()
+        ]
         repair = self._create_repair_target(
             source_node_id=candidate_node_id,
             reason=str(gate["reason"]),
@@ -663,7 +773,9 @@ class CentralBrainRuntime:
         edge: BrainEdge,
         candidate: dict[str, Any],
     ) -> dict[str, Any]:
-        evidence = [str(item) for item in candidate.get("support", []) if str(item).strip()]
+        evidence = [
+            str(item) for item in candidate.get("support", []) if str(item).strip()
+        ]
         repair = self._create_repair_target(
             source_node_id=candidate_node_id,
             reason="accepted_contradicts_edge_requires_resolution",
@@ -714,7 +826,11 @@ class CentralBrainRuntime:
     def _verify_candidate(self, candidate: dict[str, Any]) -> dict[str, Any]:
         action = str(candidate.get("action", ""))
         support = candidate.get("support", [])
-        support_ok = isinstance(support, list) and bool(support) and all(isinstance(item, str) and item.strip() for item in support)
+        support_ok = (
+            isinstance(support, list)
+            and bool(support)
+            and all(isinstance(item, str) and item.strip() for item in support)
+        )
         gate = {
             "passed": False,
             "action": action,
@@ -736,10 +852,14 @@ class CentralBrainRuntime:
             edge_type = str(candidate.get("edge_type", "")).strip().upper()
             if not source or not target or not edge_type:
                 gate["reason"] = "missing_edge_identity"
-            elif not self._node_exists(source, accepted_only=True) or not self._node_exists(target, accepted_only=True):
+            elif not self._node_exists(
+                source, accepted_only=True
+            ) or not self._node_exists(target, accepted_only=True):
                 gate["reason"] = "edge_endpoint_not_accepted"
             elif edge_type in NEGATIVE_EDGE_TYPES and support_ok:
-                gate.update({"passed": True, "reason": "typed_contradiction_support_present"})
+                gate.update(
+                    {"passed": True, "reason": "typed_contradiction_support_present"}
+                )
             elif support_ok:
                 gate.update({"passed": True, "reason": "typed_support_present"})
         elif action == "forget_node":
@@ -747,10 +867,14 @@ class CentralBrainRuntime:
             if not self._node_exists(node_id, accepted_only=True):
                 gate["reason"] = "forget_target_not_accepted"
             elif support_ok:
-                gate.update({"passed": True, "reason": "typed_forgetting_support_present"})
+                gate.update(
+                    {"passed": True, "reason": "typed_forgetting_support_present"}
+                )
         elif action == "self_evolution_proposal":
             if support_ok:
-                gate.update({"passed": True, "reason": "self_evolution_proposal_supported"})
+                gate.update(
+                    {"passed": True, "reason": "self_evolution_proposal_supported"}
+                )
             else:
                 gate["reason"] = "self_evolution_requires_tension_receipt_support"
         else:
@@ -758,7 +882,9 @@ class CentralBrainRuntime:
 
         return gate
 
-    def _apply_candidate(self, candidate: dict[str, Any], candidate_node_id: str) -> dict[str, Any]:
+    def _apply_candidate(
+        self, candidate: dict[str, Any], candidate_node_id: str
+    ) -> dict[str, Any]:
         action = str(candidate["action"])
         if action == "add_node":
             node = BrainNode(
@@ -768,7 +894,10 @@ class CentralBrainRuntime:
                 float(candidate.get("activation", 0.5)),
                 float(candidate.get("tension", 0.0)),
                 dict(candidate.get("payload", {})),
-                {"candidate_node_id": candidate_node_id, "support": list(candidate.get("support", []))},
+                {
+                    "candidate_node_id": candidate_node_id,
+                    "support": list(candidate.get("support", [])),
+                },
             )
             self._upsert_node(node)
             self._upsert_edge(
@@ -781,7 +910,10 @@ class CentralBrainRuntime:
                     1.0,
                 )
             )
-            return {"action": "node_accepted", "state_delta": {"nodes_added": [node.to_dict()]}}
+            return {
+                "action": "node_accepted",
+                "state_delta": {"nodes_added": [node.to_dict()]},
+            }
 
         if action == "add_edge":
             edge = BrainEdge(
@@ -792,7 +924,10 @@ class CentralBrainRuntime:
                 "accepted",
                 float(candidate.get("weight", 1.0)),
                 dict(candidate.get("payload", {})),
-                {"candidate_node_id": candidate_node_id, "support": list(candidate.get("support", []))},
+                {
+                    "candidate_node_id": candidate_node_id,
+                    "support": list(candidate.get("support", [])),
+                },
             )
             self._upsert_edge(edge)
             repair_branch_delta: dict[str, Any] = {}
@@ -813,10 +948,15 @@ class CentralBrainRuntime:
         if action == "forget_node":
             node_id = str(candidate["node_id"])
             self._set_node_status(node_id, "forgotten", activation=0.0, tension=0.0)
-            return {"action": "node_forgotten", "state_delta": {"nodes_forgotten": [node_id]}}
+            return {
+                "action": "node_forgotten",
+                "state_delta": {"nodes_forgotten": [node_id]},
+            }
 
         if action == "self_evolution_proposal":
-            node_id = str(candidate.get("node_id") or f"evolution:{stable_hash(candidate)[:16]}")
+            node_id = str(
+                candidate.get("node_id") or f"evolution:{stable_hash(candidate)[:16]}"
+            )
             node = BrainNode(
                 node_id,
                 "self_evolution_proposal",
@@ -824,7 +964,10 @@ class CentralBrainRuntime:
                 0.45,
                 0.5,
                 dict(candidate.get("payload", {})),
-                {"candidate_node_id": candidate_node_id, "support": list(candidate.get("support", []))},
+                {
+                    "candidate_node_id": candidate_node_id,
+                    "support": list(candidate.get("support", [])),
+                },
             )
             self._upsert_node(node)
             self._upsert_edge(
@@ -837,15 +980,29 @@ class CentralBrainRuntime:
                     1.0,
                 )
             )
-            return {"action": "self_evolution_proposed", "state_delta": {"self_evolution_proposals_added": [node.to_dict()]}}
+            return {
+                "action": "self_evolution_proposed",
+                "state_delta": {"self_evolution_proposals_added": [node.to_dict()]},
+            }
 
         raise ValueError(f"unsupported action: {action}")
 
-    def run_wave_cycle(self, *, cycle_id: str = "manual", relaxation: float = 0.85) -> dict[str, Any]:
+    def run_wave_cycle(
+        self, *, cycle_id: str = "manual", relaxation: float = 0.85
+    ) -> dict[str, Any]:
         nodes = {node["node_id"]: node for node in self.graph_snapshot()["nodes"]}
-        accepted_edges = [edge for edge in self.graph_snapshot()["edges"] if edge["status"] == "accepted"]
-        next_activation = {node_id: float(node["activation"]) * 0.75 for node_id, node in nodes.items()}
-        next_tension = {node_id: float(node["tension"]) * relaxation for node_id, node in nodes.items()}
+        accepted_edges = [
+            edge
+            for edge in self.graph_snapshot()["edges"]
+            if edge["status"] == "accepted"
+        ]
+        next_activation = {
+            node_id: float(node["activation"]) * 0.75 for node_id, node in nodes.items()
+        }
+        next_tension = {
+            node_id: float(node["tension"]) * relaxation
+            for node_id, node in nodes.items()
+        }
 
         for edge in accepted_edges:
             source = edge["source_id"]
@@ -857,9 +1014,13 @@ class CentralBrainRuntime:
             if edge["edge_type"] in NEGATIVE_EDGE_TYPES:
                 next_tension[source] = min(1.0, next_tension[source] + 0.18 * weight)
                 next_tension[target] = min(1.0, next_tension[target] + 0.18 * weight)
-                next_activation[target] = max(0.0, next_activation[target] - 0.1 * source_activation * weight)
+                next_activation[target] = max(
+                    0.0, next_activation[target] - 0.1 * source_activation * weight
+                )
             else:
-                next_activation[target] = min(1.0, next_activation[target] + 0.22 * source_activation * weight)
+                next_activation[target] = min(
+                    1.0, next_activation[target] + 0.22 * source_activation * weight
+                )
                 next_tension[target] = max(0.0, next_tension[target] - 0.08 * weight)
 
         changed = []
@@ -874,7 +1035,13 @@ class CentralBrainRuntime:
                 dict(node["provenance"]),
             )
             self._upsert_node(updated)
-            changed.append({"node_id": node_id, "activation": updated.activation, "tension": updated.tension})
+            changed.append(
+                {
+                    "node_id": node_id,
+                    "activation": updated.activation,
+                    "tension": updated.tension,
+                }
+            )
 
         telemetry = self.tension_telemetry()
         evolution = self._maybe_propose_self_evolution(telemetry, cycle_id)
@@ -886,7 +1053,9 @@ class CentralBrainRuntime:
                 "updated_nodes": changed,
                 "tension_telemetry": telemetry,
                 "self_evolution_triggered": evolution is not None,
-                "self_evolution_candidate_node_id": evolution.candidate_node_id if evolution else "",
+                "self_evolution_candidate_node_id": (
+                    evolution.candidate_node_id if evolution else ""
+                ),
                 "candidate_graph_contamination_count": 0,
                 "accepted_without_verifier_support_count": 0,
             },
@@ -898,7 +1067,9 @@ class CentralBrainRuntime:
             "self_evolution": evolution.to_dict() if evolution else None,
         }
 
-    def _maybe_propose_self_evolution(self, telemetry: dict[str, Any], cycle_id: str) -> BrainDecision | None:
+    def _maybe_propose_self_evolution(
+        self, telemetry: dict[str, Any], cycle_id: str
+    ) -> BrainDecision | None:
         hotspots = telemetry["hotspots"]
         if not hotspots:
             return None
@@ -910,7 +1081,9 @@ class CentralBrainRuntime:
         proposal = "add_or_adjust_repair_rule_for_persistent_tension_hotspot"
         evidence_requirement = "typed_support_path"
         if top["node_type"] == "candidate" and top["status"] == "rejected":
-            proposal = "require_repair_target_and_branch_for_high_tension_rejected_candidate"
+            proposal = (
+                "require_repair_target_and_branch_for_high_tension_rejected_candidate"
+            )
             evidence_requirement = "support_or_explicit_rejection_receipt"
         elif top["node_type"] == "repair_target":
             proposal = "prioritize_repair_target_until_tension_relaxes_or_branch_merges"
@@ -973,7 +1146,10 @@ class CentralBrainRuntime:
                 "status": str(row["status"]),
                 "activation": round(float(row["activation"]), 6),
             }
-            for row in sorted(rows, key=lambda item: (-float(item["activation"]), str(item["node_id"])))[:5]
+            for row in sorted(
+                rows,
+                key=lambda item: (-float(item["activation"]), str(item["node_id"])),
+            )[:5]
         ]
         return {
             "total_tension": total_tension,
@@ -999,7 +1175,9 @@ class CentralBrainRuntime:
                 "payload": json.loads(str(row["payload_json"])),
                 "provenance": json.loads(str(row["provenance_json"])),
             }
-            for row in self.conn.execute("SELECT * FROM nodes ORDER BY node_id").fetchall()
+            for row in self.conn.execute(
+                "SELECT * FROM nodes ORDER BY node_id"
+            ).fetchall()
         ]
         edges = [
             {
@@ -1012,7 +1190,9 @@ class CentralBrainRuntime:
                 "payload": json.loads(str(row["payload_json"])),
                 "provenance": json.loads(str(row["provenance_json"])),
             }
-            for row in self.conn.execute("SELECT * FROM edges ORDER BY edge_id").fetchall()
+            for row in self.conn.execute(
+                "SELECT * FROM edges ORDER BY edge_id"
+            ).fetchall()
         ]
         return {
             "schema": CENTRAL_BRAIN_SCHEMA,
@@ -1025,7 +1205,9 @@ class CentralBrainRuntime:
         snapshot = self.graph_snapshot()
         receipts = [
             json.loads(str(row["payload_json"]))
-            for row in self.conn.execute("SELECT payload_json FROM receipts ORDER BY sequence").fetchall()
+            for row in self.conn.execute(
+                "SELECT payload_json FROM receipts ORDER BY sequence"
+            ).fetchall()
         ]
         checkpoint = {
             "schema": f"{CENTRAL_BRAIN_SCHEMA}_checkpoint",
@@ -1038,13 +1220,20 @@ class CentralBrainRuntime:
         checkpoint["checkpoint_hash"] = checkpoint_hash
         self.conn.execute(
             "INSERT OR REPLACE INTO checkpoints(checkpoint_hash, receipt_hash, payload_json, created_at) VALUES (?, ?, ?, ?)",
-            (checkpoint_hash, self._head_hash(), canonical_json(checkpoint), utc_now_iso()),
+            (
+                checkpoint_hash,
+                self._head_hash(),
+                canonical_json(checkpoint),
+                utc_now_iso(),
+            ),
         )
         self.conn.commit()
         return checkpoint
 
     @classmethod
-    def restore_from_checkpoint(cls, checkpoint: dict[str, Any], path: str | Path = ":memory:") -> "CentralBrainRuntime":
+    def restore_from_checkpoint(
+        cls, checkpoint: dict[str, Any], path: str | Path = ":memory:"
+    ) -> "CentralBrainRuntime":
         if checkpoint.get("schema") != f"{CENTRAL_BRAIN_SCHEMA}_checkpoint":
             raise ValueError("invalid central brain checkpoint schema")
         expected_hash = checkpoint.get("checkpoint_hash")
@@ -1088,7 +1277,9 @@ class CentralBrainRuntime:
         for receipt in checkpoint["receipts"]:
             if receipt["previous_hash"] != previous:
                 raise ValueError("invalid restored receipt chain")
-            if receipt["receipt_hash"] != stable_hash({key: value for key, value in receipt.items() if key != "receipt_hash"}):
+            if receipt["receipt_hash"] != stable_hash(
+                {key: value for key, value in receipt.items() if key != "receipt_hash"}
+            ):
                 raise ValueError("invalid restored receipt hash")
             runtime.conn.execute(
                 "INSERT INTO receipts(receipt_hash, previous_hash, sequence, receipt_type, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
@@ -1110,7 +1301,9 @@ class CentralBrainRuntime:
     def _ledger_receipts(self) -> list[dict[str, Any]]:
         return [
             json.loads(str(row["payload_json"]))
-            for row in self.conn.execute("SELECT payload_json FROM receipts ORDER BY sequence").fetchall()
+            for row in self.conn.execute(
+                "SELECT payload_json FROM receipts ORDER BY sequence"
+            ).fetchall()
         ]
 
     def _verify_receipt_chain(self, receipts: list[dict[str, Any]]) -> bool:
@@ -1121,7 +1314,9 @@ class CentralBrainRuntime:
             if receipt.get("previous_hash") != previous:
                 return False
             receipt_hash = str(receipt.get("receipt_hash", ""))
-            unhashed = {key: value for key, value in receipt.items() if key != "receipt_hash"}
+            unhashed = {
+                key: value for key, value in receipt.items() if key != "receipt_hash"
+            }
             if receipt_hash != stable_hash(unhashed):
                 return False
             previous = receipt_hash
@@ -1141,11 +1336,15 @@ class CentralBrainRuntime:
         for index, receipt in enumerate(receipts):
             if boundary_hash is not None and receipt["receipt_hash"] == boundary_hash:
                 return receipts[: index + 1], receipt
-            if boundary_sequence is not None and int(receipt["sequence"]) == int(boundary_sequence):
+            if boundary_sequence is not None and int(receipt["sequence"]) == int(
+                boundary_sequence
+            ):
                 return receipts[: index + 1], receipt
         raise ValueError("receipt boundary not found")
 
-    def _replay_snapshot_from_receipts(self, receipts: list[dict[str, Any]]) -> dict[str, Any]:
+    def _replay_snapshot_from_receipts(
+        self, receipts: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         nodes: dict[str, dict[str, Any]] = {}
         edges: dict[str, dict[str, Any]] = {}
         ledger_head = GENESIS_HASH
@@ -1159,60 +1358,101 @@ class CentralBrainRuntime:
             edges[str(payload["edge_id"])] = payload
 
         def materialize_repair_links(repair_node: dict[str, Any]) -> None:
-            source = str(repair_node.get("payload", {}).get("source_node_id") or repair_node.get("provenance", {}).get("source_node_id", ""))
+            source = str(
+                repair_node.get("payload", {}).get("source_node_id")
+                or repair_node.get("provenance", {}).get("source_node_id", "")
+            )
             if source:
-                put_edge(BrainEdge(
-                    self._edge_id(source, repair_node["node_id"], "REPAIR_TARGETS", {"replay": True}),
-                    source,
+                put_edge(
+                    BrainEdge(
+                        self._edge_id(
+                            source,
+                            repair_node["node_id"],
+                            "REPAIR_TARGETS",
+                            {"replay": True},
+                        ),
+                        source,
+                        repair_node["node_id"],
+                        "REPAIR_TARGETS",
+                        "accepted",
+                        1.0,
+                        {"replayed": True},
+                    )
+                )
+            put_edge(
+                BrainEdge(
+                    self._edge_id(
+                        "repair:target_registry",
+                        repair_node["node_id"],
+                        "SUPPORTS",
+                        {"replay": True},
+                    ),
+                    "repair:target_registry",
                     repair_node["node_id"],
-                    "REPAIR_TARGETS",
+                    "SUPPORTS",
                     "accepted",
                     1.0,
                     {"replayed": True},
-                ))
-            put_edge(BrainEdge(
-                self._edge_id("repair:target_registry", repair_node["node_id"], "SUPPORTS", {"replay": True}),
-                "repair:target_registry",
-                repair_node["node_id"],
-                "SUPPORTS",
-                "accepted",
-                1.0,
-                {"replayed": True},
-            ))
+                )
+            )
 
         def materialize_branch_links(branch_node: dict[str, Any]) -> None:
-            source = str(branch_node.get("payload", {}).get("source_node_id") or branch_node.get("provenance", {}).get("source_node_id", ""))
+            source = str(
+                branch_node.get("payload", {}).get("source_node_id")
+                or branch_node.get("provenance", {}).get("source_node_id", "")
+            )
             if source:
-                put_edge(BrainEdge(
-                    self._edge_id(source, branch_node["node_id"], "HAS_BRANCH", {"replay": True}),
-                    source,
+                put_edge(
+                    BrainEdge(
+                        self._edge_id(
+                            source,
+                            branch_node["node_id"],
+                            "HAS_BRANCH",
+                            {"replay": True},
+                        ),
+                        source,
+                        branch_node["node_id"],
+                        "HAS_BRANCH",
+                        "accepted",
+                        1.0,
+                        {"replayed": True},
+                    )
+                )
+            put_edge(
+                BrainEdge(
+                    self._edge_id(
+                        "branch:world_registry",
+                        branch_node["node_id"],
+                        "SUPPORTS",
+                        {"replay": True},
+                    ),
+                    "branch:world_registry",
                     branch_node["node_id"],
-                    "HAS_BRANCH",
+                    "SUPPORTS",
                     "accepted",
                     1.0,
                     {"replayed": True},
-                ))
-            put_edge(BrainEdge(
-                self._edge_id("branch:world_registry", branch_node["node_id"], "SUPPORTS", {"replay": True}),
-                "branch:world_registry",
-                branch_node["node_id"],
-                "SUPPORTS",
-                "accepted",
-                1.0,
-                {"replayed": True},
-            ))
+                )
+            )
             for alternative in branch_node.get("payload", {}).get("alternatives", []):
                 alt_id = str(alternative.get("node_id", ""))
                 if alt_id and alt_id in nodes:
-                    put_edge(BrainEdge(
-                        self._edge_id(branch_node["node_id"], alt_id, "CONTAINS_ALTERNATIVE", alternative),
-                        branch_node["node_id"],
-                        alt_id,
-                        "CONTAINS_ALTERNATIVE",
-                        "accepted",
-                        1.0,
-                        alternative,
-                    ))
+                    put_edge(
+                        BrainEdge(
+                            self._edge_id(
+                                branch_node["node_id"],
+                                alt_id,
+                                "CONTAINS_ALTERNATIVE",
+                                alternative,
+                            ),
+                            branch_node["node_id"],
+                            alt_id,
+                            "CONTAINS_ALTERNATIVE",
+                            "accepted",
+                            1.0,
+                            alternative,
+                        )
+                    )
 
         for receipt in receipts:
             receipt_type = str(receipt.get("receipt_type", ""))
@@ -1230,7 +1470,16 @@ class CentralBrainRuntime:
                 proposer_node_id = f"proposer:{normalize_id(proposer_id)}"
                 accepted = bool(receipt.get("accepted", False))
                 gate = dict(receipt.get("verifier_gate", {}))
-                put_node(BrainNode(proposer_node_id, "proposer", "accepted", 0.55, 0.0, {"replayed": True}))
+                put_node(
+                    BrainNode(
+                        proposer_node_id,
+                        "proposer",
+                        "accepted",
+                        0.55,
+                        0.0,
+                        {"replayed": True},
+                    )
+                )
                 if candidate_node_id:
                     put_node(
                         BrainNode(
@@ -1240,31 +1489,56 @@ class CentralBrainRuntime:
                             0.9 if accepted else 0.25,
                             0.0 if accepted else 0.75,
                             candidate,
-                            {"proposer_id": proposer_id, "replayed_from_receipt": receipt["receipt_hash"]},
+                            {
+                                "proposer_id": proposer_id,
+                                "replayed_from_receipt": receipt["receipt_hash"],
+                            },
                         )
                     )
-                    put_edge(BrainEdge(
-                        self._edge_id(proposer_node_id, candidate_node_id, "PROPOSES", {"receipt": receipt["receipt_hash"]}),
-                        proposer_node_id,
-                        candidate_node_id,
-                        "PROPOSES",
-                        "accepted",
-                        1.0,
-                        {"replayed_from_receipt": receipt["receipt_hash"]},
-                    ))
+                    put_edge(
+                        BrainEdge(
+                            self._edge_id(
+                                proposer_node_id,
+                                candidate_node_id,
+                                "PROPOSES",
+                                {"receipt": receipt["receipt_hash"]},
+                            ),
+                            proposer_node_id,
+                            candidate_node_id,
+                            "PROPOSES",
+                            "accepted",
+                            1.0,
+                            {"replayed_from_receipt": receipt["receipt_hash"]},
+                        )
+                    )
                     proof_edge_type = "VERIFIED_BY" if accepted else "REJECTED_BY"
-                    put_edge(BrainEdge(
-                        self._edge_id(candidate_node_id, "boundary:typed_verifier", proof_edge_type, gate),
-                        candidate_node_id,
-                        "boundary:typed_verifier",
-                        proof_edge_type,
-                        "accepted",
-                        1.0,
-                        {"gate": gate, "replayed_from_receipt": receipt["receipt_hash"]},
-                    ))
+                    put_edge(
+                        BrainEdge(
+                            self._edge_id(
+                                candidate_node_id,
+                                "boundary:typed_verifier",
+                                proof_edge_type,
+                                gate,
+                            ),
+                            candidate_node_id,
+                            "boundary:typed_verifier",
+                            proof_edge_type,
+                            "accepted",
+                            1.0,
+                            {
+                                "gate": gate,
+                                "replayed_from_receipt": receipt["receipt_hash"],
+                            },
+                        )
+                    )
 
                 delta = dict(receipt.get("state_delta", {}))
-                for key in ("nodes_added", "repair_targets_added", "branch_worlds_added", "self_evolution_proposals_added"):
+                for key in (
+                    "nodes_added",
+                    "repair_targets_added",
+                    "branch_worlds_added",
+                    "self_evolution_proposals_added",
+                ):
                     for node_payload in delta.get(key, []):
                         put_node(node_payload)
                         if key == "repair_targets_added":
@@ -1283,8 +1557,12 @@ class CentralBrainRuntime:
                 for update in receipt.get("updated_nodes", []):
                     node_id = str(update.get("node_id", ""))
                     if node_id in nodes:
-                        nodes[node_id]["activation"] = float(update.get("activation", nodes[node_id]["activation"]))
-                        nodes[node_id]["tension"] = float(update.get("tension", nodes[node_id]["tension"]))
+                        nodes[node_id]["activation"] = float(
+                            update.get("activation", nodes[node_id]["activation"])
+                        )
+                        nodes[node_id]["tension"] = float(
+                            update.get("tension", nodes[node_id]["tension"])
+                        )
 
             receipt_hash = str(receipt["receipt_hash"])
             put_node(
@@ -1299,15 +1577,22 @@ class CentralBrainRuntime:
             )
             candidate_node_id = str(receipt.get("candidate_node_id", ""))
             if candidate_node_id and candidate_node_id in nodes:
-                put_edge(BrainEdge(
-                    self._edge_id(candidate_node_id, f"receipt:{receipt_hash[:16]}", "RECORDED_IN", {"receipt": receipt_hash}),
-                    candidate_node_id,
-                    f"receipt:{receipt_hash[:16]}",
-                    "RECORDED_IN",
-                    "accepted",
-                    1.0,
-                    {"replayed_from_receipt": receipt_hash},
-                ))
+                put_edge(
+                    BrainEdge(
+                        self._edge_id(
+                            candidate_node_id,
+                            f"receipt:{receipt_hash[:16]}",
+                            "RECORDED_IN",
+                            {"receipt": receipt_hash},
+                        ),
+                        candidate_node_id,
+                        f"receipt:{receipt_hash[:16]}",
+                        "RECORDED_IN",
+                        "accepted",
+                        1.0,
+                        {"replayed_from_receipt": receipt_hash},
+                    )
+                )
             ledger_head = receipt_hash
 
         return {
@@ -1327,10 +1612,22 @@ class CentralBrainRuntime:
                 "activation": round(float(node["activation"]), 6),
                 "tension": round(float(node["tension"]), 6),
             }
-            for node in sorted(nodes, key=lambda item: (-float(item["tension"]), -float(item["activation"]), str(item["node_id"])))
+            for node in sorted(
+                nodes,
+                key=lambda item: (
+                    -float(item["tension"]),
+                    -float(item["activation"]),
+                    str(item["node_id"]),
+                ),
+            )
             if float(node.get("tension", 0.0)) > 0.0
         ]
-        status_counts: dict[str, int] = {"accepted": 0, "proposed": 0, "rejected": 0, "forgotten": 0}
+        status_counts: dict[str, int] = {
+            "accepted": 0,
+            "proposed": 0,
+            "rejected": 0,
+            "forgotten": 0,
+        }
         type_counts: dict[str, int] = {}
         for node in nodes:
             status = str(node["status"])
@@ -1344,17 +1641,24 @@ class CentralBrainRuntime:
                 "status": str(node["status"]),
                 "activation": round(float(node["activation"]), 6),
             }
-            for node in sorted(nodes, key=lambda item: (-float(item["activation"]), str(item["node_id"])))[:5]
+            for node in sorted(
+                nodes,
+                key=lambda item: (-float(item["activation"]), str(item["node_id"])),
+            )[:5]
         ]
         return {
-            "total_tension": round(sum(float(node.get("tension", 0.0)) for node in nodes), 6),
+            "total_tension": round(
+                sum(float(node.get("tension", 0.0)) for node in nodes), 6
+            ),
             "hotspots": hotspots[:8],
             "status_counts": status_counts,
             "node_type_counts": type_counts,
             "strongest_nodes": strongest,
         }
 
-    def _delta_between_snapshots(self, before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+    def _delta_between_snapshots(
+        self, before: dict[str, Any], after: dict[str, Any]
+    ) -> dict[str, Any]:
         before_nodes = {node["node_id"]: node for node in before.get("nodes", [])}
         after_nodes = {node["node_id"]: node for node in after.get("nodes", [])}
         before_edges = {edge["edge_id"]: edge for edge in before.get("edges", [])}
@@ -1366,7 +1670,10 @@ class CentralBrainRuntime:
             changes = {}
             for key in ("status", "activation", "tension", "payload", "provenance"):
                 if before_node.get(key) != after_node.get(key):
-                    changes[key] = {"before": before_node.get(key), "after": after_node.get(key)}
+                    changes[key] = {
+                        "before": before_node.get(key),
+                        "after": after_node.get(key),
+                    }
             if changes:
                 changed_nodes.append({"node_id": node_id, "changes": changes})
         return {
@@ -1398,7 +1705,9 @@ class CentralBrainRuntime:
         )
         boundary_snapshot = self._replay_snapshot_from_receipts(boundary_receipts)
         head_snapshot = self._replay_snapshot_from_receipts(receipts)
-        delta_since_boundary = self._delta_between_snapshots(boundary_snapshot, head_snapshot)
+        delta_since_boundary = self._delta_between_snapshots(
+            boundary_snapshot, head_snapshot
+        )
         telemetry = self._telemetry_for_snapshot(boundary_snapshot)
         receipt = self._write_receipt(
             "receipt_replay_inspect",
@@ -1487,8 +1796,28 @@ class CentralBrainRuntime:
         )
         for node in (session_node, boundary_node, revert_target):
             self._upsert_node(node)
-        self._upsert_edge(BrainEdge(self._edge_id(session_node.node_id, boundary_node.node_id, "SUPPORTS"), session_node.node_id, boundary_node.node_id, "SUPPORTS", "accepted", 1.0))
-        self._upsert_edge(BrainEdge(self._edge_id(session_node.node_id, revert_target.node_id, "REPAIR_TARGETS"), session_node.node_id, revert_target.node_id, "REPAIR_TARGETS", "accepted", 1.0))
+        self._upsert_edge(
+            BrainEdge(
+                self._edge_id(session_node.node_id, boundary_node.node_id, "SUPPORTS"),
+                session_node.node_id,
+                boundary_node.node_id,
+                "SUPPORTS",
+                "accepted",
+                1.0,
+            )
+        )
+        self._upsert_edge(
+            BrainEdge(
+                self._edge_id(
+                    session_node.node_id, revert_target.node_id, "REPAIR_TARGETS"
+                ),
+                session_node.node_id,
+                revert_target.node_id,
+                "REPAIR_TARGETS",
+                "accepted",
+                1.0,
+            )
+        )
         branch = self._create_branch_world(
             source_node_id=session_node.node_id,
             reason="receipt_boundary_revert_branch",
@@ -1542,10 +1871,16 @@ class CentralBrainRuntime:
         )
 
     def _verify_replay_request(self, mode: str, support: list[str]) -> dict[str, Any]:
-        support_ok = bool(support) and all(isinstance(item, str) and item.strip() for item in support)
+        support_ok = bool(support) and all(
+            isinstance(item, str) and item.strip() for item in support
+        )
         return {
             "passed": support_ok and mode in {"inspect", "revert_branch"},
-            "reason": "typed_replay_support_present" if support_ok else "replay_requires_typed_support",
+            "reason": (
+                "typed_replay_support_present"
+                if support_ok
+                else "replay_requires_typed_support"
+            ),
             "mode": mode,
             "typed_support_present": support_ok,
             "accepted_state_overwrite_allowed": False,
@@ -1556,7 +1891,9 @@ class CentralBrainRuntime:
         snapshot = self.graph_snapshot()
         recent_receipts = [
             json.loads(str(row["payload_json"]))
-            for row in self.conn.execute("SELECT payload_json FROM receipts ORDER BY sequence DESC LIMIT 8").fetchall()
+            for row in self.conn.execute(
+                "SELECT payload_json FROM receipts ORDER BY sequence DESC LIMIT 8"
+            ).fetchall()
         ]
         proof_boundaries = [
             node
@@ -1620,22 +1957,33 @@ class CentralBrainRuntime:
         for branch in branch_nodes:
             alternatives = []
             for edge in snapshot["edges"]:
-                if edge["source_id"] == branch["node_id"] and edge["edge_type"] == "CONTAINS_ALTERNATIVE":
+                if (
+                    edge["source_id"] == branch["node_id"]
+                    and edge["edge_type"] == "CONTAINS_ALTERNATIVE"
+                ):
                     target = nodes.get(edge["target_id"])
-                    alternatives.append({
-                        "edge": edge,
-                        "target": target,
-                    })
-            worlds.append({
-                **branch,
-                "alternatives": alternatives,
-            })
+                    alternatives.append(
+                        {
+                            "edge": edge,
+                            "target": target,
+                        }
+                    )
+            worlds.append(
+                {
+                    **branch,
+                    "alternatives": alternatives,
+                }
+            )
         return worlds
 
 
-def run_central_brain_wave(candidates: Iterable[dict[str, Any]], *, path: str | Path = ":memory:") -> dict[str, Any]:
+def run_central_brain_wave(
+    candidates: Iterable[dict[str, Any]], *, path: str | Path = ":memory:"
+) -> dict[str, Any]:
     brain = CentralBrainRuntime(path)
-    decisions = [brain.submit_candidate(candidate).to_dict() for candidate in candidates]
+    decisions = [
+        brain.submit_candidate(candidate).to_dict() for candidate in candidates
+    ]
     wave = brain.run_wave_cycle(cycle_id="central_brain_wave")
     checkpoint = brain.build_checkpoint()
     dashboard = brain.dashboard()
@@ -1645,6 +1993,9 @@ def run_central_brain_wave(candidates: Iterable[dict[str, Any]], *, path: str | 
         "wave": wave,
         "checkpoint": checkpoint,
         "dashboard": dashboard,
-        "all_gates_passed": all(decision["receipt"]["candidate_graph_contamination_count"] == 0 for decision in decisions)
+        "all_gates_passed": all(
+            decision["receipt"]["candidate_graph_contamination_count"] == 0
+            for decision in decisions
+        )
         and dashboard["candidate_graph_contamination_count"] == 0,
     }

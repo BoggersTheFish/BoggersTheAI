@@ -27,7 +27,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 SCHEMA = "ts_reasoner_self_curriculum_case_v1"
 RELEASE = "v7.2.0"
 
@@ -51,7 +50,9 @@ def _load_jsonl(path: str | Path) -> list[dict[str, Any]]:
 def _write_json(path: str | Path, payload: Any) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out
 
 
@@ -101,7 +102,9 @@ def cases_from_replay_rows(replay_rows: list[dict[str, Any]]) -> list[dict[str, 
                 payload={
                     "turn_id": row.get("turn_id"),
                     "user": row.get("user"),
-                    "expected_response_contains": row.get("expected_response_contains", []),
+                    "expected_response_contains": row.get(
+                        "expected_response_contains", []
+                    ),
                     "expected_records": row.get("expected_records", []),
                     "expected_record_count": len(row.get("expected_records", [])),
                 },
@@ -111,7 +114,9 @@ def cases_from_replay_rows(replay_rows: list[dict[str, Any]]) -> list[dict[str, 
     return cases
 
 
-def cases_from_repair_curriculum_rows(repair_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def cases_from_repair_curriculum_rows(
+    repair_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
 
     for idx, row in enumerate(repair_rows, start=1):
@@ -153,7 +158,9 @@ def cases_from_repair_curriculum_rows(repair_rows: list[dict[str, Any]]) -> list
     return cases
 
 
-def cases_from_provenance_records(provenance_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def cases_from_provenance_records(
+    provenance_records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
 
     support_idx = 1
@@ -236,10 +243,16 @@ def cases_from_knowledge_pack(pack: dict[str, Any]) -> list[dict[str, Any]]:
             payload={
                 "turn_count": pack.get("turn_count"),
                 "record_count": pack.get("record_count"),
-                "accepted_asserted_premise_count": pack.get("accepted_asserted_premise_count"),
-                "rejected_or_unsupported_record_count": pack.get("rejected_or_unsupported_record_count"),
+                "accepted_asserted_premise_count": pack.get(
+                    "accepted_asserted_premise_count"
+                ),
+                "rejected_or_unsupported_record_count": pack.get(
+                    "rejected_or_unsupported_record_count"
+                ),
                 "repair_target_count": pack.get("repair_target_count"),
-                "candidate_graph_contamination_count": pack.get("candidate_graph_contamination_count"),
+                "candidate_graph_contamination_count": pack.get(
+                    "candidate_graph_contamination_count"
+                ),
                 "expected": "knowledge pack import/export must not create proof",
             },
         )
@@ -295,7 +308,9 @@ def cases_from_knowledge_pack(pack: dict[str, Any]) -> list[dict[str, Any]]:
     return cases
 
 
-def build_self_curriculum_cases(compiler_receipt: dict[str, Any]) -> list[dict[str, Any]]:
+def build_self_curriculum_cases(
+    compiler_receipt: dict[str, Any],
+) -> list[dict[str, Any]]:
     replay_rows = _load_jsonl(compiler_receipt["replay_path"])
     repair_rows = _load_jsonl(compiler_receipt["repair_curriculum_path"])
     provenance_records = _load_json(compiler_receipt["provenance_path"])
@@ -390,7 +405,8 @@ def run_self_curriculum(curriculum_path: str | Path) -> dict[str, Any]:
     missing_required_case_types = sorted(required_case_types - present_case_types)
 
     generated_curriculum_is_not_proof = all(
-        case.get("expected_boundary", {}).get("generated_curriculum_is_not_proof") is True
+        case.get("expected_boundary", {}).get("generated_curriculum_is_not_proof")
+        is True
         and case.get("creates_proof") is False
         for case in rows
     )
@@ -438,7 +454,9 @@ def generate_self_curriculum_from_compiler_receipt(
 
     curriculum_path = _write_jsonl(out / f"{label}_self_curriculum.jsonl", cases)
     eval_report = run_self_curriculum(curriculum_path)
-    eval_report_path = _write_json(out / f"{label}_self_curriculum_eval_report.json", eval_report)
+    eval_report_path = _write_json(
+        out / f"{label}_self_curriculum_eval_report.json", eval_report
+    )
 
     case_type_counts = eval_report["case_type_counts"]
 

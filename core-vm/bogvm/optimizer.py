@@ -3,7 +3,12 @@ from __future__ import annotations
 import hashlib
 
 from .bases import BASIS_ORDER, synthesize_basis
-from .transforms import TRANSFORM_ORDER, apply_transform, apply_transform_with_param, invert_transform
+from .transforms import (
+    TRANSFORM_ORDER,
+    apply_transform,
+    apply_transform_with_param,
+    invert_transform,
+)
 
 
 class OptimizerError(Exception):
@@ -43,7 +48,9 @@ def optimize_residual_plan(data: bytes) -> dict:
             start_byte = coefficient_tuple[0]
             delta = coefficient_tuple[1]
             generated = synthesize_basis(basis, start_byte, length, delta=delta)
-            residual_count = sum(1 for actual, expected in zip(data, generated) if actual != expected)
+            residual_count = sum(
+                1 for actual, expected in zip(data, generated) if actual != expected
+            )
             candidate = {
                 "basis": basis,
                 "basis_index": basis_index,
@@ -74,7 +81,9 @@ def optimize_residual_plan(data: bytes) -> dict:
 
     assert best is not None
 
-    generated = synthesize_basis(best["basis"], best["start_byte"], length, delta=best["delta"])
+    generated = synthesize_basis(
+        best["basis"], best["start_byte"], length, delta=best["delta"]
+    )
     residuals = [
         {"offset": offset, "byte": actual}
         for offset, (actual, expected) in enumerate(zip(data, generated))
@@ -131,7 +140,7 @@ def optimize_chunked_residual_plan(data: bytes, chunk_size: int = 64) -> dict:
     total_residual_count = 0
 
     for index, offset in enumerate(range(0, len(data), chunk_size)):
-        chunk = data[offset:offset + chunk_size]
+        chunk = data[offset : offset + chunk_size]
         plan = optimize_residual_plan(chunk)
         _assert_exact_reconstruction(plan, chunk)
         plan["index"] = index
@@ -150,7 +159,9 @@ def optimize_chunked_residual_plan(data: bytes, chunk_size: int = 64) -> dict:
     }
 
 
-def optimize_transformed_chunked_residual_plan(data: bytes, chunk_size: int = 64) -> dict:
+def optimize_transformed_chunked_residual_plan(
+    data: bytes, chunk_size: int = 64
+) -> dict:
     if chunk_size <= 0:
         raise ValueError("chunk_size must be positive")
     if chunk_size > 65535:
@@ -161,7 +172,7 @@ def optimize_transformed_chunked_residual_plan(data: bytes, chunk_size: int = 64
     transform_counts = {transform: 0 for transform in TRANSFORM_ORDER}
 
     for index, offset in enumerate(range(0, len(data), chunk_size)):
-        chunk = data[offset:offset + chunk_size]
+        chunk = data[offset : offset + chunk_size]
         plan = optimize_transformed_residual_plan(chunk)
         plan["index"] = index
         plan["offset"] = offset
@@ -235,9 +246,15 @@ def optimize_transformed_residual_plan(data: bytes) -> dict:
     assert best is not None
     best.pop("transform_index")
     _assert_exact_reconstruction(best, apply_transform(best["transform"], data))
-    restored = invert_transform(best["transform"], apply_transform(best["transform"], data), best["transform_param"])
+    restored = invert_transform(
+        best["transform"],
+        apply_transform(best["transform"], data),
+        best["transform_param"],
+    )
     if hashlib.sha256(restored).hexdigest() != best["original_sha256"]:
-        raise OptimizerError("transformed residual plan failed original SHA-256 reconstruction")
+        raise OptimizerError(
+            "transformed residual plan failed original SHA-256 reconstruction"
+        )
     return best
 
 
@@ -250,7 +267,9 @@ def score_reconstruction_plan(plan: dict) -> dict:
     basis_cost = BASIS_COSTS[basis]
     descriptor_size = 3 + (1 if transform in {"bwt", "bwt_mtf"} else 0)
     residual_delta_size = _estimate_delta_residual_size(plan.get("residuals", []))
-    residual_bitmask_size = ((length + 7) // 8) + residual_count if residual_count else 0
+    residual_bitmask_size = (
+        ((length + 7) // 8) + residual_count if residual_count else 0
+    )
     residual_size = min(
         residual_delta_size,
         residual_bitmask_size if residual_count else residual_delta_size,

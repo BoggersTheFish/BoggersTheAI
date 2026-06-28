@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from .archive import (
     build_directory_archive,
@@ -94,14 +94,22 @@ def install_bundle(
     receipt_without_hash["bundle_sha256"] = _directory_hash(bundle)
     if receipt_without_hash["bundle_sha256"] != expected_bundle_hash:
         raise StoreError("bundle hash mismatch")
-    signature_verification = _verify_signature(receipt, trusted_public_keys or [], require_signature)
+    signature_verification = _verify_signature(
+        receipt, trusted_public_keys or [], require_signature
+    )
     if signature_verification["execution_status"] != "completed":
         raise StoreError(signature_verification["failures"][0]["reason"])
 
     index = read_store_index(store)
-    missing_dependencies = [dependency for dependency in receipt["dependencies"] if dependency not in index["packages"]]
+    missing_dependencies = [
+        dependency
+        for dependency in receipt["dependencies"]
+        if dependency not in index["packages"]
+    ]
     if missing_dependencies:
-        raise StoreError(f"missing package dependencies: {', '.join(missing_dependencies)}")
+        raise StoreError(
+            f"missing package dependencies: {', '.join(missing_dependencies)}"
+        )
     for dependency in receipt["dependencies"]:
         dependency_receipt = verify_installed_package(
             store,
@@ -174,17 +182,25 @@ def verify_installed_package(
         package_receipt = _read_receipt(package_dir / "receipt.json")
     except StoreError as exc:
         return _blocked_verify_receipt(package, str(exc))
-    signature_verification = _verify_signature(package_receipt, trusted_public_keys or [], require_signature)
+    signature_verification = _verify_signature(
+        package_receipt, trusted_public_keys or [], require_signature
+    )
     failures.extend(signature_verification.get("failures", []))
     actual_bundle_hash = _directory_hash(package_dir)
     if actual_bundle_hash != package_receipt["bundle_sha256"]:
-        failures.append({"path": str(package_dir), "reason": "installed package bundle hash mismatch"})
+        failures.append(
+            {
+                "path": str(package_dir),
+                "reason": "installed package bundle hash mismatch",
+            }
+        )
     dependencies = package_receipt["dependencies"]
     if entry.get("dependencies", []) != dependencies:
-        failures.append({"path": package, "reason": "store index dependency metadata mismatch"})
+        failures.append(
+            {"path": package, "reason": "store index dependency metadata mismatch"}
+        )
     missing_dependencies = [
-        dependency for dependency in dependencies
-        if dependency not in index["packages"]
+        dependency for dependency in dependencies if dependency not in index["packages"]
     ]
     failures.extend(
         {"path": dependency, "reason": f"missing package dependency: {dependency}"}
@@ -203,7 +219,12 @@ def verify_installed_package(
         )
         dependency_verifications[dependency] = dependency_receipt
         if dependency_receipt["execution_status"] != "completed":
-            failures.append({"path": dependency, "reason": f"dependency verification failed: {dependency}"})
+            failures.append(
+                {
+                    "path": dependency,
+                    "reason": f"dependency verification failed: {dependency}",
+                }
+            )
 
     archive_receipt = verify_directory_archive(package_dir / "archive")
     if archive_receipt["execution_status"] != "completed":
@@ -214,14 +235,18 @@ def verify_installed_package(
 
     installed_tree_sha256 = None
     if not install_dir.is_dir():
-        failures.append({"path": str(install_dir), "reason": "installed directory is missing"})
+        failures.append(
+            {"path": str(install_dir), "reason": "installed directory is missing"}
+        )
     else:
         installed_tree_sha256 = tree_hash_for_directory(install_dir)
         if installed_tree_sha256 != package_receipt["archive_tree_sha256"]:
-            failures.append({
-                "path": str(install_dir),
-                "reason": "installed tree hash mismatch",
-            })
+            failures.append(
+                {
+                    "path": str(install_dir),
+                    "reason": "installed tree hash mismatch",
+                }
+            )
 
     return {
         "format": "BOGSTORE-verify-receipt-3.0",
@@ -286,7 +311,9 @@ def _directory_hash(path: Path) -> str:
                 receipt = dict(receipt)
                 receipt["bundle_sha256"] = ""
                 receipt.pop("signature", None)
-                data = json.dumps(receipt, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                data = json.dumps(
+                    receipt, sort_keys=True, separators=(",", ":")
+                ).encode("utf-8")
             else:
                 data = item.read_bytes()
         else:
@@ -313,10 +340,16 @@ def _blocked_verify_receipt(package: str, reason: str) -> dict:
     }
 
 
-def _verify_signature(receipt: dict, trusted_public_keys: list[str | Path], require_signature: bool) -> dict:
+def _verify_signature(
+    receipt: dict, trusted_public_keys: list[str | Path], require_signature: bool
+) -> dict:
     signature = receipt.get("signature")
     if signature is None:
-        failures = [{"path": "receipt.json", "reason": "package signature is required"}] if require_signature else []
+        failures = (
+            [{"path": "receipt.json", "reason": "package signature is required"}]
+            if require_signature
+            else []
+        )
         return {
             "format": "BOGPKG-signature-verification-receipt-7.0",
             "signed": False,
@@ -327,7 +360,11 @@ def _verify_signature(receipt: dict, trusted_public_keys: list[str | Path], requ
     unsigned = dict(receipt)
     unsigned.pop("signature")
     result = verify_object_signature(unsigned, signature, trusted_public_keys)
-    failures = [] if result["verified"] else [{"path": "receipt.json", "reason": result["reason"]}]
+    failures = (
+        []
+        if result["verified"]
+        else [{"path": "receipt.json", "reason": result["reason"]}]
+    )
     return {
         "format": "BOGPKG-signature-verification-receipt-7.0",
         "signed": True,

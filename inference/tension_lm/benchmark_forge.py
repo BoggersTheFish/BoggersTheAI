@@ -57,10 +57,16 @@ def _opencl_fused_benchmark(
     iters: int,
 ) -> dict:
     try:
-        from inference.tension_forge.device import describe_device, find_opencl_device
-        from inference.tension_forge.ops.fused_tension import fused_tension_linear_device
-        from inference.tension_forge.runtime import TensionForgeRuntime
         import pyopencl as cl  # noqa: F401
+
+        from inference.tension_forge.device import (  # noqa: F401
+            describe_device,
+            find_opencl_device,
+        )
+        from inference.tension_forge.ops.fused_tension import (
+            fused_tension_linear_device,
+        )
+        from inference.tension_forge.runtime import TensionForgeRuntime
     except ImportError as exc:
         return {"backend": "opencl", "available": False, "error": str(exc)}
 
@@ -103,7 +109,9 @@ def _opencl_fused_benchmark(
     }
 
 
-def run_benchmark(*, batch: int = 8, dim: int = 128, window: int = 8, iters: int = 20) -> dict:
+def run_benchmark(
+    *, batch: int = 8, dim: int = 128, window: int = 8, iters: int = 20
+) -> dict:
     config = TensionConfig(dim=dim, num_layers=2, num_heads=4, window=window)
     model = TensionLM(config)
     seq = torch.randint(0, min(config.vocab_size, 512), (batch, window + 1))
@@ -131,14 +139,17 @@ def run_benchmark(*, batch: int = 8, dim: int = 128, window: int = 8, iters: int
         "opencl_fused_tension": opencl_stats,
         "opencl_vs_cpu_overhead_ratio": overhead_ratio,
         "throttle_hint": (
-            "OpenCL dispatch dominates" if overhead_ratio and overhead_ratio > 5.0
+            "OpenCL dispatch dominates"
+            if overhead_ratio and overhead_ratio > 5.0
             else "Compute-bound or OpenCL unavailable"
         ),
     }
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Benchmark TensionForge vs TensionLM CPU path")
+    parser = argparse.ArgumentParser(
+        description="Benchmark TensionForge vs TensionLM CPU path"
+    )
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--dim", type=int, default=128)
     parser.add_argument("--window", type=int, default=8)
@@ -146,7 +157,9 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
-    report = run_benchmark(batch=args.batch, dim=args.dim, window=args.window, iters=args.iters)
+    report = run_benchmark(
+        batch=args.batch, dim=args.dim, window=args.window, iters=args.iters
+    )
     text = json.dumps(report, indent=2, sort_keys=True)
     print(text)
     if args.out:

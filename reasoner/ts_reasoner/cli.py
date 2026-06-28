@@ -6,8 +6,8 @@ import argparse
 import json
 from pathlib import Path
 
-from .milestone import print_milestone_receipt
 from .firewall_receipt import print_firewall_receipt
+from .milestone import print_milestone_receipt
 from .pipeline import run_reasoner
 from .tension_agents import TensionCoordinator
 from .trace import write_json
@@ -19,7 +19,27 @@ def main() -> int:
     parser.add_argument(
         "command",
         nargs="?",
-        choices=["milestone", "firewall", "chat", "v7", "compile-session", "generate-curriculum", "run-curriculum", "branch-worlds", "repair-planner", "pack-library", "trust-pressure", "proof-search", "self-audit", "v8", "v10", "repair-kernel", "research-os", "v32-v40", "cognitive-physics"],
+        choices=[
+            "milestone",
+            "firewall",
+            "chat",
+            "v7",
+            "compile-session",
+            "generate-curriculum",
+            "run-curriculum",
+            "branch-worlds",
+            "repair-planner",
+            "pack-library",
+            "trust-pressure",
+            "proof-search",
+            "self-audit",
+            "v8",
+            "v10",
+            "repair-kernel",
+            "research-os",
+            "v32-v40",
+            "cognitive-physics",
+        ],
         help="Optional command. Use milestone/firewall/chat/v7/compile-session/generate-curriculum/run-curriculum/branch-worlds/repair-planner/pack-library/trust-pressure/proof-search/self-audit/v8/v10/repair-kernel/research-os/v32-v40/cognitive-physics.",
     )
     parser.add_argument("--question", required=False, help="Question to reason about.")
@@ -93,14 +113,18 @@ def main() -> int:
         return run_chat()
 
     if args.command == "v7":
-        receipt_path = Path("artifacts/ts_reasoner_v7_0_self_improving_chat_receipt.json")
+        receipt_path = Path(
+            "artifacts/ts_reasoner_v7_0_self_improving_chat_receipt.json"
+        )
         if receipt_path.exists():
             print(receipt_path.read_text(encoding="utf-8").strip())
             return 0
 
         from ts_chat.v7_milestone import evaluate_v7_milestone
 
-        report = evaluate_v7_milestone("artifacts/ts_reasoner_v7_milestone_cli", stress_cycles=40)
+        report = evaluate_v7_milestone(
+            "artifacts/ts_reasoner_v7_milestone_cli", stress_cycles=40
+        )
         print(json.dumps(report, indent=2, sort_keys=True))
         return 0
 
@@ -210,14 +234,22 @@ def main() -> int:
     if args.command == "cognitive-physics":
         from .cognitive_physics_engine import evaluate_cognitive_physics_engine
 
-        payload = evaluate_cognitive_physics_engine(args.question or "Does A resolve to C?")
+        payload = evaluate_cognitive_physics_engine(
+            args.question or "Does A resolve to C?"
+        )
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0 if payload["all_gates_passed"] else 1
 
     if not args.question:
-        parser.error("--question is required unless using the milestone/firewall/chat command")
+        parser.error(
+            "--question is required unless using the milestone/firewall/chat command"
+        )
 
-    coordinator = TensionCoordinator.from_json(args.coupling_matrix) if args.coupling_matrix else None
+    coordinator = (
+        TensionCoordinator.from_json(args.coupling_matrix)
+        if args.coupling_matrix
+        else None
+    )
     output = run_reasoner(args.question, args.premise, tension_coordinator=coordinator)
     trace_path = write_json(output, Path(args.trace))
 

@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 LINEAR_BACKWARD_SOURCE = r"""
 #ifndef TILE_SIZE
 #define TILE_SIZE 16
@@ -275,15 +274,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def linear_backward_device(
@@ -304,14 +298,10 @@ def linear_backward_device(
     dict[str, Any],
 ]:
     if repetitions < 1:
-        raise ValueError(
-            "repetitions must be at least one"
-        )
+        raise ValueError("repetitions must be at least one")
 
     if tile_size not in {8, 16}:
-        raise ValueError(
-            "tile_size must currently be 8 or 16"
-        )
+        raise ValueError("tile_size must currently be 8 or 16")
 
     for name, tensor in (
         ("inputs", inputs),
@@ -325,28 +315,19 @@ def linear_backward_device(
         )
 
     if inputs.ndim != 2:
-        raise ValueError(
-            "inputs must be two-dimensional"
-        )
+        raise ValueError("inputs must be two-dimensional")
 
     if weights.ndim != 2:
-        raise ValueError(
-            "weights must be two-dimensional"
-        )
+        raise ValueError("weights must be two-dimensional")
 
     if grad_output.ndim != 2:
-        raise ValueError(
-            "grad_output must be two-dimensional"
-        )
+        raise ValueError("grad_output must be two-dimensional")
 
     batch_size, input_features = inputs.shape
     weight_inputs, output_features = weights.shape
 
     if weight_inputs != input_features:
-        raise ValueError(
-            "Input and weight dimensions are "
-            "incompatible"
-        )
+        raise ValueError("Input and weight dimensions are " "incompatible")
 
     expected_grad_output_shape = (
         batch_size,
@@ -382,9 +363,7 @@ def linear_backward_device(
         )
 
         if grad_input.shape != expected_grad_input_shape:
-            raise ValueError(
-                "grad_input shape is incorrect"
-            )
+            raise ValueError("grad_input shape is incorrect")
 
     if grad_weights is None:
         grad_weights = DeviceTensor.empty(
@@ -399,13 +378,8 @@ def linear_backward_device(
             "grad_weights",
         )
 
-        if (
-            grad_weights.shape
-            != expected_grad_weights_shape
-        ):
-            raise ValueError(
-                "grad_weights shape is incorrect"
-            )
+        if grad_weights.shape != expected_grad_weights_shape:
+            raise ValueError("grad_weights shape is incorrect")
 
     if grad_bias is None:
         grad_bias = DeviceTensor.empty(
@@ -421,16 +395,11 @@ def linear_backward_device(
         )
 
         if grad_bias.shape != expected_grad_bias_shape:
-            raise ValueError(
-                "grad_bias shape is incorrect"
-            )
+            raise ValueError("grad_bias shape is incorrect")
 
     local_work_items = tile_size * tile_size
 
-    if (
-        local_work_items
-        > runtime.device.max_work_group_size
-    ):
+    if local_work_items > runtime.device.max_work_group_size:
         raise ValueError(
             f"Tile size {tile_size} requires "
             f"{local_work_items} work items, but "
@@ -438,9 +407,7 @@ def linear_backward_device(
             f"{runtime.device.max_work_group_size}"
         )
 
-    compile_options = (
-        f"-DTILE_SIZE={tile_size}",
-    )
+    compile_options = (f"-DTILE_SIZE={tile_size}",)
 
     grad_input_kernel = runtime.kernel(
         LINEAR_BACKWARD_SOURCE,
@@ -587,28 +554,16 @@ def linear_backward_device(
         if elapsed is not None:
             grad_bias_times.append(elapsed)
 
-    grad_input_ms = (
-        float(np.median(grad_input_times))
-        if grad_input_times
-        else None
-    )
+    grad_input_ms = float(np.median(grad_input_times)) if grad_input_times else None
 
     grad_weights_ms = (
-        float(np.median(grad_weights_times))
-        if grad_weights_times
-        else None
+        float(np.median(grad_weights_times)) if grad_weights_times else None
     )
 
-    grad_bias_ms = (
-        float(np.median(grad_bias_times))
-        if grad_bias_times
-        else None
-    )
+    grad_bias_ms = float(np.median(grad_bias_times)) if grad_bias_times else None
 
     combined_ms = (
-        grad_input_ms
-        + grad_weights_ms
-        + grad_bias_ms
+        grad_input_ms + grad_weights_ms + grad_bias_ms
         if (
             grad_input_ms is not None
             and grad_weights_ms is not None
@@ -617,47 +572,29 @@ def linear_backward_device(
         else None
     )
 
-    matmul_operations = (
-        2
-        * batch_size
-        * input_features
-        * output_features
-        * 2
-    )
+    matmul_operations = 2 * batch_size * input_features * output_features * 2
 
     approximate_gflops = (
-        matmul_operations
-        / (combined_ms * 1e-3)
-        / 1e9
+        matmul_operations / (combined_ms * 1e-3) / 1e9
         if combined_ms is not None
         else None
     )
 
     metadata: dict[str, Any] = {
-        "operation":
-            "linear_backward_device_fp32",
+        "operation": "linear_backward_device_fp32",
         "input_shape": list(inputs.shape),
         "weight_shape": list(weights.shape),
-        "grad_output_shape":
-            list(grad_output.shape),
-        "grad_input_shape":
-            list(grad_input.shape),
-        "grad_weights_shape":
-            list(grad_weights.shape),
-        "grad_bias_shape":
-            list(grad_bias.shape),
+        "grad_output_shape": list(grad_output.shape),
+        "grad_input_shape": list(grad_input.shape),
+        "grad_weights_shape": list(grad_weights.shape),
+        "grad_bias_shape": list(grad_bias.shape),
         "tile_size": tile_size,
         "repetitions": repetitions,
-        "grad_input_median_ms":
-            grad_input_ms,
-        "grad_weights_median_ms":
-            grad_weights_ms,
-        "grad_bias_median_ms":
-            grad_bias_ms,
-        "combined_median_ms":
-            combined_ms,
-        "approximate_matmul_gflops":
-            approximate_gflops,
+        "grad_input_median_ms": grad_input_ms,
+        "grad_weights_median_ms": grad_weights_ms,
+        "grad_bias_median_ms": grad_bias_ms,
+        "combined_median_ms": combined_ms,
+        "approximate_matmul_gflops": approximate_gflops,
         "kernel_launches_per_backward": 3,
         "host_transfers_during_repetitions": 0,
         "buffers_reused": {
@@ -665,12 +602,8 @@ def linear_backward_device(
             "grad_weights": grad_weights_reused,
             "grad_bias": grad_bias_reused,
         },
-        "source_sha256":
-            runtime.source_hash(
-                LINEAR_BACKWARD_SOURCE
-            ),
-        "compile_options":
-            list(compile_options),
+        "source_sha256": runtime.source_hash(LINEAR_BACKWARD_SOURCE),
+        "compile_options": list(compile_options),
     }
 
     return (

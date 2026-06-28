@@ -18,7 +18,9 @@ def score_case(model: TinyCandidateModel, case: dict[str, Any]) -> dict[str, Any
     return {**case, "scored_candidates": scored}
 
 
-def verify_scored_case(model: TinyCandidateModel, case: dict[str, Any]) -> dict[str, Any]:
+def verify_scored_case(
+    model: TinyCandidateModel, case: dict[str, Any]
+) -> dict[str, Any]:
     scored_case = score_case(model, case)
     payload = run_tensionlm_candidate_bridge(
         case["input_text"],
@@ -40,4 +42,8 @@ def verify_scored_case(model: TinyCandidateModel, case: dict[str, Any]) -> dict[
             for candidate in scored_case["scored_candidates"]
         ],
     )
-    return {**scored_case, "verification": payload["verification"], "trace_receipt": payload["trace_receipt"]}
+    return {
+        **scored_case,
+        "verification": payload["verification"],
+        "trace_receipt": payload["trace_receipt"],
+    }

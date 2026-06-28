@@ -15,7 +15,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-
 VERSION = "ts_chat_v0.7"
 
 
@@ -71,13 +70,19 @@ def _missing_support_suggestion(entry: Dict[str, Any]) -> str:
     return "Provide typed premises that support the missing claim."
 
 
-def suggestion_from_curriculum_entry(entry: Dict[str, Any], index: int = 1) -> RepairSuggestion:
+def suggestion_from_curriculum_entry(
+    entry: Dict[str, Any], index: int = 1
+) -> RepairSuggestion:
     repair_type = str(entry.get("repair_type", "unknown"))
     original = str(entry.get("original_user_text", ""))
 
     if repair_type == "parse_failure":
         parsed = _bounded_parse_suggestion(original)
-        suggested_text = f"Did you mean: {parsed}?" if parsed else "No bounded parse suggestion available."
+        suggested_text = (
+            f"Did you mean: {parsed}?"
+            if parsed
+            else "No bounded parse suggestion available."
+        )
         rule_id = "bounded_all_are_parse_suggestion" if parsed else "no_suggestion"
     elif repair_type == "missing_support":
         suggested_text = _missing_support_suggestion(entry)
@@ -104,11 +109,18 @@ def suggestion_from_curriculum_entry(entry: Dict[str, Any], index: int = 1) -> R
     )
 
 
-def suggestions_from_curriculum_entries(entries: Iterable[Dict[str, Any]]) -> List[RepairSuggestion]:
-    return [suggestion_from_curriculum_entry(entry, i) for i, entry in enumerate(entries, start=1)]
+def suggestions_from_curriculum_entries(
+    entries: Iterable[Dict[str, Any]],
+) -> List[RepairSuggestion]:
+    return [
+        suggestion_from_curriculum_entry(entry, i)
+        for i, entry in enumerate(entries, start=1)
+    ]
 
 
-def write_suggestions_jsonl(suggestions: Iterable[RepairSuggestion], path: str | Path) -> None:
+def write_suggestions_jsonl(
+    suggestions: Iterable[RepairSuggestion], path: str | Path
+) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
@@ -129,22 +141,29 @@ def load_suggestions_jsonl(path: str | Path) -> List[Dict[str, Any]]:
 
 def evaluate_repair_suggestions(suggestions: List[Dict[str, Any]]) -> Dict[str, Any]:
     count = len(suggestions)
-    parse_suggestions = [s for s in suggestions if s.get("repair_type") == "parse_failure"]
-    missing_support_suggestions = [s for s in suggestions if s.get("repair_type") == "missing_support"]
+    parse_suggestions = [
+        s for s in suggestions if s.get("repair_type") == "parse_failure"
+    ]
+    missing_support_suggestions = [
+        s for s in suggestions if s.get("repair_type") == "missing_support"
+    ]
 
     source_turn_link_rate = (
         sum(1 for s in suggestions if s.get("source_turn_id")) / count if count else 0.0
     )
     repair_target_link_rate = (
-        sum(1 for s in suggestions if s.get("repair_target_id")) / count if count else 0.0
+        sum(1 for s in suggestions if s.get("repair_target_id")) / count
+        if count
+        else 0.0
     )
     curriculum_entry_link_rate = (
-        sum(1 for s in suggestions if s.get("curriculum_entry_id")) / count if count else 0.0
+        sum(1 for s in suggestions if s.get("curriculum_entry_id")) / count
+        if count
+        else 0.0
     )
 
     all_suggestions_not_accepted = all(
-        s.get("suggestion_status") == "suggested_not_accepted"
-        for s in suggestions
+        s.get("suggestion_status") == "suggested_not_accepted" for s in suggestions
     )
 
     parse_rule_present = any(

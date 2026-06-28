@@ -18,7 +18,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-
 ALL_RELATION_RE = re.compile(
     r"\ball\s+(.+?)\s+(?:are|is)\s+(.+?)(?:[.?!,;:]|$)",
     re.IGNORECASE,
@@ -230,8 +229,7 @@ def evaluate_case(case: dict[str, Any]) -> dict[str, Any]:
     )
 
     wrong_accept = any(
-        d.selected and d.status == "accepted" and not d.typed_support
-        for d in decisions
+        d.selected and d.status == "accepted" and not d.typed_support for d in decisions
     )
 
     accepted_without_typed_support = sum(
@@ -246,9 +244,13 @@ def evaluate_case(case: dict[str, Any]) -> dict[str, Any]:
         "selected_answer_type": selected.answer_type if selected else None,
         "selected_status": selected.status if selected else None,
         "selected_correct": selected_correct,
-        "confidence_top_candidate_id": confidence_top.candidate_id if confidence_top else None,
+        "confidence_top_candidate_id": (
+            confidence_top.candidate_id if confidence_top else None
+        ),
         "confidence_top_source": confidence_top.source if confidence_top else None,
-        "confidence_top_answer_type": confidence_top.answer_type if confidence_top else None,
+        "confidence_top_answer_type": (
+            confidence_top.answer_type if confidence_top else None
+        ),
         "confidence_top_correct": confidence_top_correct,
         "verifier_overrode_confidence": (
             selected is not None
@@ -276,8 +278,12 @@ def evaluate_arena_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
 
     case_count = len(case_results)
     candidate_count = sum(len(result["decisions"]) for result in case_results)
-    selected_correct_count = sum(1 for result in case_results if result["selected_correct"])
-    confidence_correct_count = sum(1 for result in case_results if result["confidence_top_correct"])
+    selected_correct_count = sum(
+        1 for result in case_results if result["selected_correct"]
+    )
+    confidence_correct_count = sum(
+        1 for result in case_results if result["confidence_top_correct"]
+    )
     verifier_overrode_confidence_count = sum(
         1 for result in case_results if result["verifier_overrode_confidence"]
     )
@@ -297,13 +303,21 @@ def evaluate_arena_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
         "live_tensionlm_runtime_claim": False,
         "case_count": case_count,
         "candidate_count": candidate_count,
-        "arena_selection_accuracy": selected_correct_count / case_count if case_count else 0.0,
-        "confidence_top_accuracy": confidence_correct_count / case_count if case_count else 0.0,
+        "arena_selection_accuracy": (
+            selected_correct_count / case_count if case_count else 0.0
+        ),
+        "confidence_top_accuracy": (
+            confidence_correct_count / case_count if case_count else 0.0
+        ),
         "verifier_overrode_confidence_count": verifier_overrode_confidence_count,
         "verifier_beats_confidence_rate": (
-            (selected_correct_count - confidence_correct_count) / case_count if case_count else 0.0
+            (selected_correct_count - confidence_correct_count) / case_count
+            if case_count
+            else 0.0
         ),
-        "wrong_accept_count": sum(1 for result in case_results if result["wrong_accept"]),
+        "wrong_accept_count": sum(
+            1 for result in case_results if result["wrong_accept"]
+        ),
         "accepted_without_typed_support_count": sum(
             result["accepted_without_typed_support"] for result in case_results
         ),
@@ -317,7 +331,8 @@ def evaluate_arena_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
     report["gates"] = {
         "selection_accuracy_gate": report["arena_selection_accuracy"] == 1.0,
         "wrong_accept_gate": report["wrong_accept_count"] == 0,
-        "accepted_without_support_gate": report["accepted_without_typed_support_count"] == 0,
+        "accepted_without_support_gate": report["accepted_without_typed_support_count"]
+        == 0,
         "contamination_gate": report["candidate_graph_contamination_count"] == 0,
         "claim_boundary_gate": (
             report["confidence_is_not_proof"]

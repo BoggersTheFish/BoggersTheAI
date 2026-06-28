@@ -8,7 +8,6 @@ from typing import Any, Iterable
 
 from ts_reasoner.runtime_state_ledger import run_runtime_ledger
 
-
 GENESIS_HASH = "GENESIS"
 
 
@@ -130,7 +129,9 @@ def build_tamper_evident_ledger(
     )
 
 
-def evaluate_tamper_evident_ledger_cases(cases: Iterable[dict[str, Any]]) -> dict[str, object]:
+def evaluate_tamper_evident_ledger_cases(
+    cases: Iterable[dict[str, Any]],
+) -> dict[str, object]:
     results = []
     passed = 0
     total = 0
@@ -148,7 +149,9 @@ def evaluate_tamper_evident_ledger_cases(cases: Iterable[dict[str, Any]]) -> dic
         expected_chain_valid = bool(raw["expected_chain_valid"])
         expected_tamper_detected = bool(raw["expected_tamper_detected"])
         expected_entry_count = int(raw["expected_entry_count"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.actions == expected_actions

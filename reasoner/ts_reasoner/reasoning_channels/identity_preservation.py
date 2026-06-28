@@ -17,13 +17,19 @@ class IdentityPreservationChannel(TensionChannel):
 
     def activate(self, graph: GraphState, context: dict) -> bool:
         pair = self._query_pair(context)
-        return bool(pair and pair[0] != pair[1] and has_directed_path(graph, pair[0], pair[1]))
+        return bool(
+            pair and pair[0] != pair[1] and has_directed_path(graph, pair[0], pair[1])
+        )
 
     def measure(self, graph: GraphState, context: dict) -> ChannelResult:
         pair = self._query_pair(context)
         marker = f"{pair[0]}!={pair[1]}" if pair else ""
         active = self.activate(graph, context)
-        tension = 0.0 if marker in context.get("blocked_equalities", []) else (1.0 if active else 0.0)
+        tension = (
+            0.0
+            if marker in context.get("blocked_equalities", [])
+            else (1.0 if active else 0.0)
+        )
         return ChannelResult(
             channel=self.name,
             activated=active,

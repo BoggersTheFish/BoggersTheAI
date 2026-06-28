@@ -23,7 +23,12 @@ from pathlib import Path
 from typing import Any
 
 from ts_reasoner.answer_arena import Relation, transitive_closure
-from ts_reasoner.chat_repair import RepairTarget, repair_to_dict, resolve_repair_target, support_repair_target
+from ts_reasoner.chat_repair import (
+    RepairTarget,
+    repair_to_dict,
+    resolve_repair_target,
+    support_repair_target,
+)
 
 
 @dataclass(frozen=True)
@@ -97,7 +102,11 @@ class CommonGround:
         updated_repairs: list[RepairTarget] = []
 
         for repair in self.repair_targets:
-            if repair.status != "open" or repair.kind != "missing_support" or repair.relation is None:
+            if (
+                repair.status != "open"
+                or repair.kind != "missing_support"
+                or repair.relation is None
+            ):
                 updated_repairs.append(repair)
                 continue
 
@@ -147,9 +156,7 @@ class CommonGround:
             return [relation_to_dict(relation)]
 
         # Simple BFS for one readable support chain.
-        frontier: list[tuple[str, list[tuple[str, str]]]] = [
-            (relation.subject, [])
-        ]
+        frontier: list[tuple[str, list[tuple[str, str]]]] = [(relation.subject, [])]
         seen = {relation.subject}
 
         while frontier:
@@ -274,7 +281,9 @@ class CommonGround:
         return "\n".join(lines)
 
     def repair_summary(self) -> str:
-        open_repairs = [repair for repair in self.repair_targets if repair.status == "open"]
+        open_repairs = [
+            repair for repair in self.repair_targets if repair.status == "open"
+        ]
         if not open_repairs:
             return "No open repair targets."
 
@@ -320,13 +329,22 @@ class CommonGround:
             "accepted_edge_count": len(self.accepted_edges),
             "record_count": len(self.records),
             "records": [claim_record_to_dict(record) for record in self.records],
-            "last_question": None if self.last_question is None else relation_to_dict(self.last_question),
+            "last_question": (
+                None
+                if self.last_question is None
+                else relation_to_dict(self.last_question)
+            ),
             "last_support_path": self.last_support_path,
-            "repair_targets": [repair_to_dict(repair) for repair in self.repair_targets],
+            "repair_targets": [
+                repair_to_dict(repair) for repair in self.repair_targets
+            ],
         }
 
     def save(self, path: str | Path) -> Path:
         out = Path(path)
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        out.write_text(
+            json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
         return out

@@ -3,7 +3,7 @@ import struct
 from pathlib import Path
 
 from .instruction import Instruction
-from .opcodes import OPS, EDGE_TYPES
+from .opcodes import EDGE_TYPES, OPS
 
 MAGIC = b"BOGBIN01"
 
@@ -61,7 +61,6 @@ class Assembler:
         }
         return claim_id
 
-
     def add_data(self, name: str) -> int:
         if name in self.data_names:
             return self.data_names[name]
@@ -86,7 +85,9 @@ class Assembler:
         self.constants[str(const_id)] = value
         return const_id
 
-    def emit(self, op: str, flags: int = 0, target: int = 0, source: int = 0, param: int = 0) -> None:
+    def emit(
+        self, op: str, flags: int = 0, target: int = 0, source: int = 0, param: int = 0
+    ) -> None:
         for value_name, value in {
             "flags": flags,
             "target": target,
@@ -113,7 +114,9 @@ class Assembler:
 
         elif op == "CREATE_EDGE":
             if len(parts) != 4:
-                raise AssemblerError("CREATE_EDGE needs: CREATE_EDGE <source> <target> <support|conflict>")
+                raise AssemblerError(
+                    "CREATE_EDGE needs: CREATE_EDGE <source> <target> <support|conflict>"
+                )
             src = self.require_node(parts[1])
             dst = self.require_node(parts[2])
             edge_type = parts[3].lower()
@@ -121,11 +124,19 @@ class Assembler:
                 raise AssemblerError(f"Unknown edge type: {edge_type}")
             edge_id = self.edge_count
             self.edge_count += 1
-            self.emit("CREATE_EDGE", flags=EDGE_TYPES[edge_type], target=edge_id, source=src, param=dst)
+            self.emit(
+                "CREATE_EDGE",
+                flags=EDGE_TYPES[edge_type],
+                target=edge_id,
+                source=src,
+                param=dst,
+            )
 
         elif op == "CREATE_CLAIM":
             if len(parts) != 4:
-                raise AssemblerError("CREATE_CLAIM needs: CREATE_CLAIM <claim_name> <source> <target>")
+                raise AssemblerError(
+                    "CREATE_CLAIM needs: CREATE_CLAIM <claim_name> <source> <target>"
+                )
             src = self.require_node(parts[2])
             dst = self.require_node(parts[3])
             claim_id = self.add_claim(parts[1], src, dst)
@@ -133,14 +144,18 @@ class Assembler:
 
         elif op == "ACTIVATE":
             if len(parts) != 3:
-                raise AssemblerError("ACTIVATE needs: ACTIVATE <node> <strength_0_to_1000>")
+                raise AssemblerError(
+                    "ACTIVATE needs: ACTIVATE <node> <strength_0_to_1000>"
+                )
             node_id = self.require_node(parts[1])
             strength = int(parts[2])
             self.emit("ACTIVATE", target=node_id, param=strength)
 
         elif op == "PROPAGATE":
             if len(parts) != 4:
-                raise AssemblerError("PROPAGATE needs: PROPAGATE <source> <support|conflict> <depth>")
+                raise AssemblerError(
+                    "PROPAGATE needs: PROPAGATE <source> <support|conflict> <depth>"
+                )
             src = self.require_node(parts[1])
             edge_type = parts[2].lower()
             depth = int(parts[3])
@@ -151,7 +166,14 @@ class Assembler:
                 raise AssemblerError("DECAY needs: DECAY <factor_0_to_1000>")
             self.emit("DECAY", param=int(parts[1]))
 
-        elif op in {"INTERFERE", "COMPUTE_TENSION", "VERIFY", "ACCEPT", "REJECT", "QUARANTINE"}:
+        elif op in {
+            "INTERFERE",
+            "COMPUTE_TENSION",
+            "VERIFY",
+            "ACCEPT",
+            "REJECT",
+            "QUARANTINE",
+        }:
             if len(parts) != 2:
                 raise AssemblerError(f"{op} needs: {op} <claim_name>")
             claim_id = self.require_claim(parts[1])
@@ -179,7 +201,9 @@ class Assembler:
 
         elif op == "LOAD_COEFFICIENTS":
             if len(parts) not in {4, 5}:
-                raise AssemblerError("LOAD_COEFFICIENTS needs: LOAD_COEFFICIENTS <data_name> <byte_0_to_255> <length> [delta_0_to_255]")
+                raise AssemblerError(
+                    "LOAD_COEFFICIENTS needs: LOAD_COEFFICIENTS <data_name> <byte_0_to_255> <length> [delta_0_to_255]"
+                )
             data_id = self.require_data(parts[1])
             byte_value = int(parts[2])
             length = int(parts[3])
@@ -188,7 +212,13 @@ class Assembler:
                 raise AssemblerError("byte must be 0..255")
             if not 0 <= delta <= 255:
                 raise AssemblerError("delta must be 0..255")
-            self.emit("LOAD_COEFFICIENTS", flags=delta, target=data_id, source=byte_value, param=length)
+            self.emit(
+                "LOAD_COEFFICIENTS",
+                flags=delta,
+                target=data_id,
+                source=byte_value,
+                param=length,
+            )
 
         elif op == "SYNTHESIZE":
             if len(parts) != 2:
@@ -198,7 +228,9 @@ class Assembler:
 
         elif op == "VERIFY_HASH":
             if len(parts) != 3:
-                raise AssemblerError("VERIFY_HASH needs: VERIFY_HASH <data_name> <sha256_hex>")
+                raise AssemblerError(
+                    "VERIFY_HASH needs: VERIFY_HASH <data_name> <sha256_hex>"
+                )
             data_id = self.require_data(parts[1])
             hash_id = self.add_constant(parts[2])
             self.emit("VERIFY_HASH", target=data_id, source=hash_id)
@@ -217,7 +249,9 @@ class Assembler:
 
         elif op == "STORE_RESIDUAL":
             if len(parts) != 4:
-                raise AssemblerError("STORE_RESIDUAL needs: STORE_RESIDUAL <data_name> <offset> <byte_0_to_255>")
+                raise AssemblerError(
+                    "STORE_RESIDUAL needs: STORE_RESIDUAL <data_name> <offset> <byte_0_to_255>"
+                )
             data_id = self.require_data(parts[1])
             offset = int(parts[2])
             byte_value = int(parts[3])
@@ -244,16 +278,28 @@ class Assembler:
         manifest = {
             "version": "0.1",
             "scale": 1000,
-            "nodes": {str(v): k for k, v in sorted(self.nodes.items(), key=lambda x: x[1])},
+            "nodes": {
+                str(v): k for k, v in sorted(self.nodes.items(), key=lambda x: x[1])
+            },
             "claims": self.claim_meta,
-            "data_blocks": {str(v): k for k, v in sorted(self.data_names.items(), key=lambda x: x[1])},
+            "data_blocks": {
+                str(v): k
+                for k, v in sorted(self.data_names.items(), key=lambda x: x[1])
+            },
             "constants": self.constants,
             "instruction_count": len(self.instructions),
         }
-        manifest_bytes = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        manifest_bytes = json.dumps(
+            manifest, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
         instruction_bytes = b"".join(i.pack() for i in self.instructions)
 
-        return MAGIC + struct.pack(">I", len(manifest_bytes)) + manifest_bytes + instruction_bytes
+        return (
+            MAGIC
+            + struct.pack(">I", len(manifest_bytes))
+            + manifest_bytes
+            + instruction_bytes
+        )
 
 
 def assemble_file(src: str | Path, dst: str | Path) -> None:

@@ -12,11 +12,15 @@ Run:
 import json
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from experiments.frontier.verifier_os import VerifierOS
 from experiments.frontier.language_compiler import LanguageCompiler as TSLCCompiler
-from experiments.frontier.self_data_generator import SelfDataGenerator  # reuse for proposer
+from experiments.frontier.self_data_generator import (
+    SelfDataGenerator,  # reuse for proposer
+)
+from experiments.frontier.verifier_os import VerifierOS
+
 
 def main():
     verifier = VerifierOS()
@@ -38,7 +42,7 @@ def main():
                 "premises": premises,
                 "claim": claim,
                 "verifier": res,
-                "success": res["support"]["verifier_passed"]
+                "success": res["support"]["verifier_passed"],
             }
             traces.append(trace)
 
@@ -53,6 +57,7 @@ def main():
 
     print("Saved to artifacts/self_data_traces.json")
     # In real, fine-tune TensionLM here using bozo/ pipeline
+
 
 if __name__ == "__main__":
     main()

@@ -18,10 +18,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ts_reasoner.answer_arena import Relation, extract_all_relation, extract_question_relation
+from ts_reasoner.answer_arena import (
+    Relation,
+    extract_all_relation,
+    extract_question_relation,
+)
 from ts_reasoner.common_ground import CommonGround
 from ts_reasoner.live_contradiction_firewall import parse_no_relation
-
 
 RELEASE = "v7.8.0"
 SCHEMA = "ts_reasoner_proof_repair_search_v1"
@@ -95,7 +98,9 @@ def prove_relation(common_ground: CommonGround, relation: Relation) -> dict[str,
     }
 
 
-def missing_support_search(common_ground: CommonGround, relation: Relation) -> dict[str, Any]:
+def missing_support_search(
+    common_ground: CommonGround, relation: Relation
+) -> dict[str, Any]:
     proof = prove_relation(common_ground, relation)
     if proof["shortest_path_found"]:
         return {
@@ -132,7 +137,10 @@ def missing_support_search(common_ground: CommonGround, relation: Relation) -> d
 
     # Existing partial paths: subject -> bridge exists, but bridge -> object missing.
     for subject, bridge in sorted(accepted_edges):
-        if subject == relation.subject and (bridge, relation.object) not in accepted_edges:
+        if (
+            subject == relation.subject
+            and (bridge, relation.object) not in accepted_edges
+        ):
             candidate = {
                 "kind": "complete_outbound_bridge",
                 "bridge": bridge,
@@ -146,7 +154,10 @@ def missing_support_search(common_ground: CommonGround, relation: Relation) -> d
 
     # Existing partial paths: bridge -> object exists, but subject -> bridge missing.
     for bridge, object_ in sorted(accepted_edges):
-        if object_ == relation.object and (relation.subject, bridge) not in accepted_edges:
+        if (
+            object_ == relation.object
+            and (relation.subject, bridge) not in accepted_edges
+        ):
             candidate = {
                 "kind": "complete_inbound_bridge",
                 "bridge": bridge,
@@ -198,7 +209,9 @@ def missing_support_search(common_ground: CommonGround, relation: Relation) -> d
     }
 
 
-def contradiction_cut_search(common_ground: CommonGround, relation: Relation) -> dict[str, Any]:
+def contradiction_cut_search(
+    common_ground: CommonGround, relation: Relation
+) -> dict[str, Any]:
     support_path = common_ground.support_path(relation)
 
     cut_suggestions = []
@@ -232,7 +245,9 @@ def contradiction_cut_search(common_ground: CommonGround, relation: Relation) ->
     }
 
 
-def run_search_command(common_ground: CommonGround, mode: str, query_text: str) -> dict[str, Any]:
+def run_search_command(
+    common_ground: CommonGround, mode: str, query_text: str
+) -> dict[str, Any]:
     relation = parse_relation_query(query_text)
 
     if mode == "prove":
@@ -257,7 +272,9 @@ def render_search_result(result: dict[str, Any]) -> str:
         else:
             lines = [f"Unsupported: {result['claim_text']}"]
             lines.append("No support path found in accepted common ground.")
-        lines.append("Boundary: search result is not proof; typed verifier support remains authority.")
+        lines.append(
+            "Boundary: search result is not proof; typed verifier support remains authority."
+        )
         return "\n".join(lines)
 
     if mode == "missing":
@@ -296,7 +313,9 @@ def render_search_result(result: dict[str, Any]) -> str:
             lines.append("Cut suggestions:")
             for cut in result["cut_suggestions"]:
                 edge = cut["edge"]
-                lines.append(f"- inspect/dispute: all {edge['subject']} are {edge['object']}")
+                lines.append(
+                    f"- inspect/dispute: all {edge['subject']} are {edge['object']}"
+                )
         lines.append("Boundary: cut suggestions are candidates, not proof.")
         return "\n".join(lines)
 
@@ -324,11 +343,20 @@ def search_result_valid(result: dict[str, Any]) -> bool:
         return False
     if result["external_llm_used"] is not False:
         return False
-    if result["query_type"] == "prove" and result.get("search_result_is_proof") is not False:
+    if (
+        result["query_type"] == "prove"
+        and result.get("search_result_is_proof") is not False
+    ):
         return False
-    if result["query_type"] == "missing" and result.get("missing_suggestion_is_proof") is not False:
+    if (
+        result["query_type"] == "missing"
+        and result.get("missing_suggestion_is_proof") is not False
+    ):
         return False
-    if result["query_type"] == "cut" and result.get("cut_suggestion_is_proof") is not False:
+    if (
+        result["query_type"] == "cut"
+        and result.get("cut_suggestion_is_proof") is not False
+    ):
         return False
     return True
 
@@ -336,7 +364,9 @@ def search_result_valid(result: dict[str, Any]) -> bool:
 def _write_json(path: str | Path, payload: Any) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return out
 
 
@@ -365,9 +395,15 @@ def run_proof_repair_search_demo(out_dir: str | Path) -> dict[str, Any]:
     receipts = [session.process(turn) for turn in turns]
     receipt_dicts = [receipt_to_dict(receipt) for receipt in receipts]
 
-    prove_mortal = prove_relation(session.common_ground, parse_relation_query("all cats are mortal"))
-    missing_robots = missing_support_search(session.common_ground, parse_relation_query("all cats are robots"))
-    cut_mortal = contradiction_cut_search(session.common_ground, parse_relation_query("no cats are mortal"))
+    prove_mortal = prove_relation(
+        session.common_ground, parse_relation_query("all cats are mortal")
+    )
+    missing_robots = missing_support_search(
+        session.common_ground, parse_relation_query("all cats are robots")
+    )
+    cut_mortal = contradiction_cut_search(
+        session.common_ground, parse_relation_query("no cats are mortal")
+    )
 
     session_path = out / "proof_repair_search_session.json"
     results_path = out / "proof_repair_search_results.json"
@@ -391,11 +427,21 @@ def run_proof_repair_search_demo(out_dir: str | Path) -> dict[str, Any]:
         "missing_result_valid": search_result_valid(missing_robots),
         "cut_result_valid": search_result_valid(cut_mortal),
         "prove_support_path_found": prove_mortal["shortest_path_found"] is True,
-        "missing_already_supported_after_repair": missing_robots["status"] == "already_supported",
+        "missing_already_supported_after_repair": missing_robots["status"]
+        == "already_supported",
         "cut_suggestions_found": cut_mortal["cut_suggestion_count"] >= 2,
-        "live_prove_command_rendered": any("Supported: all cats are mortal" in response for response in command_responses),
-        "live_missing_command_rendered": any("Missing search for: all cats are robots" in response for response in command_responses),
-        "live_cut_command_rendered": any("Cut search for contradiction: no cats are mortal" in response for response in command_responses),
+        "live_prove_command_rendered": any(
+            "Supported: all cats are mortal" in response
+            for response in command_responses
+        ),
+        "live_missing_command_rendered": any(
+            "Missing search for: all cats are robots" in response
+            for response in command_responses
+        ),
+        "live_cut_command_rendered": any(
+            "Cut search for contradiction: no cats are mortal" in response
+            for response in command_responses
+        ),
         "candidate_graph_contamination_count_is_zero": (
             prove_mortal["candidate_graph_contamination_count"] == 0
             and missing_robots["candidate_graph_contamination_count"] == 0

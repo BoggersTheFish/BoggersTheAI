@@ -4,7 +4,11 @@ import argparse
 import json
 from typing import Any
 
-from ts_reasoner.central_brain import CentralBrainRuntime, default_brain_path, stable_hash
+from ts_reasoner.central_brain import (
+    CentralBrainRuntime,
+    default_brain_path,
+    stable_hash,
+)
 
 
 def _json(payload: Any) -> str:
@@ -40,7 +44,9 @@ def _dashboard_summary(brain: CentralBrainRuntime) -> dict[str, Any]:
         "replay_sessions": dashboard["replay_sessions"],
         "cli_sessions": dashboard["cli_sessions"],
         "recent_receipts": dashboard["recent_receipts"],
-        "candidate_graph_contamination_count": dashboard["candidate_graph_contamination_count"],
+        "candidate_graph_contamination_count": dashboard[
+            "candidate_graph_contamination_count"
+        ],
         "graph_mutated": False,
     }
 
@@ -116,7 +122,9 @@ def run_cli_payload(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
                     "command": "revert-branch",
                     "boundary_receipt_hash": replay.boundary_receipt_hash,
                     "boundary_sequence": replay.boundary_sequence,
-                    "result_receipt_hash": replay.receipt["receipt_hash"] if replay.receipt else "",
+                    "result_receipt_hash": (
+                        replay.receipt["receipt_hash"] if replay.receipt else ""
+                    ),
                     "graph_mutation": "branch_world_restore_context_created",
                 },
                 "support": _support(args.support, "revert_branch_cli_session"),
@@ -149,7 +157,11 @@ def run_cli_payload(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="ts-central-brain")
-    parser.add_argument("--db", default=str(default_brain_path()), help="Path to central brain SQLite DB.")
+    parser.add_argument(
+        "--db",
+        default=str(default_brain_path()),
+        help="Path to central brain SQLite DB.",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("dashboard")
@@ -158,11 +170,15 @@ def main(argv: list[str] | None = None) -> int:
 
     inspect = sub.add_parser("inspect-receipt")
     inspect.add_argument("boundary", help="Receipt sequence integer or receipt hash.")
-    inspect.add_argument("--support", help="Typed support string for the replay verifier gate.")
+    inspect.add_argument(
+        "--support", help="Typed support string for the replay verifier gate."
+    )
 
     revert = sub.add_parser("revert-branch")
     revert.add_argument("boundary", help="Receipt sequence integer or receipt hash.")
-    revert.add_argument("--support", help="Typed support string for the replay verifier gate.")
+    revert.add_argument(
+        "--support", help="Typed support string for the replay verifier gate."
+    )
 
     args = parser.parse_args(argv)
 

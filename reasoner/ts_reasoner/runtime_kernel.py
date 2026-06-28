@@ -32,7 +32,9 @@ def normalize_state(state: dict[str, Any]) -> dict[str, Any]:
     copied["accepted_claims"] = normalize_claims(copied.get("accepted_claims", []))
     copied.setdefault("branch_worlds", [])
     copied.setdefault("repair_targets", [])
-    copied["quarantined_claims"] = normalize_claims(copied.get("quarantined_claims", []))
+    copied["quarantined_claims"] = normalize_claims(
+        copied.get("quarantined_claims", [])
+    )
     copied.setdefault("patches", [])
     return copied
 
@@ -57,17 +59,29 @@ class VerifierFirstRuntimeKernel:
                 action = "quarantine"
                 working["quarantined_claims"].append(claim)
                 working["patches"].append(
-                    {"patch_type": "claim_quarantined", "claim": claim, "reason": "hostile_or_identity_attack"}
+                    {
+                        "patch_type": "claim_quarantined",
+                        "claim": claim,
+                        "reason": "hostile_or_identity_attack",
+                    }
                 )
                 explanation = "Hostile or identity-level claim was quarantined."
 
             else:
                 action = "open_repair"
                 working["repair_targets"].append(
-                    {"target_claim": claim, "repair_type": "missing_support", "accepted_as_proof": False}
+                    {
+                        "target_claim": claim,
+                        "repair_type": "missing_support",
+                        "accepted_as_proof": False,
+                    }
                 )
                 working["patches"].append(
-                    {"patch_type": "repair_opened", "target_claim": claim, "repair_type": "missing_support"}
+                    {
+                        "patch_type": "repair_opened",
+                        "target_claim": claim,
+                        "repair_type": "missing_support",
+                    }
                 )
                 explanation = "Unsupported claim opened repair instead of entering accepted common ground."
 
@@ -84,7 +98,11 @@ class VerifierFirstRuntimeKernel:
                 }
             )
             working["patches"].append(
-                {"patch_type": "world_branched", "incoming_claim": claim, "branch_reason": "trusted_revision"}
+                {
+                    "patch_type": "world_branched",
+                    "incoming_claim": claim,
+                    "branch_reason": "trusted_revision",
+                }
             )
             explanation = "Trusted revision was isolated into a branch world."
 
@@ -94,7 +112,10 @@ class VerifierFirstRuntimeKernel:
                 action = "quarantine_pack"
                 working["quarantined_claims"].extend(unsupported)
                 working["patches"].append(
-                    {"patch_type": "pack_quarantined", "quarantined_claims": unsupported}
+                    {
+                        "patch_type": "pack_quarantined",
+                        "quarantined_claims": unsupported,
+                    }
                 )
                 explanation = "Invalid knowledge pack was quarantined."
             else:
@@ -151,7 +172,9 @@ def evaluate_runtime_kernel_cases(cases: Iterable[dict[str, Any]]) -> dict[str, 
         expected_repairs = int(raw["expected_repair_target_count"])
         expected_branches = int(raw["expected_branch_world_count"])
         expected_patches = int(raw["expected_patch_count"])
-        expected_contamination = int(raw["expected_candidate_graph_contamination_count"])
+        expected_contamination = int(
+            raw["expected_candidate_graph_contamination_count"]
+        )
 
         case_passed = (
             result.action == expected_action

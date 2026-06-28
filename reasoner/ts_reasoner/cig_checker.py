@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional
 
 from .generator import extract_relations
 from .proof_chain import has_universal_bridge
@@ -16,7 +16,12 @@ NEGATION_RE = re.compile(
 )
 
 
-def normalize_statement(subject: Optional[str], predicate: Optional[str], quantifier: Optional[str], polarity: str) -> str:
+def normalize_statement(
+    subject: Optional[str],
+    predicate: Optional[str],
+    quantifier: Optional[str],
+    polarity: str,
+) -> str:
     if not subject or not predicate:
         return ""
     prefix = quantifier or "claim"
@@ -24,11 +29,15 @@ def normalize_statement(subject: Optional[str], predicate: Optional[str], quanti
     return f"{prefix} {subject.lower()} are {marker}{predicate.lower()}"
 
 
-def extract_claims_from_text(text: str, source_step_id: str, dependencies: Iterable[str], confidence: float) -> List[Claim]:
+def extract_claims_from_text(
+    text: str, source_step_id: str, dependencies: Iterable[str], confidence: float
+) -> List[Claim]:
     claims: List[Claim] = []
     for index, relation in enumerate(extract_relations(text)):
         polarity = "negative" if relation.quantifier == "no" else "positive"
-        normalized = normalize_statement(relation.subject, relation.predicate, relation.quantifier, polarity)
+        normalized = normalize_statement(
+            relation.subject, relation.predicate, relation.quantifier, polarity
+        )
         claims.append(
             Claim(
                 claim_id=f"{source_step_id}:c{index + 1}",
@@ -67,7 +76,10 @@ def extract_claims_from_text(text: str, source_step_id: str, dependencies: Itera
 def _contradict(a: Claim, b: Claim) -> bool:
     if not a.subject or not a.predicate or not b.subject or not b.predicate:
         return False
-    same_pair = a.subject.lower() == b.subject.lower() and a.predicate.lower() == b.predicate.lower()
+    same_pair = (
+        a.subject.lower() == b.subject.lower()
+        and a.predicate.lower() == b.predicate.lower()
+    )
     if not same_pair:
         return False
     if a.quantifier == "no" and b.quantifier in {"all", "some"}:

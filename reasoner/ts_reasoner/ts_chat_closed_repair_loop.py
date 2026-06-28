@@ -16,7 +16,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
-
 VERSION = "ts_chat_v1.0"
 
 
@@ -100,7 +99,9 @@ def run_closed_repair_loop(
     for index, entry in enumerate(curriculum, start=1):
         curriculum_entry_id = str(entry.get("curriculum_entry_id", ""))
         suggestion = suggestions_by_curriculum.get(curriculum_entry_id, {})
-        confirmation = confirmations_by_suggestion.get(str(suggestion.get("suggestion_id", "")), {})
+        confirmation = confirmations_by_suggestion.get(
+            str(suggestion.get("suggestion_id", "")), {}
+        )
 
         # v6.0 is a replay loop: every curriculum entry enters the loop as
         # unresolved for this run, then verifier outcomes decide whether it
@@ -118,8 +119,7 @@ def run_closed_repair_loop(
             closed_this_run = False
 
         candidate_graph_contaminated = (
-            verifier_status == "verifier_rejected"
-            and accepted_as_proof is True
+            verifier_status == "verifier_rejected" and accepted_as_proof is True
         )
 
         cases.append(
@@ -146,24 +146,26 @@ def run_closed_repair_loop(
     initial_open_repairs = sum(1 for c in cases if c.initial_repair_status == "open")
     final_open_repairs = sum(1 for c in cases if c.final_repair_status == "open")
     repairs_closed_this_run = sum(1 for c in cases if c.closed_this_run)
-    accepted_with_verifier_support = sum(1 for c in cases if c.verifier_status == "verifier_accepted" and c.accepted_as_proof)
+    accepted_with_verifier_support = sum(
+        1
+        for c in cases
+        if c.verifier_status == "verifier_accepted" and c.accepted_as_proof
+    )
     rejected_without_contamination = sum(
         1
         for c in cases
-        if c.verifier_status == "verifier_rejected" and not c.candidate_graph_contaminated
+        if c.verifier_status == "verifier_rejected"
+        and not c.candidate_graph_contaminated
     )
     zero_contamination = all(not c.candidate_graph_contaminated for c in cases)
 
     # We count improvement as either closing a previously open repair, or preserving
     # at least one resolved repair while preventing rejected candidates from becoming proof.
-    improvement_detected = (
-        repairs_closed_this_run > 0
-        or (
-            accepted_with_verifier_support > 0
-            and rejected_without_contamination > 0
-            and zero_contamination
-            and final_open_repairs <= initial_open_repairs
-        )
+    improvement_detected = repairs_closed_this_run > 0 or (
+        accepted_with_verifier_support > 0
+        and rejected_without_contamination > 0
+        and zero_contamination
+        and final_open_repairs <= initial_open_repairs
     )
 
     all_gates_passed = (
@@ -202,10 +204,14 @@ def run_closed_repair_loop(
     )
 
 
-def write_closed_repair_loop_receipt(receipt: ClosedRepairLoopReceipt, path: str | Path) -> None:
+def write_closed_repair_loop_receipt(
+    receipt: ClosedRepairLoopReceipt, path: str | Path
+) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(receipt.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output_path.write_text(
+        json.dumps(receipt.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def load_closed_repair_loop_receipt(path: str | Path) -> Dict[str, Any]:

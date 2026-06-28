@@ -26,7 +26,8 @@ def evaluate_case(raw: dict[str, Any]) -> dict[str, Any]:
         "coherent": bool(read_payload["coherent"]),
         "contradiction_detected": bool(read_payload["contradiction_detected"]),
         "top_edge_id": str(read_payload["top_edge_id"]),
-        "ambiguous_abstention": read_payload["reader_decision"] == "abstain_no_unique_culprit",
+        "ambiguous_abstention": read_payload["reader_decision"]
+        == "abstain_no_unique_culprit",
         "top_repair_edge_id": str(top_repair.get("edge_id", "")),
         "top_repair_action": str(top_repair.get("action", "")),
     }
@@ -38,7 +39,8 @@ def evaluate_case(raw: dict[str, Any]) -> dict[str, Any]:
         ),
         "contradiction": (
             "contradiction_detected" not in expected
-            or observed["contradiction_detected"] is bool(expected["contradiction_detected"])
+            or observed["contradiction_detected"]
+            is bool(expected["contradiction_detected"])
         ),
         "top_edge": (
             "top_edge_id" not in expected
@@ -46,7 +48,8 @@ def evaluate_case(raw: dict[str, Any]) -> dict[str, Any]:
         ),
         "ambiguous_abstention": (
             "ambiguous_abstention" not in expected
-            or observed["ambiguous_abstention"] is bool(expected["ambiguous_abstention"])
+            or observed["ambiguous_abstention"]
+            is bool(expected["ambiguous_abstention"])
         ),
         "repair_edge": (
             "top_repair_edge_id" not in expected
@@ -57,7 +60,9 @@ def evaluate_case(raw: dict[str, Any]) -> dict[str, Any]:
             or observed["top_repair_action"] == str(expected["top_repair_action"])
         ),
     }
-    accepted_without_typed = int(read_payload.get("accepted_without_verifier_support_count", 0))
+    accepted_without_typed = int(
+        read_payload.get("accepted_without_verifier_support_count", 0)
+    )
     wrong_accept = 1 if read_payload.get("accepted_truth") is True else 0
     result = {
         "case_id": graph.case_id,
@@ -65,7 +70,9 @@ def evaluate_case(raw: dict[str, Any]) -> dict[str, Any]:
         "expected": expected,
         "observed": observed,
         "checks": checks,
-        "passed": all(checks.values()) and accepted_without_typed == 0 and wrong_accept == 0,
+        "passed": all(checks.values())
+        and accepted_without_typed == 0
+        and wrong_accept == 0,
         "spectral_read": read_payload,
         "repair_candidates": repairs[:6],
         "wrong_accept_count": wrong_accept,
@@ -79,17 +86,22 @@ def evaluate_spectral_cases(cases: Iterable[dict[str, Any]]) -> dict[str, Any]:
     results = [evaluate_case(case) for case in cases]
     case_types = Counter(str(row["case_type"]) for row in results)
 
-    coherence_checks = [row["checks"]["coherence"] for row in results if "coherent" in row["expected"]]
+    coherence_checks = [
+        row["checks"]["coherence"] for row in results if "coherent" in row["expected"]
+    ]
     contradiction_checks = [
         row["checks"]["contradiction"]
         for row in results
         if "contradiction_detected" in row["expected"]
     ]
-    top1_checks = [row["checks"]["top_edge"] for row in results if "top_edge_id" in row["expected"]]
+    top1_checks = [
+        row["checks"]["top_edge"] for row in results if "top_edge_id" in row["expected"]
+    ]
     repair_checks = [
         row["checks"]["repair_edge"] and row["checks"]["repair_action"]
         for row in results
-        if "top_repair_edge_id" in row["expected"] or "top_repair_action" in row["expected"]
+        if "top_repair_edge_id" in row["expected"]
+        or "top_repair_action" in row["expected"]
     ]
     ambiguous_checks = [
         row["checks"]["ambiguous_abstention"]
@@ -97,8 +109,12 @@ def evaluate_spectral_cases(cases: Iterable[dict[str, Any]]) -> dict[str, Any]:
         if row["expected"].get("ambiguous_abstention") is True
     ]
     wrong_accept_count = sum(int(row["wrong_accept_count"]) for row in results)
-    accepted_without_typed = sum(int(row["accepted_without_verifier_support_count"]) for row in results)
-    contamination = sum(int(row["candidate_graph_contamination_count"]) for row in results)
+    accepted_without_typed = sum(
+        int(row["accepted_without_verifier_support_count"]) for row in results
+    )
+    contamination = sum(
+        int(row["candidate_graph_contamination_count"]) for row in results
+    )
 
     metrics = {
         "case_count": len(results),
@@ -132,13 +148,19 @@ def evaluate_spectral_cases(cases: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "all_gates_passed": all_gates_passed,
         "results": results,
     }
-    metrics["receipt_schema_validity"] = 1.0 if receipt_schema_valid({
-        "release": report["release"],
-        "claim": report["claim"],
-        "date": "schema-check",
-        "all_gates_passed": all_gates_passed,
-        "metrics": metrics,
-        "artifacts": [],
-        "proof_boundary": "spectral_reader_suggests_verifier_decides",
-    }) else 0.0
+    metrics["receipt_schema_validity"] = (
+        1.0
+        if receipt_schema_valid(
+            {
+                "release": report["release"],
+                "claim": report["claim"],
+                "date": "schema-check",
+                "all_gates_passed": all_gates_passed,
+                "metrics": metrics,
+                "artifacts": [],
+                "proof_boundary": "spectral_reader_suggests_verifier_decides",
+            }
+        )
+        else 0.0
+    )
     return report

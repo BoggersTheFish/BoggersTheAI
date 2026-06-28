@@ -19,11 +19,13 @@ This is the culmination - a deterministic, glass-box, verifiable "LLM" at advanc
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from core.ts_engine import TSEngine
 import json
-import time
+
+from core.ts_engine import TSEngine
+
 
 def main():
     print("=" * 80)
@@ -46,14 +48,17 @@ def main():
     answer_text, receipt = engine.answer(task)
     print(f"\nSynthesized Answer from TS + TensionLM:\n{answer_text}\n")
     print("\n--- Running agency loop for hierarchical long-horizon ---")
-    agency = engine.agency_loop("Decompose and fully verify the even number proof with execution", max_steps=5)
+    engine.agency_loop(
+        "Decompose and fully verify the even number proof with execution", max_steps=5
+    )
 
     # Wave 1 deep sim
     print("\n--- Deep simulation ---")
     try:
         ds = engine.deep_simulate(steps=1)
         print("Deep sims:", len(ds))
-    except Exception as e: print("Deep sim skipped:", e)
+    except Exception as e:
+        print("Deep sim skipped:", e)
 
     print("=== FULL GLASS-BOX RECEIPT ===")
     print(json.dumps(receipt.to_dict(), indent=2, default=str))
@@ -70,14 +75,21 @@ def main():
     print("- Deterministic TSLC language compilation to graph + obligations + plan")
     print("- Real graph + adaptive waves with tension focus (10k+ scale possible)")
     print("- BOGVM programs as first-class, spawned in simulation with receipts")
-    print("- Verifier OS with real kernel + BOGVM-backed checks (no confidence as proof)")
+    print(
+        "- Verifier OS with real kernel + BOGVM-backed checks (no confidence as proof)"
+    )
     print("- Intuition proposer from self-data (better than native)")
     print("- Full tamper-evident receipt with every step, hash, provenance")
     print("- Glass-box: inspect any tension, decision, execution")
     print("- On-device, deterministic, TS-native (no transformers)")
-    print("\nThis is the TS alternative at advanced level: reliable, verifiable, self-contained.")
-    print("For true GPT-5.5+: scale self-data to train larger Tension models, deeper BOGVM sim, meta-evolution.")
+    print(
+        "\nThis is the TS alternative at advanced level: reliable, verifiable, self-contained."
+    )
+    print(
+        "For true GPT-5.5+: scale self-data to train larger Tension models, deeper BOGVM sim, meta-evolution."
+    )
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

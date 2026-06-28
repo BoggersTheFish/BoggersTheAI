@@ -266,7 +266,11 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
         self._setup_evolve_fn()
         # Phase 0: wire graph native preference from config
         try:
-            syn = (self.config or {}).get("inference", {}).get("synthesis", {}) if isinstance(self.config, dict) else {}
+            syn = (
+                (self.config or {}).get("inference", {}).get("synthesis", {})
+                if isinstance(self.config, dict)
+                else {}
+            )
             if isinstance(syn, dict):
                 gnp = bool(syn.get("graph_native_primary", True))
             else:

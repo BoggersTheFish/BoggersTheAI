@@ -7,7 +7,6 @@ from typing import Dict, Iterable
 from .generator import extract_relations
 from .types import CIGCheck, ReasoningChain, TensionIssue
 
-
 FEATURE_NAMES = [
     "bias",
     "step_count",
@@ -80,16 +79,30 @@ def extract_chain_features(
         "step_count": float(len(chain.steps)),
         "premise_count": float(len(chain.premises)),
         "claim_count": float(len(cig_check.claims)),
-        "dependency_edge_count": float(sum(len(step.dependencies) for step in chain.steps)),
+        "dependency_edge_count": float(
+            sum(len(step.dependencies) for step in chain.steps)
+        ),
         "contradiction_count": float(len(cig_check.contradiction_pairs)),
         "unsupported_claim_count": float(len(cig_check.unsupported_claim_ids)),
         "circular_step_count": float(len(cig_check.circular_step_ids)),
-        "conclusion_all_count": float(sum(1 for relation in conclusion_relations if relation.quantifier == "all")),
-        "conclusion_some_count": float(sum(1 for relation in conclusion_relations if relation.quantifier == "some")),
-        "premise_some_count": float(sum(1 for relation in premise_relations if relation.quantifier == "some")),
-        "premise_no_count": float(sum(1 for relation in premise_relations if relation.quantifier == "no")),
+        "conclusion_all_count": float(
+            sum(1 for relation in conclusion_relations if relation.quantifier == "all")
+        ),
+        "conclusion_some_count": float(
+            sum(1 for relation in conclusion_relations if relation.quantifier == "some")
+        ),
+        "premise_some_count": float(
+            sum(1 for relation in premise_relations if relation.quantifier == "some")
+        ),
+        "premise_no_count": float(
+            sum(1 for relation in premise_relations if relation.quantifier == "no")
+        ),
         "missing_premise_flag": 1.0 if not chain.premises else 0.0,
-        "insufficiency_answer_flag": 1.0 if "not enough" in final_lower or "more information" in final_lower else 0.0,
+        "insufficiency_answer_flag": (
+            1.0
+            if "not enough" in final_lower or "more information" in final_lower
+            else 0.0
+        ),
         "contradiction_answer_flag": 1.0 if "contradiction" in final_lower else 0.0,
         "direct_candidate_flag": 1.0 if "direct" in chain.chain_id else 0.0,
         "cautious_candidate_flag": 1.0 if "cautious" in chain.chain_id else 0.0,

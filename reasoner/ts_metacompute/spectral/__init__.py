@@ -1,6 +1,6 @@
-from .signed_graph import SignedEdge, SignedGraph
 from .modes import SpectralRead, read_spectral_tension
 from .repairs import RepairCandidate, rank_repair_candidates
+from .signed_graph import SignedEdge, SignedGraph
 
 __all__ = [
     "RepairCandidate",

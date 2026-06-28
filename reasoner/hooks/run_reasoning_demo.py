@@ -13,7 +13,10 @@ for entry in (str(REPO_ROOT), str(REASONER_ROOT)):
     if entry not in sys.path:
         sys.path.insert(0, entry)
 
-from ts_reasoner.central_brain import CentralBrainRuntime, run_central_brain_wave  # noqa: E402
+from ts_reasoner.central_brain import (  # noqa: E402
+    CentralBrainRuntime,
+    run_central_brain_wave,
+)
 from wave_bridge import (  # noqa: E402
     brain_snapshot_to_signed_graph,
     run_spectral_metacompute,
@@ -35,11 +38,19 @@ def _demo_vm_state_from_brain(brain: CentralBrainRuntime) -> dict:
         if edge.get("status") != "accepted":
             continue
         src = next(
-            (str(i) for i, n in enumerate(snapshot["nodes"]) if n["node_id"] == edge["source_id"]),
+            (
+                str(i)
+                for i, n in enumerate(snapshot["nodes"])
+                if n["node_id"] == edge["source_id"]
+            ),
             "0",
         )
         dst = next(
-            (str(i) for i, n in enumerate(snapshot["nodes"]) if n["node_id"] == edge["target_id"]),
+            (
+                str(i)
+                for i, n in enumerate(snapshot["nodes"])
+                if n["node_id"] == edge["target_id"]
+            ),
             "0",
         )
         edges[str(idx)] = {
@@ -72,7 +83,9 @@ def main() -> int:
         except Exception:
             pass
 
-    parser = argparse.ArgumentParser(description="Run central_brain → spectral → wave virtualization demo.")
+    parser = argparse.ArgumentParser(
+        description="Run central_brain → spectral → wave virtualization demo."
+    )
     parser.add_argument(
         "--query",
         default="Wikipedia supports free knowledge and Wikidata supports structured facts.",

@@ -7,13 +7,14 @@ from typing import Any, Iterable
 
 from .runtime_kernel import normalize_claim
 
-
 TYPED_VERIFIER_TRACE = "typed_verifier_trace"
-ALLOWED_SUPPORT_CHANNELS = frozenset({
-    "direct_support",
-    "transitive_all",
-    "negative_exclusion",
-})
+ALLOWED_SUPPORT_CHANNELS = frozenset(
+    {
+        "direct_support",
+        "transitive_all",
+        "negative_exclusion",
+    }
+)
 
 
 def canonical_json(payload: Any) -> str:
@@ -143,29 +144,49 @@ def evaluate_typed_support_cases(cases: Iterable[dict[str, Any]]) -> dict[str, A
             mismatched_rejected += 1
         if kind == "empty_support" and not result["accepted"]:
             empty_rejected += 1
-        rows.append({
-            "case_id": case.get("case_id"),
-            "case_type": kind,
-            "expected_accept": expected,
-            "observed_accept": result["accepted"],
-            "reason": result["reason"],
-            "passed": passed,
-        })
+        rows.append(
+            {
+                "case_id": case.get("case_id"),
+                "case_type": kind,
+                "expected_accept": expected,
+                "observed_accept": result["accepted"],
+                "reason": result["reason"],
+                "passed": passed,
+            }
+        )
 
     counts = {
-        "valid_support": sum(1 for case in case_list if case.get("case_type") == "valid_support"),
-        "fake_support": sum(1 for case in case_list if case.get("case_type") == "fake_support"),
-        "mismatched_claim": sum(1 for case in case_list if case.get("case_type") == "mismatched_claim"),
-        "empty_support": sum(1 for case in case_list if case.get("case_type") == "empty_support"),
+        "valid_support": sum(
+            1 for case in case_list if case.get("case_type") == "valid_support"
+        ),
+        "fake_support": sum(
+            1 for case in case_list if case.get("case_type") == "fake_support"
+        ),
+        "mismatched_claim": sum(
+            1 for case in case_list if case.get("case_type") == "mismatched_claim"
+        ),
+        "empty_support": sum(
+            1 for case in case_list if case.get("case_type") == "empty_support"
+        ),
     }
     case_count = len(rows)
     report = {
         "release": "v10.6.0",
         "case_count": case_count,
-        "valid_support_acceptance_rate": valid / counts["valid_support"] if counts["valid_support"] else 1.0,
-        "fake_support_rejection_rate": fake_rejected / counts["fake_support"] if counts["fake_support"] else 1.0,
-        "mismatched_claim_rejection_rate": mismatched_rejected / counts["mismatched_claim"] if counts["mismatched_claim"] else 1.0,
-        "empty_support_rejection_rate": empty_rejected / counts["empty_support"] if counts["empty_support"] else 1.0,
+        "valid_support_acceptance_rate": (
+            valid / counts["valid_support"] if counts["valid_support"] else 1.0
+        ),
+        "fake_support_rejection_rate": (
+            fake_rejected / counts["fake_support"] if counts["fake_support"] else 1.0
+        ),
+        "mismatched_claim_rejection_rate": (
+            mismatched_rejected / counts["mismatched_claim"]
+            if counts["mismatched_claim"]
+            else 1.0
+        ),
+        "empty_support_rejection_rate": (
+            empty_rejected / counts["empty_support"] if counts["empty_support"] else 1.0
+        ),
         "accepted_without_typed_support_count": accepted_without_typed,
         "candidate_graph_contamination_count": contamination,
         "results": rows,

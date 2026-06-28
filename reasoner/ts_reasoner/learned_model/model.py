@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-
 STATUS_LABELS = ["accepted", "rejected", "abstained"]
 RESOLVER_LABELS = [
     "accept_transitive",
@@ -80,9 +79,15 @@ class TinyCandidateModel:
     def from_dict(cls, payload: dict[str, Any]) -> "TinyCandidateModel":
         return cls(
             ranking_weights=dict(payload["ranking_weights"]),
-            status_weights={key: dict(value) for key, value in payload["status_weights"].items()},
-            resolver_weights={key: dict(value) for key, value in payload["resolver_weights"].items()},
-            channel_weights={key: dict(value) for key, value in payload["channel_weights"].items()},
+            status_weights={
+                key: dict(value) for key, value in payload["status_weights"].items()
+            },
+            resolver_weights={
+                key: dict(value) for key, value in payload["resolver_weights"].items()
+            },
+            channel_weights={
+                key: dict(value) for key, value in payload["channel_weights"].items()
+            },
             metadata=dict(payload.get("metadata", {})),
         )
 
@@ -92,12 +97,19 @@ class TinyCandidateModel:
 
     def save(self, path: str | Path) -> None:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        Path(path).write_text(json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        Path(path).write_text(
+            json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
 
 
 def dot(weights: dict[str, float], features: dict[str, float]) -> float:
     return sum(weights.get(name, 0.0) * value for name, value in features.items())
 
 
-def argmax(weights_by_label: dict[str, dict[str, float]], features: dict[str, float], labels: list[str]) -> str:
+def argmax(
+    weights_by_label: dict[str, dict[str, float]],
+    features: dict[str, float],
+    labels: list[str],
+) -> str:
     return max(labels, key=lambda label: dot(weights_by_label.get(label, {}), features))

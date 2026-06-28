@@ -30,9 +30,7 @@ class GraphOnlySynthesizer:
             self.engine = BoggersSynthesisEngine()
 
     @classmethod
-    def with_config(
-        cls, config: BoggersSynthesisConfig | None
-    ) -> GraphOnlySynthesizer:
+    def with_config(cls, config: BoggersSynthesisConfig | None) -> GraphOnlySynthesizer:
         return cls(
             pure_graph=False,
             engine=BoggersSynthesisEngine(config=config or BoggersSynthesisConfig()),
@@ -139,9 +137,7 @@ class GraphOnlySynthesizer:
 
     def _score_block(self, q_tokens: list[str], block: dict[str, object]) -> float:
         if not q_tokens:
-            return (
-                float(block["activation"]) * 0.5 + float(block["stability"]) * 0.5
-            )
+            return float(block["activation"]) * 0.5 + float(block["stability"]) * 0.5
         blob = (
             str(block["content"]).lower()
             + " "

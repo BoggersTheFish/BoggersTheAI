@@ -8,7 +8,10 @@ class SurfaceStructureChannel(TensionChannel):
     version = "0.1.0"
 
     def activate(self, graph: GraphState, context: dict) -> bool:
-        return any(edge.data.get("status") in {"premise", "candidate", "inferred"} for edge in graph.edges)
+        return any(
+            edge.data.get("status") in {"premise", "candidate", "inferred"}
+            for edge in graph.edges
+        )
 
     def measure(self, graph: GraphState, context: dict) -> ChannelResult:
         untagged = [

@@ -31,8 +31,8 @@ class NebulaGraphHook:
 
     def connect(self) -> Any:
         try:
-            from nebula3.gclient.net import ConnectionPool
             from nebula3.Config import Config
+            from nebula3.gclient.net import ConnectionPool
 
             cfg = Config()
             pool = ConnectionPool()
@@ -85,4 +85,6 @@ class SparkHook:
                 .getOrCreate()
             )
         except ImportError as exc:
-            raise ImportError("pyspark required for Spark hooks: pip install pyspark") from exc
+            raise ImportError(
+                "pyspark required for Spark hooks: pip install pyspark"
+            ) from exc

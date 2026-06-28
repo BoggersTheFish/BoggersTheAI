@@ -35,36 +35,23 @@ def find_opencl_device(
 
     for platform in cl.get_platforms():
         for device in platform.get_devices():
-            discovered.append(
-                f"{platform.name}: {device.name}"
-            )
+            discovered.append(f"{platform.name}: {device.name}")
 
-            if (
-                platform_query
-                and platform_query not in platform.name.lower()
-            ):
+            if platform_query and platform_query not in platform.name.lower():
                 continue
 
-            if (
-                device_query
-                and device_query not in device.name.lower()
-            ):
+            if device_query and device_query not in device.name.lower():
                 continue
 
             if require_gpu:
-                is_gpu = bool(
-                    device.type & cl.device_type.GPU
-                )
+                is_gpu = bool(device.type & cl.device_type.GPU)
 
                 if not is_gpu:
                     continue
 
             return platform, device
 
-    discovered_text = "\n".join(
-        f"  - {item}"
-        for item in discovered
-    )
+    discovered_text = "\n".join(f"  - {item}" for item in discovered)
 
     raise RuntimeError(
         "No matching OpenCL device was found.\n"
@@ -88,10 +75,6 @@ def describe_device(
         opencl_version=str(device.version),
         compute_units=int(device.max_compute_units),
         global_memory_bytes=int(device.global_mem_size),
-        max_allocation_bytes=int(
-            device.max_mem_alloc_size
-        ),
-        max_clock_mhz=int(
-            device.max_clock_frequency
-        ),
+        max_allocation_bytes=int(device.max_mem_alloc_size),
+        max_clock_mhz=int(device.max_clock_frequency),
     )

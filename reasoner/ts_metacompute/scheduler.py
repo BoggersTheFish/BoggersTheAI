@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from ts_metacompute.spectral.signed_graph import SignedGraph
 from ts_metacompute.spectral.modes import read_spectral_tension
+from ts_metacompute.spectral.signed_graph import SignedGraph
 
 
 @dataclass(frozen=True)
@@ -54,7 +54,10 @@ class MetacomputeScheduler:
             if task.task_type == "photonic_interference":
                 payload["interference"] = ledger.interference_gate(task.graph)
         elif substrate == "temporal_bridge":
-            from ts_reasoner.cognitive_physics_engine import RetrocausalFuzzer, TemporalTensionBridge
+            from ts_reasoner.cognitive_physics_engine import (
+                RetrocausalFuzzer,
+                TemporalTensionBridge,
+            )
 
             metadata = task.metadata or {}
             if task.task_type == "retrocausal_fuzz":
@@ -66,17 +69,35 @@ class MetacomputeScheduler:
                     contradiction_step=metadata.get("contradiction_step"),
                 )
         elif substrate == "resonance_network":
-            from ts_reasoner.cognitive_physics_engine import ResonanceNode, SpectralCouplingTelepathy
+            from ts_reasoner.cognitive_physics_engine import (
+                ResonanceNode,
+                SpectralCouplingTelepathy,
+            )
 
             metadata = task.metadata or {}
             nodes = metadata.get("nodes") or [
-                ResonanceNode("node_london", "London", {"logic": {"logic": 1.0}}, harmonic_frequency=1.0),
-                ResonanceNode("node_tokyo", "Tokyo", {"logic": {"logic": 0.5}}, harmonic_frequency=1.0),
+                ResonanceNode(
+                    "node_london",
+                    "London",
+                    {"logic": {"logic": 1.0}},
+                    harmonic_frequency=1.0,
+                ),
+                ResonanceNode(
+                    "node_tokyo",
+                    "Tokyo",
+                    {"logic": {"logic": 0.5}},
+                    harmonic_frequency=1.0,
+                ),
             ]
             solved_node_id = metadata.get("solved_node_id", nodes[0].node_id)
-            payload = SpectralCouplingTelepathy().align(nodes, solved_node_id, task.graph)
+            payload = SpectralCouplingTelepathy().align(
+                nodes, solved_node_id, task.graph
+            )
         elif substrate == "unified_field":
-            from ts_reasoner.cognitive_physics_engine import LazyUniverseEngine, UnifiedFieldKernel
+            from ts_reasoner.cognitive_physics_engine import (
+                LazyUniverseEngine,
+                UnifiedFieldKernel,
+            )
 
             metadata = task.metadata or {}
             question = metadata.get("question", task.graph.case_id or "resolve graph")

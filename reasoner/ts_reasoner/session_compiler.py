@@ -21,7 +21,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 SCHEMA = "ts_chat_session_compiler_v1"
 RELEASE = "v7.1.0"
 
@@ -118,7 +117,9 @@ def _expected_response_markers(receipt: dict[str, Any]) -> list[str]:
     return markers
 
 
-def compile_repair_curriculum_rows(receipts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def compile_repair_curriculum_rows(
+    receipts: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     final_ground = _final_common_ground(receipts)
     repair_targets = list(final_ground.get("repair_targets", []))
 
@@ -208,7 +209,9 @@ def compile_provenance_records(receipts: list[dict[str, Any]]) -> list[dict[str,
     return provenance
 
 
-def compile_knowledge_pack(receipts: list[dict[str, Any]], label: str) -> dict[str, Any]:
+def compile_knowledge_pack(
+    receipts: list[dict[str, Any]], label: str
+) -> dict[str, Any]:
     final_ground = _final_common_ground(receipts)
     records = list(final_ground.get("records", []))
     repair_targets = list(final_ground.get("repair_targets", []))
@@ -216,7 +219,8 @@ def compile_knowledge_pack(receipts: list[dict[str, Any]], label: str) -> dict[s
     accepted_asserted_premises = [
         record
         for record in records
-        if record.get("kind") == "asserted_premise" and record.get("status") == "accepted"
+        if record.get("kind") == "asserted_premise"
+        and record.get("status") == "accepted"
     ]
     rejected_or_unsupported = [
         record
@@ -234,8 +238,7 @@ def compile_knowledge_pack(receipts: list[dict[str, Any]], label: str) -> dict[s
         "rejected_or_unsupported_record_count": len(rejected_or_unsupported),
         "repair_target_count": len(repair_targets),
         "accepted_edges": [
-            record.get("relation")
-            for record in accepted_asserted_premises
+            record.get("relation") for record in accepted_asserted_premises
         ],
         "records": records,
         "repair_targets": repair_targets,
@@ -251,7 +254,9 @@ def compile_knowledge_pack(receipts: list[dict[str, Any]], label: str) -> dict[s
 
 def _write_json(path: Path, payload: Any) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -281,14 +286,20 @@ def compile_session_artifacts(
     knowledge_pack = compile_knowledge_pack(receipts, label)
 
     replay_path = _write_jsonl(out / f"{label}_replay.jsonl", replay_rows)
-    curriculum_path = _write_jsonl(out / f"{label}_repair_curriculum.jsonl", curriculum_rows)
+    curriculum_path = _write_jsonl(
+        out / f"{label}_repair_curriculum.jsonl", curriculum_rows
+    )
     provenance_path = _write_json(out / f"{label}_provenance.json", provenance_records)
     pack_path = _write_json(out / f"{label}_knowledge_pack.json", knowledge_pack)
 
     final_ground = _final_common_ground(receipts)
     final_repairs = list(final_ground.get("repair_targets", []))
-    resolved_repair_count = sum(1 for repair in final_repairs if repair.get("status") == "resolved")
-    open_repair_count = sum(1 for repair in final_repairs if repair.get("status") == "open")
+    resolved_repair_count = sum(
+        1 for repair in final_repairs if repair.get("status") == "resolved"
+    )
+    open_repair_count = sum(
+        1 for repair in final_repairs if repair.get("status") == "open"
+    )
 
     rejected_records = [
         record
@@ -300,16 +311,22 @@ def compile_session_artifacts(
         record
         for receipt in receipts
         for record in _records_from_receipt(receipt)
-        if "kind" in record and record.get("kind") == "question" and record.get("status") == "accepted"
+        if "kind" in record
+        and record.get("kind") == "question"
+        and record.get("status") == "accepted"
     ]
 
     gates = {
         "session_has_turns": len(receipts) > 0,
-        "replay_rows_written": replay_path.exists() and len(replay_rows) == len(receipts),
+        "replay_rows_written": replay_path.exists()
+        and len(replay_rows) == len(receipts),
         "knowledge_pack_written": pack_path.exists(),
         "provenance_written": provenance_path.exists() and len(provenance_records) > 0,
         "repair_curriculum_written": curriculum_path.exists(),
-        "candidate_graph_contamination_count_is_zero": knowledge_pack["candidate_graph_contamination_count"] == 0,
+        "candidate_graph_contamination_count_is_zero": knowledge_pack[
+            "candidate_graph_contamination_count"
+        ]
+        == 0,
         "external_llm_used_false": knowledge_pack["external_llm_used"] is False,
         "proof_boundary_preserved": (
             knowledge_pack["generated_text_is_not_proof"]
@@ -335,7 +352,9 @@ def compile_session_artifacts(
         "open_repair_count": open_repair_count,
         "rejected_record_count": len(rejected_records),
         "accepted_question_record_count": len(accepted_question_records),
-        "candidate_graph_contamination_count": knowledge_pack["candidate_graph_contamination_count"],
+        "candidate_graph_contamination_count": knowledge_pack[
+            "candidate_graph_contamination_count"
+        ],
         "external_llm_used": False,
         "generated_text_is_not_proof": True,
         "user_confirmation_is_not_proof": True,

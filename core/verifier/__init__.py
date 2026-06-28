@@ -6,3 +6,5 @@ Public surface for Wave 0:
 """
 
 from .verifier_os import VerifierOS
+
+__all__ = ["VerifierOS"]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 from collections import defaultdict
+from dataclasses import asdict, dataclass
 from typing import Iterable
 
 
@@ -48,7 +48,9 @@ def claim_is_revision(claim_type: str, source: ProvenanceSource) -> bool:
     return source.role in {"revision", "trusted_revision"} or claim_type == "revision"
 
 
-def score_claims(sources: Iterable[ProvenanceSource]) -> tuple[dict[str, float], dict[str, int], bool]:
+def score_claims(
+    sources: Iterable[ProvenanceSource],
+) -> tuple[dict[str, float], dict[str, int], bool]:
     cluster_counts: dict[str, int] = defaultdict(int)
     cluster_claims: dict[str, set[str]] = defaultdict(set)
 
@@ -69,7 +71,9 @@ def score_claims(sources: Iterable[ProvenanceSource]) -> tuple[dict[str, float],
     return dict(scores), dict(cluster_counts), penalty_applied
 
 
-def decide_provenance_weighted_repair(inp: ProvenanceRepairInput) -> ProvenanceRepairDecision:
+def decide_provenance_weighted_repair(
+    inp: ProvenanceRepairInput,
+) -> ProvenanceRepairDecision:
     accepted = normalize_claim(inp.accepted_claim)
     incoming = normalize_claim(inp.incoming_claim)
 
@@ -80,8 +84,12 @@ def decide_provenance_weighted_repair(inp: ProvenanceRepairInput) -> ProvenanceR
     else:
         winning_claim = max(scores.items(), key=lambda item: (item[1], item[0]))[0]
 
-    incoming_sources = [src for src in inp.sources if normalize_claim(src.claim) == incoming]
-    incoming_revision_trusted = any(src.trust >= 0.75 and src.role == "revision" for src in incoming_sources)
+    incoming_sources = [
+        src for src in inp.sources if normalize_claim(src.claim) == incoming
+    ]
+    incoming_revision_trusted = any(
+        src.trust >= 0.75 and src.role == "revision" for src in incoming_sources
+    )
 
     if winning_claim == accepted and inp.claim_type == "identity":
         action = "reject_and_quarantine"
@@ -187,8 +195,12 @@ def evaluate_provenance_cases(cases: Iterable[dict[str, object]]) -> dict[str, o
         "failed_cases": total - passed,
         "provenance_decision_accuracy": passed / total if total else 0.0,
         "candidate_graph_contamination_count": contamination,
-        "accepted_claims_preserved": all(row["accepted_claim_preserved"] for row in results),
-        "incoming_claims_not_auto_accepted": all(not row["incoming_claim_accepted"] for row in results),
+        "accepted_claims_preserved": all(
+            row["accepted_claim_preserved"] for row in results
+        ),
+        "incoming_claims_not_auto_accepted": all(
+            not row["incoming_claim_accepted"] for row in results
+        ),
         "all_gates_passed": total > 0 and passed == total and contamination == 0,
         "results": results,
     }

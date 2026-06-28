@@ -7,16 +7,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
-REQUIRED_RECEIPT_KEYS = frozenset({
-    "release",
-    "claim",
-    "date",
-    "all_gates_passed",
-    "metrics",
-    "artifacts",
-    "proof_boundary",
-})
+REQUIRED_RECEIPT_KEYS = frozenset(
+    {
+        "release",
+        "claim",
+        "date",
+        "all_gates_passed",
+        "metrics",
+        "artifacts",
+        "proof_boundary",
+    }
+)
 
 
 def canonical_json(payload: Any) -> str:
@@ -70,7 +71,12 @@ def build_spectral_receipt(
         "commands_run": ["python3 scripts/evaluate_spectral_metacompute.py"],
         "metrics": report["metrics"],
         "report_hash": canonical_hash(report),
-        "artifacts": [{"path": str(report_path.relative_to(root)), "sha256": file_hash(report_path)}],
+        "artifacts": [
+            {
+                "path": str(report_path.relative_to(root)),
+                "sha256": file_hash(report_path),
+            }
+        ],
         "proof_boundary": "spectral_reader_suggests_verifier_decides",
         "known_limitations": [
             "The v0.1 eigensolver is a small deterministic Jacobi implementation for inspection-scale graphs.",

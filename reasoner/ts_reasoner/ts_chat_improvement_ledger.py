@@ -14,7 +14,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List
 
-
 VERSION = "ts_chat_v0.9"
 
 
@@ -62,47 +61,61 @@ def build_improvement_ledger(
     suggestions = _load_jsonl(suggestions_path)
     confirmations = _load_jsonl(confirmations_path)
 
-    curriculum_ids = {row.get("curriculum_entry_id") for row in curriculum if row.get("curriculum_entry_id")}
+    curriculum_ids = {
+        row.get("curriculum_entry_id")
+        for row in curriculum
+        if row.get("curriculum_entry_id")
+    }
     suggestion_curriculum_ids = {
-        row.get("curriculum_entry_id") for row in suggestions if row.get("curriculum_entry_id")
+        row.get("curriculum_entry_id")
+        for row in suggestions
+        if row.get("curriculum_entry_id")
     }
     confirmation_suggestion_ids = {
         row.get("suggestion_id") for row in confirmations if row.get("suggestion_id")
     }
-    suggestion_ids = {row.get("suggestion_id") for row in suggestions if row.get("suggestion_id")}
+    suggestion_ids = {
+        row.get("suggestion_id") for row in suggestions if row.get("suggestion_id")
+    }
 
     open_repairs = [
-        row for row in curriculum
-        if row.get("expected_resolution_status") == "open"
+        row for row in curriculum if row.get("expected_resolution_status") == "open"
     ]
     resolved_repairs = [
-        row for row in curriculum
-        if row.get("expected_resolution_status") == "resolved"
+        row for row in curriculum if row.get("expected_resolution_status") == "resolved"
     ]
 
     confirmed = [
-        row for row in confirmations
+        row
+        for row in confirmations
         if row.get("confirmation_status") == "user_confirmed_candidate"
     ]
     accepted = [
-        row for row in confirmations
+        row
+        for row in confirmations
         if row.get("verifier_status") == "verifier_accepted"
     ]
     rejected = [
-        row for row in confirmations
+        row
+        for row in confirmations
         if row.get("verifier_status") == "verifier_rejected"
     ]
 
     curriculum_covered = len(curriculum_ids.intersection(suggestion_curriculum_ids))
-    suggestions_confirmed = len(suggestion_ids.intersection(confirmation_suggestion_ids))
+    suggestions_confirmed = len(
+        suggestion_ids.intersection(confirmation_suggestion_ids)
+    )
 
     coverage_denominator = max(len(curriculum_ids) + len(suggestion_ids), 1)
-    measurable_loop_coverage_rate = (curriculum_covered + suggestions_confirmed) / coverage_denominator
+    measurable_loop_coverage_rate = (
+        curriculum_covered + suggestions_confirmed
+    ) / coverage_denominator
 
     accepted_confirmation_rate = len(accepted) / len(confirmed) if confirmed else 0.0
 
     contamination_count = sum(
-        1 for row in confirmations
+        1
+        for row in confirmations
         if row.get("verifier_status") == "verifier_rejected"
         and row.get("accepted_as_proof") is True
     )
@@ -139,7 +152,9 @@ def build_improvement_ledger(
 def write_improvement_ledger(ledger: ImprovementLedger, path: str | Path) -> None:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(ledger.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output_path.write_text(
+        json.dumps(ledger.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def load_improvement_ledger(path: str | Path) -> Dict[str, Any]:

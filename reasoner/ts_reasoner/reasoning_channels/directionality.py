@@ -9,7 +9,9 @@ class DirectionalityChannel(TensionChannel):
     name = "directionality"
     version = "0.1.0"
 
-    def _unsupported_reverse(self, graph: GraphState, context: dict) -> tuple[str, str] | None:
+    def _unsupported_reverse(
+        self, graph: GraphState, context: dict
+    ) -> tuple[str, str] | None:
         query = context.get("query_relation")
         if query is None:
             return None
@@ -26,7 +28,11 @@ class DirectionalityChannel(TensionChannel):
     def measure(self, graph: GraphState, context: dict) -> ChannelResult:
         pair = self._unsupported_reverse(graph, context)
         blocked = f"{pair[0]}->{pair[1]}" if pair else ""
-        tension = 0.0 if blocked in context.get("blocked_edges", []) else (1.0 if pair else 0.0)
+        tension = (
+            0.0
+            if blocked in context.get("blocked_edges", [])
+            else (1.0 if pair else 0.0)
+        )
         return ChannelResult(
             channel=self.name,
             activated=pair is not None,

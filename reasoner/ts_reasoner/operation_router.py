@@ -8,7 +8,13 @@ from .cig_checker import CIGChecker
 from .ranker import HeuristicTensionRanker
 from .repair import TensionRepairer
 from .tension_agents import TensionCoordinator
-from .types import CIGCheck, ReasoningChain, ReasoningStep, RepairSuggestion, TensionScore
+from .types import (
+    CIGCheck,
+    ReasoningChain,
+    ReasoningStep,
+    RepairSuggestion,
+    TensionScore,
+)
 
 
 class OperationRouter:
@@ -37,17 +43,27 @@ class OperationRouter:
         target = field.get("target")
 
         if op == "ACCEPT_TRACE":
-            return self._stationary_transition("accepted", op, target, chain, cig, score, field)
+            return self._stationary_transition(
+                "accepted", op, target, chain, cig, score, field
+            )
         if op == "COMPRESS_TRACE":
             compressed_chain = self._compress_trace(chain)
             if compressed_chain is chain:
-                return self._stationary_transition("no_compression_available", op, target, chain, cig, score, field)
-            return self._transition_from_chain(op, target, chain, cig, score, field, compressed_chain, "compressed")
+                return self._stationary_transition(
+                    "no_compression_available", op, target, chain, cig, score, field
+                )
+            return self._transition_from_chain(
+                op, target, chain, cig, score, field, compressed_chain, "compressed"
+            )
         if op == "LOCALIZE_FAILURE":
-            return self._stationary_transition("localized", op, target, chain, cig, score, field)
+            return self._stationary_transition(
+                "localized", op, target, chain, cig, score, field
+            )
         if op == "VERIFY_GOAL_SUPPORT":
             status = "goal_verified" if score.global_tension == 0.0 else "goal_unstable"
-            return self._stationary_transition(status, op, target, chain, cig, score, field)
+            return self._stationary_transition(
+                status, op, target, chain, cig, score, field
+            )
 
         return self._repair_transition(op, target, chain, cig, score, field)
 
@@ -59,13 +75,17 @@ class OperationRouter:
         current_chain = chain
         current_cig = self.checker.check(current_chain)
         current_score = self.ranker.score(current_chain, current_cig)
-        current_field = self.coordinator.coordinate(current_chain, current_cig, current_score)
+        current_field = self.coordinator.coordinate(
+            current_chain, current_cig, current_score
+        )
         initial_snapshot = self._snapshot(current_score, current_field)
         cycles: List[Dict[str, object]] = []
         status = "max_steps_reached"
 
         for cycle_index in range(1, max_steps + 1):
-            transition = self.run_once(current_chain, current_cig, current_score, current_field)
+            transition = self.run_once(
+                current_chain, current_cig, current_score, current_field
+            )
             cycle_trace = self.transition_trace(transition)
             cycle_trace["cycle"] = cycle_index
             cycles.append(cycle_trace)
@@ -74,9 +94,18 @@ class OperationRouter:
             current_score = transition["score"]
             current_field = transition["field"]
             status = str(transition["status"])
-            if status in {"accepted", "no_repair_available", "no_compression_available", "repair_rejected", "goal_unstable"}:
+            if status in {
+                "accepted",
+                "no_repair_available",
+                "no_compression_available",
+                "repair_rejected",
+                "goal_unstable",
+            }:
                 break
-            if transition["after"]["global_tension"] <= 0.0 and transition["after"]["selected_next_op"] == "ACCEPT_TRACE":
+            if (
+                transition["after"]["global_tension"] <= 0.0
+                and transition["after"]["selected_next_op"] == "ACCEPT_TRACE"
+            ):
                 status = "settled"
                 break
 
@@ -90,7 +119,8 @@ class OperationRouter:
             "cig": current_cig,
             "score": current_score,
             "field": current_field,
-            "settled": current_score.global_tension <= 0.0 and current_field["selected_next_op"] == "ACCEPT_TRACE",
+            "settled": current_score.global_tension <= 0.0
+            and current_field["selected_next_op"] == "ACCEPT_TRACE",
         }
 
     def transition_trace(self, transition: dict) -> dict:
@@ -116,9 +146,21 @@ class OperationRouter:
         repairs = self.repairer.suggest(chain, score)
         selected_repair = self._select_repair(repairs, target)
         if selected_repair is None:
-            return self._stationary_transition("no_repair_available", op, target, chain, cig, score, field)
+            return self._stationary_transition(
+                "no_repair_available", op, target, chain, cig, score, field
+            )
         repaired_chain = self.repairer.apply(chain, selected_repair)
-        return self._transition_from_chain(op, target, chain, cig, score, field, repaired_chain, "repaired", selected_repair)
+        return self._transition_from_chain(
+            op,
+            target,
+            chain,
+            cig,
+            score,
+            field,
+            repaired_chain,
+            "repaired",
+            selected_repair,
+        )
 
     def _transition_from_chain(
         self,
@@ -230,7 +272,9 @@ class OperationRouter:
                 return min(matching, key=lambda repair: repair.expected_tension_delta)
         return repairs[0] if repairs else None
 
-    def _snapshot(self, score: TensionScore, field: Dict[str, object]) -> Dict[str, object]:
+    def _snapshot(
+        self, score: TensionScore, field: Dict[str, object]
+    ) -> Dict[str, object]:
         return {
             "global_tension": score.global_tension,
             "stability": score.stability,
@@ -254,13 +298,21 @@ class OperationRouter:
             "status": repair.status,
         }
 
-    def _residual(self, before: Dict[str, object], after: Dict[str, object]) -> Dict[str, float]:
+    def _residual(
+        self, before: Dict[str, object], after: Dict[str, object]
+    ) -> Dict[str, float]:
         before_tensions = before.get("coordinated_tensions", {})
         after_tensions = after.get("coordinated_tensions", {})
-        if not isinstance(before_tensions, dict) or not isinstance(after_tensions, dict):
+        if not isinstance(before_tensions, dict) or not isinstance(
+            after_tensions, dict
+        ):
             return {}
         channels = set(before_tensions) | set(after_tensions)
         return {
-            channel: round(float(after_tensions.get(channel, 0.0)) - float(before_tensions.get(channel, 0.0)), 4)
+            channel: round(
+                float(after_tensions.get(channel, 0.0))
+                - float(before_tensions.get(channel, 0.0)),
+                4,
+            )
             for channel in sorted(channels)
         }

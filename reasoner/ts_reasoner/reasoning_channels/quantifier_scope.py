@@ -11,7 +11,11 @@ class QuantifierScopeChannel(TensionChannel):
         query = context.get("query_relation")
         if query is None or query.quantifier != "all":
             return False
-        some_edges = [edge for edge in graph.edges if edge.relation == "some" and edge.source == query.subject]
+        some_edges = [
+            edge
+            for edge in graph.edges
+            if edge.relation == "some" and edge.source == query.subject
+        ]
         has_direct_all = graph.has_edge(query.subject, query.predicate, "all")
         return bool(some_edges and not has_direct_all)
 
@@ -20,7 +24,9 @@ class QuantifierScopeChannel(TensionChannel):
 
     def measure(self, graph: GraphState, context: dict) -> ChannelResult:
         active = self.activate(graph, context)
-        tension = 0.0 if context.get("quantifier_scope_blocked") else (1.0 if active else 0.0)
+        tension = (
+            0.0 if context.get("quantifier_scope_blocked") else (1.0 if active else 0.0)
+        )
         return ChannelResult(
             channel=self.name,
             activated=active,

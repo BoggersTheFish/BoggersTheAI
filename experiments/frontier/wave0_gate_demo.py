@@ -15,23 +15,24 @@ Run:
   PYTHONPATH=. python3 experiments/frontier/wave0_gate_demo.py
 """
 
-import json
 import hashlib
-import time
+import json
 import subprocess
-from pathlib import Path
 import sys
+from pathlib import Path
 
 sys.path.insert(0, ".")
 
 from core.graph.universal_living_graph import UniversalLivingGraph
-from reasoner.ts_reasoner.runtime_kernel import VerifierFirstRuntimeKernel
-from core.verifier.verifier_os import VerifierOS
 from core.language.tslc import TSLCCompiler
-from experiments.frontier.bogvm_graph_bridge import attach_bogvm_program
+from core.verifier.verifier_os import VerifierOS
+
 
 def stable_hash(payload):
-    return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()[:12]
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str).encode()
+    ).hexdigest()[:12]
+
 
 def main():
     print("=" * 72)
@@ -53,7 +54,7 @@ def main():
     # Real Graph + Waves + BOGVM support
     g = UniversalLivingGraph(auto_load=False)
     for p in premises:
-        nid = 'p_' + str(hash(p))[:8]
+        nid = "p_" + str(hash(p))[:8]
         g.add_node(node_id=nid, content=p)
 
     print("\nRunning waves...")
@@ -96,7 +97,7 @@ HALT
         "wave_tensions": tens,
         "verifier": ver_res,
         "bogvm": bog_res,
-        "receipt_hash": stable_hash({"goal": goal, "status": bog_res.get('status')})
+        "receipt_hash": stable_hash({"goal": goal, "status": bog_res.get("status")}),
     }
 
     print("\n=== FULL GLASS-BOX RECEIPT ===")
@@ -107,8 +108,11 @@ HALT
     out.write_text(json.dumps(receipt, indent=2))
     print(f"\nSaved to {out}")
 
-    print("\nWave 0 implemented: Real components unified, BOGVM in graph, verifier stack, language, execution, receipts.")
+    print(
+        "\nWave 0 implemented: Real components unified, BOGVM in graph, verifier stack, language, execution, receipts."
+    )
     print("This is the foundation for the GPT-5.5+ TS system.")
+
 
 if __name__ == "__main__":
     main()

@@ -13,7 +13,6 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from shared.artifacts import (  # noqa: E402
-    ARTIFACT_EXTENSION,
     ArtifactKind,
     BogpkValidationError,
     artifact_trail_dir,
@@ -22,14 +21,16 @@ from shared.artifacts import (  # noqa: E402
     validate_container_metadata,
 )
 
-_TENSION_FIELD_METADATA_KEYS = frozenset({
-    "layer",
-    "prompt_prefix",
-    "shape",
-    "dtype",
-    "backend",
-    "encoding",
-})
+_TENSION_FIELD_METADATA_KEYS = frozenset(
+    {
+        "layer",
+        "prompt_prefix",
+        "shape",
+        "dtype",
+        "backend",
+        "encoding",
+    }
+)
 
 
 def _validate_tension_metadata(metadata: dict[str, Any]) -> None:
@@ -40,8 +41,12 @@ def _validate_tension_metadata(metadata: dict[str, Any]) -> None:
         )
     if "shape" in metadata:
         shape = metadata["shape"]
-        if not isinstance(shape, list) or not all(isinstance(v, int) and v > 0 for v in shape):
-            raise BogpkValidationError("tension_field metadata.shape must be a list of positive ints")
+        if not isinstance(shape, list) or not all(
+            isinstance(v, int) and v > 0 for v in shape
+        ):
+            raise BogpkValidationError(
+                "tension_field metadata.shape must be a list of positive ints"
+            )
     if "layer" in metadata and not isinstance(metadata["layer"], int):
         raise BogpkValidationError("tension_field metadata.layer must be an int")
 

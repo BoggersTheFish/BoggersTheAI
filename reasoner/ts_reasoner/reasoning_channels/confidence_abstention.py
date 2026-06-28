@@ -22,13 +22,19 @@ class ConfidenceAbstentionChannel(TensionChannel):
 
     def measure(self, graph: GraphState, context: dict) -> ChannelResult:
         needs = self._needs_abstention(context)
-        tension = 0.0 if context.get("abstention") is not None else (1.0 if needs else 0.0)
+        tension = (
+            0.0 if context.get("abstention") is not None else (1.0 if needs else 0.0)
+        )
         return ChannelResult(
             channel=self.name,
             activated=True,
             initial_tension=tension,
             final_tension=tension,
-            evidence=[context.get("chain").final_answer] if needs and context.get("chain") else [],
+            evidence=(
+                [context.get("chain").final_answer]
+                if needs and context.get("chain")
+                else []
+            ),
             details={"decision": "abstain" if needs else "answer"},
         )
 

@@ -7,7 +7,6 @@ import numpy as np
 from ..runtime import TensionForgeRuntime
 from ..tensor import DeviceTensor
 
-
 ADAMW_SOURCE = r"""
 __kernel void adamw_update_fp32(
     __global float *parameter,
@@ -78,15 +77,10 @@ def _validate_tensor(
     name: str,
 ) -> None:
     if tensor.runtime is not runtime:
-        raise ValueError(
-            f"{name} belongs to a different runtime"
-        )
+        raise ValueError(f"{name} belongs to a different runtime")
 
     if tensor.dtype != np.dtype(np.float32):
-        raise ValueError(
-            f"{name} must use float32, received "
-            f"{tensor.dtype}"
-        )
+        raise ValueError(f"{name} must use float32, received " f"{tensor.dtype}")
 
 
 def adamw_update_device(
@@ -104,34 +98,22 @@ def adamw_update_device(
     weight_decay: float = 0.0,
 ) -> dict[str, Any]:
     if step < 1:
-        raise ValueError(
-            "step must be at least one"
-        )
+        raise ValueError("step must be at least one")
 
     if learning_rate <= 0.0:
-        raise ValueError(
-            "learning_rate must be positive"
-        )
+        raise ValueError("learning_rate must be positive")
 
     if not 0.0 <= beta1 < 1.0:
-        raise ValueError(
-            "beta1 must be in [0, 1)"
-        )
+        raise ValueError("beta1 must be in [0, 1)")
 
     if not 0.0 <= beta2 < 1.0:
-        raise ValueError(
-            "beta2 must be in [0, 1)"
-        )
+        raise ValueError("beta2 must be in [0, 1)")
 
     if epsilon <= 0.0:
-        raise ValueError(
-            "epsilon must be positive"
-        )
+        raise ValueError("epsilon must be positive")
 
     if weight_decay < 0.0:
-        raise ValueError(
-            "weight_decay cannot be negative"
-        )
+        raise ValueError("weight_decay cannot be negative")
 
     for name, tensor in (
         ("parameter", parameter),
@@ -146,37 +128,17 @@ def adamw_update_device(
         )
 
     if gradient.shape != parameter.shape:
-        raise ValueError(
-            "gradient shape must match parameter"
-        )
+        raise ValueError("gradient shape must match parameter")
 
     if first_moment.shape != parameter.shape:
-        raise ValueError(
-            "first_moment shape must match "
-            "parameter"
-        )
+        raise ValueError("first_moment shape must match " "parameter")
 
     if second_moment.shape != parameter.shape:
-        raise ValueError(
-            "second_moment shape must match "
-            "parameter"
-        )
+        raise ValueError("second_moment shape must match " "parameter")
 
-    inverse_bias_correction1 = (
-        1.0
-        / (
-            1.0
-            - beta1 ** step
-        )
-    )
+    inverse_bias_correction1 = 1.0 / (1.0 - beta1**step)
 
-    inverse_bias_correction2 = (
-        1.0
-        / (
-            1.0
-            - beta2 ** step
-        )
-    )
+    inverse_bias_correction2 = 1.0 / (1.0 - beta2**step)
 
     kernel = runtime.kernel(
         ADAMW_SOURCE,
@@ -207,12 +169,8 @@ def adamw_update_device(
             np.float32(beta2),
             np.float32(1.0 - beta1),
             np.float32(1.0 - beta2),
-            np.float32(
-                inverse_bias_correction1
-            ),
-            np.float32(
-                inverse_bias_correction2
-            ),
+            np.float32(inverse_bias_correction1),
+            np.float32(inverse_bias_correction2),
             np.float32(epsilon),
             np.float32(weight_decay),
             np.uint32(parameter.size),
@@ -220,22 +178,16 @@ def adamw_update_device(
     )
 
     return {
-        "operation":
-            "adamw_update_device_fp32",
+        "operation": "adamw_update_device_fp32",
         "shape": list(parameter.shape),
         "element_count": parameter.size,
         "step": step,
-        "learning_rate":
-            float(learning_rate),
+        "learning_rate": float(learning_rate),
         "beta1": float(beta1),
         "beta2": float(beta2),
         "epsilon": float(epsilon),
-        "weight_decay":
-            float(weight_decay),
+        "weight_decay": float(weight_decay),
         "kernel_ms": elapsed_ms,
         "host_transfers": 0,
-        "source_sha256":
-            runtime.source_hash(
-                ADAMW_SOURCE
-            ),
+        "source_sha256": runtime.source_hash(ADAMW_SOURCE),
     }

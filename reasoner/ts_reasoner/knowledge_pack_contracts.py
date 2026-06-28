@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Iterable, Any
-
+from typing import Any, Iterable
 
 SUPPORTED_SCHEMA = "1.0"
 MIGRATABLE_SCHEMAS = {"0.9"}
@@ -77,7 +76,9 @@ def import_knowledge_pack(pack: dict[str, Any]) -> KnowledgePackImportResult:
             {
                 "target_claim": normalize_claim(str(target["target_claim"])),
                 "repair_type": str(target["repair_type"]),
-                "candidate_bridges": normalize_claims(target.get("candidate_bridges", [])),
+                "candidate_bridges": normalize_claims(
+                    target.get("candidate_bridges", [])
+                ),
                 "accepted_as_proof": False,
             }
         )
@@ -161,6 +162,9 @@ def evaluate_knowledge_pack_cases(cases: Iterable[dict[str, Any]]) -> dict[str, 
         "knowledge_pack_contract_accuracy": passed / total if total else 0.0,
         "candidate_graph_contamination_count": contamination,
         "unsupported_claims_promoted_count": unsupported_promoted,
-        "all_gates_passed": total > 0 and passed == total and contamination == 0 and unsupported_promoted == 0,
+        "all_gates_passed": total > 0
+        and passed == total
+        and contamination == 0
+        and unsupported_promoted == 0,
         "results": results,
     }

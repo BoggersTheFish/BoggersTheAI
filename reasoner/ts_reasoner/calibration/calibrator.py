@@ -71,12 +71,17 @@ class TypedChannelCalibrator:
             "threshold": self.threshold,
             "metadata": self.metadata,
         }
-        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        target.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         return target
 
     def activation_probability(self, channel: str, features: dict[str, float]) -> float:
         weights = self.activation_weights.get(channel, {})
-        score = sum(float(weights.get(name, 0.0)) * float(features.get(name, 0.0)) for name in FEATURE_NAMES)
+        score = sum(
+            float(weights.get(name, 0.0)) * float(features.get(name, 0.0))
+            for name in FEATURE_NAMES
+        )
         return sigmoid(score)
 
     def predicts_activation(self, channel: str, features: dict[str, float]) -> bool:
@@ -101,7 +106,9 @@ class TypedChannelCalibrator:
             return len(self.resolver_priority)
 
 
-def train_typed_channel_calibrator(rows: Iterable[dict[str, Any]]) -> TypedChannelCalibrator:
+def train_typed_channel_calibrator(
+    rows: Iterable[dict[str, Any]],
+) -> TypedChannelCalibrator:
     row_list = list(rows)
     activation_weights: dict[str, dict[str, float]] = {}
     activation_signatures: dict[str, list[str]] = {}
@@ -115,11 +122,17 @@ def train_typed_channel_calibrator(rows: Iterable[dict[str, Any]]) -> TypedChann
         channel_rows = [row for row in row_list if row["channel"] == channel]
         total_counts[channel] = len(channel_rows)
         active_rows = [row for row in channel_rows if bool(row["label_activation"])]
-        inactive_rows = [row for row in channel_rows if not bool(row["label_activation"])]
+        inactive_rows = [
+            row for row in channel_rows if not bool(row["label_activation"])
+        ]
         active_counts[channel] = len(active_rows)
-        channel_weights[channel] = round(len(active_rows) / max(1, len(channel_rows)), 4)
+        channel_weights[channel] = round(
+            len(active_rows) / max(1, len(channel_rows)), 4
+        )
         activation_weights[channel] = _difference_weights(active_rows, inactive_rows)
-        activation_signatures[channel] = sorted({activation_signature(row["features"]) for row in active_rows})
+        activation_signatures[channel] = sorted(
+            {activation_signature(row["features"]) for row in active_rows}
+        )
 
     for row in row_list:
         if row["label_activation"]:
@@ -174,16 +187,22 @@ def activation_signature(features: dict[str, float]) -> str:
     return "|".join(f"{name}={int(float(features.get(name, 0.0)))}" for name in names)
 
 
-def _difference_weights(active_rows: list[dict[str, Any]], inactive_rows: list[dict[str, Any]]) -> dict[str, float]:
+def _difference_weights(
+    active_rows: list[dict[str, Any]], inactive_rows: list[dict[str, Any]]
+) -> dict[str, float]:
     active_mean = _mean_features(active_rows)
     inactive_mean = _mean_features(inactive_rows)
     weights = {}
-    positive_prior = (len(active_rows) + 0.5) / max(1.0, len(active_rows) + len(inactive_rows) + 1.0)
+    positive_prior = (len(active_rows) + 0.5) / max(
+        1.0, len(active_rows) + len(inactive_rows) + 1.0
+    )
     weights["bias"] = math.log(positive_prior / max(1e-6, 1.0 - positive_prior))
     for name in FEATURE_NAMES:
         if name == "bias":
             continue
-        weights[name] = round(active_mean.get(name, 0.0) - inactive_mean.get(name, 0.0), 6)
+        weights[name] = round(
+            active_mean.get(name, 0.0) - inactive_mean.get(name, 0.0), 6
+        )
     return weights
 
 
@@ -192,5 +211,7 @@ def _mean_features(rows: list[dict[str, Any]]) -> dict[str, float]:
         return {name: 0.0 for name in FEATURE_NAMES}
     out = {}
     for name in FEATURE_NAMES:
-        out[name] = sum(float(row["features"].get(name, 0.0)) for row in rows) / len(rows)
+        out[name] = sum(float(row["features"].get(name, 0.0)) for row in rows) / len(
+            rows
+        )
     return out

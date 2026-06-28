@@ -12,7 +12,6 @@ from .ranker import HeuristicTensionRanker
 from .synthetic_data import candidate_chains_for_task, synthetic_tasks
 from .tension_agents import DEFAULT_COUPLING_MATRIX, TensionCoordinator
 
-
 CHANNELS = ("logic", "goal", "repair", "compression")
 
 
@@ -36,8 +35,14 @@ def train_residual_coupling_matrix(
         ranker=ranker,
         coordinator=coordinator,
     )
-    numerators = {source: {target: 0.0 for target in CHANNELS if target != source} for source in CHANNELS}
-    denominators = {source: {target: 0.0 for target in CHANNELS if target != source} for source in CHANNELS}
+    numerators = {
+        source: {target: 0.0 for target in CHANNELS if target != source}
+        for source in CHANNELS
+    }
+    denominators = {
+        source: {target: 0.0 for target in CHANNELS if target != source}
+        for source in CHANNELS
+    }
     repair_examples = 0
     accepted_examples = 0
     total_candidates = 0
@@ -69,7 +74,9 @@ def train_residual_coupling_matrix(
                     numerators[source][target] += source_signal * improvement
                     denominators[source][target] += source_signal
 
-    matrix = _blend_with_prior(numerators, denominators, prior or DEFAULT_COUPLING_MATRIX, prior_weight)
+    matrix = _blend_with_prior(
+        numerators, denominators, prior or DEFAULT_COUPLING_MATRIX, prior_weight
+    )
     metadata = {
         "training_source": "synthetic_tasks candidate repair residuals",
         "total_candidates": total_candidates,
@@ -117,9 +124,12 @@ def write_coupling_artifact(
     target.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "model_type": "residual_coupling_matrix",
-        "coupling_matrix": {source: dict(targets) for source, targets in matrix.items()},
+        "coupling_matrix": {
+            source: dict(targets) for source, targets in matrix.items()
+        },
         "metadata": dict(metadata),
     }
-    target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    target.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return target
-

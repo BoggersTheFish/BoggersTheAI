@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List
 
 try:
     import numpy as np
+
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
@@ -115,6 +116,7 @@ def normalise_activations(
 # Pure Python fallback for on-device compatibility and determinism.
 # =============================================================================
 
+
 def propagate_vectorized(
     nodes: Dict[str, GraphNode],
     adjacency: Dict[str, Dict[str, float]],
@@ -128,7 +130,9 @@ def propagate_vectorized(
     """
     if not HAS_NUMPY or len(nodes) < 200:
         # fallback to original
-        propagate(nodes, adjacency, spread_factor, damping, activation_cap, semantic_weight)
+        propagate(
+            nodes, adjacency, spread_factor, damping, activation_cap, semantic_weight
+        )
         return
 
     # Build id list and arrays for speed
@@ -136,7 +140,9 @@ def propagate_vectorized(
     id_to_idx = {nid: i for i, nid in enumerate(node_ids)}
     n = len(node_ids)
 
-    activations = np.array([nodes[nid].activation for nid in node_ids], dtype=np.float64)
+    activations = np.array(
+        [nodes[nid].activation for nid in node_ids], dtype=np.float64
+    )
     caps = np.full(n, activation_cap, dtype=np.float64)
 
     # Sparse updates via dict is still needed for generality, but vectorize deltas
@@ -157,7 +163,11 @@ def propagate_vectorized(
             deltas[j] += topo
 
             # semantic (still per-pair, but array update)
-            if semantic_weight > 0 and nodes[nid].embedding and nodes[neigh_id].embedding:
+            if (
+                semantic_weight > 0
+                and nodes[nid].embedding
+                and nodes[neigh_id].embedding
+            ):
                 sim = cosine_similarity(nodes[nid].embedding, nodes[neigh_id].embedding)
                 sem = activations[i] * sim * spread_factor * damping * semantic_weight
                 deltas[j] += sem
@@ -181,4 +191,4 @@ def relax_vectorized(
         return
     # For simplicity, fall back for relax (cheap)
     relax_toward_base_strength(nodes, decay, activation_cap)
-    return clamped
+    return

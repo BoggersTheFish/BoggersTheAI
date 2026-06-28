@@ -8,15 +8,14 @@ then the existing CIG/ranker/repair pipeline still verifies the chains.
 
 from __future__ import annotations
 
-import re
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, List, Optional, Sequence
 
 from .proof_chain import has_universal_bridge, universal_bridge_path
 from .types import ReasoningChain, ReasoningStep
-
 
 RELATION_RE = re.compile(
     r"\b(?P<quantifier>all|some|no)\s+(?P<subject>[A-Za-z][A-Za-z0-9_-]*)\s+"
@@ -59,7 +58,9 @@ def extract_relations(text: str) -> List[ParsedRelation]:
 
 def infer_premises_from_question(question: str) -> List[str]:
     """Pull simple natural-language premises out of an if/then-style question."""
-    premise_region = re.split(r",\s*(?:are|is)\b", question, maxsplit=1, flags=re.IGNORECASE)[0]
+    premise_region = re.split(
+        r",\s*(?:are|is)\b", question, maxsplit=1, flags=re.IGNORECASE
+    )[0]
     relations = extract_relations(premise_region)
     return [relation.text for relation in relations]
 
@@ -81,7 +82,9 @@ def infer_query_relation(question: str) -> Optional[ParsedRelation]:
     return None
 
 
-def _step(step_id: str, text: str, kind: str, deps: Sequence[str], confidence: float) -> ReasoningStep:
+def _step(
+    step_id: str, text: str, kind: str, deps: Sequence[str], confidence: float
+) -> ReasoningStep:
     return ReasoningStep(
         step_id=step_id,
         text=text,
@@ -96,18 +99,30 @@ class DeterministicHeuristicGenerator:
 
     name = "DeterministicHeuristicGenerator"
 
-    def generate(self, question: str, premises: Optional[Iterable[str]] = None) -> List[ReasoningChain]:
-        premise_list = [p.strip() for p in premises or infer_premises_from_question(question) if p.strip()]
+    def generate(
+        self, question: str, premises: Optional[Iterable[str]] = None
+    ) -> List[ReasoningChain]:
+        premise_list = [
+            p.strip()
+            for p in premises or infer_premises_from_question(question)
+            if p.strip()
+        ]
         query = infer_query_relation(question)
-        premise_relations = [rel for premise in premise_list for rel in extract_relations(premise)]
+        premise_relations = [
+            rel for premise in premise_list for rel in extract_relations(premise)
+        ]
         candidates = [
             self._candidate_direct(question, premise_list, premise_relations, query),
             self._candidate_cautious(question, premise_list, premise_relations, query),
         ]
-        bridge = self._candidate_bridge_explicit(question, premise_list, premise_relations, query)
+        bridge = self._candidate_bridge_explicit(
+            question, premise_list, premise_relations, query
+        )
         if bridge is not None:
             candidates.append(bridge)
-        contradiction = self._candidate_contradiction(question, premise_list, premise_relations, query)
+        contradiction = self._candidate_contradiction(
+            question, premise_list, premise_relations, query
+        )
         if contradiction is not None:
             candidates.append(contradiction)
         return candidates
@@ -149,10 +164,15 @@ class DeterministicHeuristicGenerator:
         if query is None:
             text = "The available premises are not enough to derive a definite answer."
         elif self._has_all_all_bridge(relations, query):
-            bridge_path = universal_bridge_path(relations, query.subject, query.predicate)
+            bridge_path = universal_bridge_path(
+                relations, query.subject, query.predicate
+            )
             if len(bridge_path) > 2:
                 bridge_text = " -> ".join(
-                    [bridge_path[0].subject, *[relation.predicate for relation in bridge_path]]
+                    [
+                        bridge_path[0].subject,
+                        *[relation.predicate for relation in bridge_path],
+                    ]
                 )
                 text = f"The universal bridge {bridge_text} supports the requested relation. Therefore all {query.subject} are {query.predicate}."
             else:
@@ -185,7 +205,9 @@ class DeterministicHeuristicGenerator:
             return None
         steps = self._premise_steps(premises)
         deps = [step.step_id for step in steps]
-        bridge_text = " -> ".join([bridge_path[0].subject, *[relation.predicate for relation in bridge_path]])
+        bridge_text = " -> ".join(
+            [bridge_path[0].subject, *[relation.predicate for relation in bridge_path]]
+        )
         steps.append(
             _step(
                 "s1",
@@ -251,10 +273,14 @@ class DeterministicHeuristicGenerator:
             return f"Therefore {query.text}."
         return f"Therefore all {query.subject} are {query.predicate}."
 
-    def _has_all_all_bridge(self, relations: Sequence[ParsedRelation], query: ParsedRelation) -> bool:
+    def _has_all_all_bridge(
+        self, relations: Sequence[ParsedRelation], query: ParsedRelation
+    ) -> bool:
         return has_universal_bridge(relations, query.subject, query.predicate)
 
-    def _has_some_bridge(self, relations: Sequence[ParsedRelation], query: ParsedRelation) -> bool:
+    def _has_some_bridge(
+        self, relations: Sequence[ParsedRelation], query: ParsedRelation
+    ) -> bool:
         for left in relations:
             for right in relations:
                 if (
@@ -267,7 +293,9 @@ class DeterministicHeuristicGenerator:
                     return True
         return False
 
-    def _is_negative_pair(self, relation: ParsedRelation, query: ParsedRelation) -> bool:
+    def _is_negative_pair(
+        self, relation: ParsedRelation, query: ParsedRelation
+    ) -> bool:
         return (
             relation.quantifier == "no"
             and relation.subject.lower() == query.subject.lower()
@@ -283,12 +311,18 @@ class DeterministicHeuristicGenerator:
 
     def _answer_from_conclusion(self, conclusion: str) -> str:
         lower = conclusion.lower()
-        if "not force" in lower or "not enough" in lower or "cannot be derived" in lower:
+        if (
+            "not force" in lower
+            or "not enough" in lower
+            or "cannot be derived" in lower
+        ):
             return "Not enough information."
         if "contradiction" in lower:
             return "Contradiction detected."
         if "therefore" in lower:
-            return re.split(r"\btherefore\b", conclusion, flags=re.IGNORECASE)[-1].strip()
+            return re.split(r"\btherefore\b", conclusion, flags=re.IGNORECASE)[
+                -1
+            ].strip()
         return conclusion
 
 
@@ -325,7 +359,9 @@ class LearnedCandidateGenerator:
             safety_fallback=bool(payload.get("safety_fallback", True)),
         )
 
-    def to_json(self, path: str | Path, metadata: dict[str, object] | None = None) -> Path:
+    def to_json(
+        self, path: str | Path, metadata: dict[str, object] | None = None
+    ) -> Path:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -337,10 +373,14 @@ class LearnedCandidateGenerator:
             "safety_fallback": self.safety_fallback,
             "metadata": metadata or {},
         }
-        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        target.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         return target
 
-    def generate(self, question: str, premises: Optional[Iterable[str]] = None) -> List[ReasoningChain]:
+    def generate(
+        self, question: str, premises: Optional[Iterable[str]] = None
+    ) -> List[ReasoningChain]:
         candidates = self.base_generator.generate(question, premises)
         by_id = {chain.chain_id: chain for chain in candidates}
         keep = {
@@ -353,7 +393,9 @@ class LearnedCandidateGenerator:
         selected = [chain for chain_id, chain in by_id.items() if chain_id in keep]
         return selected or candidates
 
-    def _apply_safety_fallbacks(self, keep: set[str], candidates: List[ReasoningChain]) -> set[str]:
+    def _apply_safety_fallbacks(
+        self, keep: set[str], candidates: List[ReasoningChain]
+    ) -> set[str]:
         by_id = {chain.chain_id: chain for chain in candidates}
         if len(keep) < self.min_candidates:
             for fallback in ("candidate_cautious", "candidate_direct"):
@@ -362,7 +404,11 @@ class LearnedCandidateGenerator:
                 if len(keep) >= self.min_candidates:
                     break
         if any("contradiction" in chain.chain_id for chain in candidates):
-            keep.update(chain.chain_id for chain in candidates if "contradiction" in chain.chain_id)
+            keep.update(
+                chain.chain_id
+                for chain in candidates
+                if "contradiction" in chain.chain_id
+            )
         return keep
 
 
@@ -375,7 +421,9 @@ class RandomCandidateProposer:
         self.threshold = threshold
         self.base_generator = DeterministicHeuristicGenerator()
 
-    def generate(self, question: str, premises: Optional[Iterable[str]] = None) -> List[ReasoningChain]:
+    def generate(
+        self, question: str, premises: Optional[Iterable[str]] = None
+    ) -> List[ReasoningChain]:
         candidates = self.base_generator.generate(question, premises)
         selected = [
             chain
@@ -385,7 +433,9 @@ class RandomCandidateProposer:
         return selected or candidates[:1]
 
 
-def train_learned_candidate_generator(rows: Sequence[dict[str, object]]) -> LearnedCandidateGenerator:
+def train_learned_candidate_generator(
+    rows: Sequence[dict[str, object]],
+) -> LearnedCandidateGenerator:
     """Train a tiny template-frequency proposal model from candidate rows."""
     good_counts: dict[str, int] = {}
     total_counts: dict[str, int] = {}
@@ -411,7 +461,9 @@ class TensionLMGenerator:
 
     name = "TensionLMGenerator"
 
-    def generate(self, question: str, premises: Optional[Iterable[str]] = None) -> List[ReasoningChain]:
+    def generate(
+        self, question: str, premises: Optional[Iterable[str]] = None
+    ) -> List[ReasoningChain]:
         raise NotImplementedError(
             "Use ts_reasoner.tensionlm_bridge to let TensionLM propose candidate text "
             "while TS-Reasoner verifies the resulting chain."
