@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = PROJECT_ROOT.parent
@@ -10,8 +10,7 @@ if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
 from fastapi.testclient import TestClient
-from BoggersTheAI.adapters.arxiv import ArXivAdapter
-from BoggersTheAI.adapters.semantic_scholar import SemanticScholarAdapter
+
 from BoggersTheAI.dashboard.app import app
 from scripts.seed_graph import crawl_wikidata
 
@@ -29,17 +28,14 @@ class TestPhase3Features:
                     {
                         "mainsnak": {
                             "datavalue": {
-                                "value": {
-                                    "entity-type": "item",
-                                    "id": "Q_TARGET"
-                                }
+                                "value": {"entity-type": "item", "id": "Q_TARGET"}
                             }
                         }
                     }
                 ]
-            }
+            },
         }
-        
+
         nodes, edges = crawl_wikidata(["Q_SEED"], max_nodes=1)
         assert len(nodes) == 1
         assert "Q_SEED" in nodes

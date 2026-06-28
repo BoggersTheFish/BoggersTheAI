@@ -42,17 +42,23 @@ class SemanticScholarAdapter:
             title = (paper.get("title") or "").strip()
             abstract = (paper.get("abstract") or "").strip()
             citation_count = paper.get("citationCount", 0)
-            
+
             authors_list = paper.get("authors", [])
-            authors = [a.get("name") for a in authors_list if isinstance(a, dict) and a.get("name")]
+            authors = [
+                a.get("name")
+                for a in authors_list
+                if isinstance(a, dict) and a.get("name")
+            ]
             authors_str = ", ".join(authors)
 
             content = f"{title}. Authors: {authors_str}. Citations: {citation_count}. Abstract: {abstract}"
             if not title:
                 continue
 
-            digest = hashlib.sha1(f"sem:{paper_id or title}".encode("utf-8")).hexdigest()[:12]
-            
+            digest = hashlib.sha1(
+                f"sem:{paper_id or title}".encode("utf-8")
+            ).hexdigest()[:12]
+
             nodes.append(
                 Node(
                     id=f"sem:{digest}",
@@ -65,8 +71,8 @@ class SemanticScholarAdapter:
                         "ingest_source": "semantic_scholar",
                         "citations": citation_count,
                         "url": paper.get("url"),
-                        "authors": authors
-                    }
+                        "authors": authors,
+                    },
                 )
             )
         return nodes

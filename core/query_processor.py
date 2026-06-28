@@ -303,6 +303,7 @@ class QueryProcessor:
     def _extract_topics(self, query: str) -> List[str]:
         try:
             import spacy
+
             if not hasattr(self, "_spacy_nlp"):
                 try:
                     self._spacy_nlp = spacy.load("en_core_web_sm")
@@ -332,21 +333,77 @@ class QueryProcessor:
 
         # Smart zero-dependency fallback (bi-gram extractor)
         stop = {
-            "the", "a", "an", "and", "or", "to", "of", "in", "for", "on", "with", "is", "are", "be",
-            "this", "that", "it", "how", "what", "why", "who", "where", "can", "should", "does", "do",
-            "will", "would", "could", "get", "put", "post", "about", "from", "by", "at", "as",
-            "into", "than", "then", "them", "their", "there", "they", "we", "i", "you", "he", "she",
-            "me", "us", "him", "her", "my", "your", "its", "our", "their", "please", "query", "search"
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "to",
+            "of",
+            "in",
+            "for",
+            "on",
+            "with",
+            "is",
+            "are",
+            "be",
+            "this",
+            "that",
+            "it",
+            "how",
+            "what",
+            "why",
+            "who",
+            "where",
+            "can",
+            "should",
+            "does",
+            "do",
+            "will",
+            "would",
+            "could",
+            "get",
+            "put",
+            "post",
+            "about",
+            "from",
+            "by",
+            "at",
+            "as",
+            "into",
+            "than",
+            "then",
+            "them",
+            "their",
+            "there",
+            "they",
+            "we",
+            "i",
+            "you",
+            "he",
+            "she",
+            "me",
+            "us",
+            "him",
+            "her",
+            "my",
+            "your",
+            "its",
+            "our",
+            "their",
+            "please",
+            "query",
+            "search",
         }
         tokens = re.findall(r"[A-Za-z0-9_]+", query.lower())
         filtered = [t for t in tokens if t not in stop and len(t) > 2]
-        
+
         bigrams = []
         for i in range(len(tokens) - 1):
-            t1, t2 = tokens[i], tokens[i+1]
+            t1, t2 = tokens[i], tokens[i + 1]
             if t1 not in stop and t2 not in stop and len(t1) > 2 and len(t2) > 2:
                 bigrams.append(f"{t1}_{t2}")
-                
+
         candidates = []
         seen = set()
         for bg in bigrams:
@@ -357,7 +414,7 @@ class QueryProcessor:
             if fg not in seen:
                 seen.add(fg)
                 candidates.append(fg)
-                
+
         return candidates[:5] or ["general"]
 
     def _retrieve_context(self, topics: List[str]) -> List[Node]:
@@ -413,6 +470,7 @@ class QueryProcessor:
                 query_emb = self.local_llm.embed_text(query)
                 if query_emb:
                     from .embeddings import cosine_similarity
+
                     sims = []
                     for node in nodes:
                         if node.embedding:
@@ -438,7 +496,9 @@ class QueryProcessor:
             w_activation = float(
                 self.synthesis_config.get("sufficiency_weight_activation", 0.4)
             )
-            w_recency = float(self.synthesis_config.get("sufficiency_weight_recency", 0.2))
+            w_recency = float(
+                self.synthesis_config.get("sufficiency_weight_recency", 0.2)
+            )
             w_semantic = 0.0
 
         count_score = min(len(nodes) / 10.0, 1.0) * w_count

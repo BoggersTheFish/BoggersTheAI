@@ -17,8 +17,9 @@ import argparse
 import sys
 
 import torch
-from model import TensionConfig, TensionLM, show_tensions
+from model import TensionConfig, TensionLM
 from model import generate as _generate
+from model import show_tensions
 
 
 def get_args():

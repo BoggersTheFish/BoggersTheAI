@@ -55,7 +55,7 @@ class AutonomousLoopManager:
         while not self._os_stop_event.is_set():
             if self._os_stop_event.wait(interval_seconds):
                 break
-            
+
             # Check self-improvement triggers via runtime self_improvement service if configured
             si = getattr(self.runtime, "self_improvement", None)
             if si is not None:
@@ -129,12 +129,16 @@ class AutonomousLoopManager:
     def _autonomous_consolidation(self) -> None:
         if not self._is_user_idle():
             return
-        nightly_hour = int(self.runtime.config.get("os_loop", {}).get("nightly_hour_utc", 3))
+        nightly_hour = int(
+            self.runtime.config.get("os_loop", {}).get("nightly_hour_utc", 3)
+        )
         self.run_nightly_consolidation(force=False)
         if datetime.now(timezone.utc).hour == nightly_hour:
             return
         prune_threshold = float(
-            self.runtime.config.get("autonomous", {}).get("consolidation_prune_threshold", 0.2)
+            self.runtime.config.get("autonomous", {}).get(
+                "consolidation_prune_threshold", 0.2
+            )
         )
         collapsed_count = 0
         for node in self.runtime.graph.nodes.values():
@@ -173,7 +177,9 @@ class AutonomousLoopManager:
 
         policy = PruningPolicy(min_stability=prune_threshold)
         policy_pruned = apply_pruning_policy(
-            self.runtime.graph.nodes, policy, current_wave=self.runtime.graph._wave_cycle_count
+            self.runtime.graph.nodes,
+            policy,
+            current_wave=self.runtime.graph._wave_cycle_count,
         )
         self.runtime.graph.prune(threshold=prune_threshold)
         self.runtime.graph.save()
@@ -234,7 +240,9 @@ class AutonomousLoopManager:
 
         nightly_policy = PruningPolicy(min_stability=prune_threshold, max_age_waves=300)
         apply_pruning_policy(
-            self.runtime.graph.nodes, nightly_policy, current_wave=self.runtime.graph._wave_cycle_count
+            self.runtime.graph.nodes,
+            nightly_policy,
+            current_wave=self.runtime.graph._wave_cycle_count,
         )
         self.runtime.graph.prune(threshold=prune_threshold)
 
@@ -243,9 +251,11 @@ class AutonomousLoopManager:
             for node_id, node in self.runtime.graph.nodes.items()
             if not node.collapsed
         }
-        edge_tuples = [(edge.src, edge.dst, edge.weight) for edge in self.runtime.graph.edges]
+        edge_tuples = [
+            (edge.src, edge.dst, edge.weight) for edge in self.runtime.graph.edges
+        ]
         tensions = self.runtime.graph.detect_tensions()
-        
+
         # Determine rules engine spawn limit dynamically from config/graph size
         wave_cfg = self.runtime.config.get("wave", {})
         config_max_spawn = int(wave_cfg.get("emergence_max_spawn", 5))
@@ -256,13 +266,15 @@ class AutonomousLoopManager:
             tensions,
             edge_tuples,
             evolve_fn=self.runtime.graph._evolve_fn,
-            max_spawn=max_spawn
+            max_spawn=max_spawn,
         )
         self.runtime.graph._apply_graph_node_updates(graph_nodes)  # noqa: SLF001
         self.runtime.graph._sync_edges_from_tuples(edge_tuples)  # noqa: SLF001
         self.runtime.graph.save()
         recon: dict[str, int] = {}
-        if bool(self.runtime.config.get("os_loop", {}).get("reconciliation_wave", True)):
+        if bool(
+            self.runtime.config.get("os_loop", {}).get("reconciliation_wave", True)
+        ):
             from ..core.graph.source_stability import SourceStabilityTracker
 
             recon = SourceStabilityTracker(self.runtime.graph).reconcile_nightly()

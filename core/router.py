@@ -7,10 +7,10 @@ from dataclasses import dataclass, field
 from typing import Deque, Dict, List, Protocol
 
 from .graph.universal_living_graph import UniversalLivingGraph
+from .graph.wave import run_wave
 from .mode_manager import ModeManager
 from .protocols import ImageInProtocol, VoiceInProtocol
 from .query_processor import QueryProcessor, QueryResponse
-from .graph.wave import run_wave
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,6 @@ class RegistryIngestAdapter:
         self.default_adapter = default_adapter
 
     def ingest(self, topic: str) -> List[object]:
-        from ..core.types import Node
         sources = self.adapter_sources.get(topic, [self.default_adapter])
         nodes: List[object] = []
         for name in sources:

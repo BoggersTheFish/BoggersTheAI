@@ -37,10 +37,11 @@ def _get_nli_pipeline():
     if _nli_pipeline is None:
         try:
             import transformers
+
             # Lightweight zero-shot classifier model for NLI classification
             _nli_pipeline = transformers.pipeline(
                 "zero-shot-classification",
-                model="cross-encoder/nli-mini-roberta-sentence-transformers"
+                model="cross-encoder/nli-mini-roberta-sentence-transformers",
             )
         except Exception:
             pass
@@ -99,7 +100,7 @@ def detect_contradictions(
                         res = nli_pipe(
                             content_b,
                             candidate_labels=["contradicts", "agrees", "neutral"],
-                            hypothesis=f"This statement {{}} the statement: '{content_a}'"
+                            hypothesis=f"This statement {{}} the statement: '{content_a}'",
                         )
                         labels = res.get("labels", [])
                         scores = res.get("scores", [])
@@ -111,15 +112,34 @@ def detect_contradictions(
                         logger.debug("NLI contradiction check failed: %s", exc)
 
                 # 2. Check Embedding negation/polarity alignment (if embeddings are populated)
-                if not conflict_found and getattr(a, "embedding", None) and getattr(b, "embedding", None):
+                if (
+                    not conflict_found
+                    and getattr(a, "embedding", None)
+                    and getattr(b, "embedding", None)
+                ):
                     try:
                         from .embeddings import cosine_similarity
+
                         sim = cosine_similarity(a.embedding, b.embedding)
                         if sim > 0.85:
                             # High semantic similarity but opposite polarity/negations
-                            negations = {"not", "never", "no", "cannot", "n't", "fail", "unable", "deny", "refuse"}
-                            words_a = {w.strip(".,?!;:") for w in content_a.lower().split()}
-                            words_b = {w.strip(".,?!;:") for w in content_b.lower().split()}
+                            negations = {
+                                "not",
+                                "never",
+                                "no",
+                                "cannot",
+                                "n't",
+                                "fail",
+                                "unable",
+                                "deny",
+                                "refuse",
+                            }
+                            words_a = {
+                                w.strip(".,?!;:") for w in content_a.lower().split()
+                            }
+                            words_b = {
+                                w.strip(".,?!;:") for w in content_b.lower().split()
+                            }
                             neg_a = bool(negations & words_a)
                             neg_b = bool(negations & words_b)
                             if neg_a != neg_b:
@@ -142,7 +162,10 @@ def detect_contradictions(
                     if conflict_words:
                         severity = min(
                             1.0,
-                            (getattr(a, "activation", 0.0) + getattr(b, "activation", 0.0))
+                            (
+                                getattr(a, "activation", 0.0)
+                                + getattr(b, "activation", 0.0)
+                            )
                             * 0.5
                             * len(conflict_words),
                         )

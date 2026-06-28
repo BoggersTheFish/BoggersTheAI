@@ -45,10 +45,18 @@ class ArXivAdapter:
         nodes: List[Node] = []
 
         for entry in root.findall(".//atom:entry", ns):
-            title = (entry.findtext("atom:title", namespaces=ns) or "").strip().replace("\n", " ")
-            summary = (entry.findtext("atom:summary", namespaces=ns) or "").strip().replace("\n", " ")
+            title = (
+                (entry.findtext("atom:title", namespaces=ns) or "")
+                .strip()
+                .replace("\n", " ")
+            )
+            summary = (
+                (entry.findtext("atom:summary", namespaces=ns) or "")
+                .strip()
+                .replace("\n", " ")
+            )
             arxiv_id = (entry.findtext("atom:id", namespaces=ns) or "").strip()
-            
+
             authors = [
                 author.findtext("atom:name", namespaces=ns)
                 for author in entry.findall("atom:author", ns)
@@ -60,8 +68,10 @@ class ArXivAdapter:
             if not content:
                 continue
 
-            digest = hashlib.sha1(f"arxiv:{arxiv_id or title}".encode("utf-8")).hexdigest()[:12]
-            
+            digest = hashlib.sha1(
+                f"arxiv:{arxiv_id or title}".encode("utf-8")
+            ).hexdigest()[:12]
+
             nodes.append(
                 Node(
                     id=f"arxiv:{digest}",
@@ -72,8 +82,8 @@ class ArXivAdapter:
                     attributes={
                         "arxiv_id": arxiv_id,
                         "ingest_source": "arxiv",
-                        "authors": authors
-                    }
+                        "authors": authors,
+                    },
                 )
             )
         return nodes

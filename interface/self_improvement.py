@@ -22,7 +22,7 @@ class SelfImprovementManager:
         self.runtime = runtime
         self._fine_cfg = self._resolve_fine_cfg()
         self.min_traces_for_tune = int(self._fine_cfg.get("min_new_traces", 50))
-        
+
         self._trace_count_cache: int = 0
         self._trace_count_cache_time: float = 0.0
 
@@ -173,7 +173,11 @@ class SelfImprovementManager:
                 rolled_back = False
                 if self.runtime.local_llm is not None:
                     rolled_back = self.runtime.local_llm.load_previous_adapter()
-                if not rolled_back and backup_path and self.runtime.local_llm is not None:
+                if (
+                    not rolled_back
+                    and backup_path
+                    and self.runtime.local_llm is not None
+                ):
                     self.runtime.local_llm.load_adapter(
                         str(backup_path),
                         base_model=(
@@ -214,7 +218,6 @@ class SelfImprovementManager:
         return stats
 
     def _auto_fine_tune_check(self, force: bool = False) -> dict:
-        inference_cfg = self.runtime.config.get("inference", {})
         fine_cfg = self._fine_cfg
         if not isinstance(fine_cfg, dict) or not bool(fine_cfg.get("enabled", False)):
             return {"triggered": False, "reason": "fine_tuning_disabled"}
@@ -223,7 +226,9 @@ class SelfImprovementManager:
 
         current_trace_count = self._count_traces()
         new_traces = max(0, current_trace_count - int(self._last_tuned_trace_count))
-        nightly_hour = int(self.runtime.config.get("os_loop", {}).get("nightly_hour_utc", 3))
+        nightly_hour = int(
+            self.runtime.config.get("os_loop", {}).get("nightly_hour_utc", 3)
+        )
         should_run_nightly = datetime.now(timezone.utc).hour == nightly_hour
         should_run_threshold = new_traces >= int(self.min_traces_for_tune)
 

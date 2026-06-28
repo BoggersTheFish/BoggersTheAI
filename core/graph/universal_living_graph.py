@@ -537,7 +537,7 @@ class UniversalLivingGraph:
                     emergence=len(result.emergent_nodes),
                     pruned=result.pruned_edges,
                     contradictions=result.contradictions_resolved,
-                    duration=duration
+                    duration=duration,
                 )
             except Exception:
                 pass
@@ -986,12 +986,31 @@ class UniversalLivingGraph:
             f"path='{self.graph_path.as_posix()}')"
         )
 
-    def save_wave_metrics(self, tension: float, nodes: int, edges: int, emergence: int, pruned: int, contradictions: int, duration: float) -> None:
+    def save_wave_metrics(
+        self,
+        tension: float,
+        nodes: int,
+        edges: int,
+        emergence: int,
+        pruned: int,
+        contradictions: int,
+        duration: float,
+    ) -> None:
         if self._sqlite_backend is not None:
             try:
                 from datetime import datetime, timezone
+
                 ts = datetime.now(timezone.utc).isoformat()
-                self._sqlite_backend.save_wave_metrics(ts, tension, nodes, edges, emergence, pruned, contradictions, duration)
+                self._sqlite_backend.save_wave_metrics(
+                    ts,
+                    tension,
+                    nodes,
+                    edges,
+                    emergence,
+                    pruned,
+                    contradictions,
+                    duration,
+                )
             except Exception:
                 pass
 

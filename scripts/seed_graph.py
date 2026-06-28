@@ -2,24 +2,25 @@
 from __future__ import annotations
 
 import argparse
-import sys
-import urllib.parse
-import urllib.request
 import json
 import logging
+import sys
 import time
+import urllib.parse
+import urllib.request
 from pathlib import Path
-from typing import Dict, List, Set, Any
+from typing import Dict, List
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(WORKSPACE_ROOT) if 'WORKSPACE_ROOT' in globals() else str(PROJECT_ROOT))
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from BoggersTheAI.interface.runtime import RuntimeConfig, BoggersRuntime
-from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
 from BoggersTheAI.core.embeddings import cosine_similarity
+from BoggersTheAI.interface.runtime import BoggersRuntime, RuntimeConfig
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger("boggers.seed_graph")
 
 WIKIDATA_API_URL = "https://www.wikidata.org/w/api.php"
@@ -28,7 +29,9 @@ WIKIDATA_API_URL = "https://www.wikidata.org/w/api.php"
 def http_get_json(url: str) -> dict:
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": "BoggersTheAI-Seeder/1.0 (contact: boggersthefish@github)"}
+        headers={
+            "User-Agent": "BoggersTheAI-Seeder/1.0 (contact: boggersthefish@github)"
+        },
     )
     for attempt in range(4):
         try:
@@ -50,7 +53,7 @@ def fetch_entity(qid: str) -> dict | None:
         "action": "wbgetentities",
         "ids": qid,
         "languages": "en",
-        "format": "json"
+        "format": "json",
     }
     url = f"{WIKIDATA_API_URL}?{urllib.parse.urlencode(params)}"
     try:
@@ -81,127 +84,150 @@ def get_entity_claims(entity: dict) -> Dict[str, List[str]]:
     return claims_dict
 
 
-def crawl_wikidata(seed_qids: List[str], max_nodes: int) -> tuple[Dict[str, dict], List[tuple[str, str, str, float]]]:
+def crawl_wikidata(
+    seed_qids: List[str], max_nodes: int
+) -> tuple[Dict[str, dict], List[tuple[str, str, str, float]]]:
     queue = list(seed_qids)
     visited = set()
     node_data: Dict[str, dict] = {}
-    edges: List[tuple[str, str, str, float]] = [] # (src, dst, prop, weight)
-    
-    logger.info("Starting crawl with seed QIDs: %s, max_nodes: %d", seed_qids, max_nodes)
-    
+    edges: List[tuple[str, str, str, float]] = []  # (src, dst, prop, weight)
+
+    logger.info(
+        "Starting crawl with seed QIDs: %s, max_nodes: %d", seed_qids, max_nodes
+    )
+
     while queue and len(node_data) < max_nodes:
         qid = queue.pop(0)
         if qid in visited:
             continue
         visited.add(qid)
-        
+
         # Sleep 0.5s to prevent immediate rate limit
         time.sleep(0.5)
         entity = fetch_entity(qid)
         if not entity:
             continue
-            
+
         labels = entity.get("labels", {})
         label = labels.get("en", {}).get("value", qid)
-        
+
         descriptions = entity.get("descriptions", {})
         desc = descriptions.get("en", {}).get("value", "No description available")
-        
+
         aliases_list = entity.get("aliases", {}).get("en", [])
         aliases = [a.get("value") for a in aliases_list if a.get("value")]
-        
+
         node_data[qid] = {
             "id": qid,
             "label": label,
             "description": desc,
-            "aliases": aliases
+            "aliases": aliases,
         }
-        logger.info("Crawled node [%d/%d]: %s (%s)", len(node_data), max_nodes, label, qid)
-        
+        logger.info(
+            "Crawled node [%d/%d]: %s (%s)", len(node_data), max_nodes, label, qid
+        )
+
         claims = get_entity_claims(entity)
         for prop, target_qids in claims.items():
             for target in target_qids:
                 # Add to queue if not visited
                 if target not in visited and target not in queue:
                     queue.append(target)
-                
+
                 # Weight by property type
                 weight = 0.8 if prop in ["P279", "P31"] else 0.6
                 edges.append((qid, target, prop, weight))
-                
+
     return node_data, edges
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Seed the TS Engine SQLite graph with Wikidata.")
-    parser.add_argument("--seeds", type=str, default="Q11660,Q11023,Q21198", help="Comma-separated seed Wikidata QIDs (default: AI, computer science, etc.)")
-    parser.add_argument("--limit", type=int, default=100, help="Maximum number of nodes to seed")
+    parser = argparse.ArgumentParser(
+        description="Seed the TS Engine SQLite graph with Wikidata."
+    )
+    parser.add_argument(
+        "--seeds",
+        type=str,
+        default="Q11660,Q11023,Q21198",
+        help="Comma-separated seed Wikidata QIDs (default: AI, computer science, etc.)",
+    )
+    parser.add_argument(
+        "--limit", type=int, default=100, help="Maximum number of nodes to seed"
+    )
     parser.add_argument("--db", type=str, default=None, help="Database path override")
     args = parser.parse_args()
-    
+
     seed_list = [s.strip() for s in args.seeds.split(",") if s.strip()]
     nodes_raw, edges_raw = crawl_wikidata(seed_list, args.limit)
-    
+
     logger.info("Seeding data into SQLite graph...")
     cfg = RuntimeConfig()
     if args.db:
         cfg.sqlite_path = args.db
-        
+
     runtime = BoggersRuntime(config=cfg)
     graph = runtime.graph
-    
+
     # 1. Populate node embeddings
     embedder = getattr(graph, "_embedder", None)
     logger.info("Generating embeddings for crawled entities...")
-    
+
     nodes_created = 0
     for qid, nd in nodes_raw.items():
         content = f"{nd['label']}: {nd['description']}"
-        topics = [nd['label'].lower()] + [a.lower() for a in nd['aliases']]
-        
+        topics = [nd["label"].lower()] + [a.lower() for a in nd["aliases"]]
+
         emb = []
         if embedder is not None:
             try:
                 emb = embedder.embed(content)
             except Exception as exc:
                 logger.warning("Failed to generate embedding for %s: %s", qid, exc)
-                
+
         node = graph.add_node(
             node_id=qid,
             content=content,
             topics=topics,
             activation=0.5,
             stability=0.8,
-            base_strength=0.7
+            base_strength=0.7,
         )
         if emb:
             node.embedding = emb
         nodes_created += 1
-        
+
     logger.info("Created %d nodes in SQLite graph.", nodes_created)
-    
+
     # 2. Populate edges
     edges_created = 0
     for src, dst, prop, weight in edges_raw:
         if src in nodes_raw and dst in nodes_raw:
             graph.add_edge(src, dst, weight=weight)
             edges_created += 1
-            
+
     # 3. Add semantic similarity edges if embeddings exist
     semantic_edges = 0
     node_list = [graph.get_node(qid) for qid in nodes_raw if graph.get_node(qid)]
     for i, a in enumerate(node_list):
-        for b in node_list[i+1:]:
+        for b in node_list[i + 1 :]:
             if a.embedding and b.embedding:
                 sim = cosine_similarity(a.embedding, b.embedding)
                 if sim > 0.85:
                     graph.add_edge(a.id, b.id, weight=sim * 0.5)
                     semantic_edges += 1
-                    
-    logger.info("Created %d relation edges and %d semantic edges.", edges_created, semantic_edges)
-    
+
+    logger.info(
+        "Created %d relation edges and %d semantic edges.",
+        edges_created,
+        semantic_edges,
+    )
+
     graph.save()
-    logger.info("Database saved successfully. Graph size: %d nodes, %d edges.", len(graph.nodes), len(graph.edges))
+    logger.info(
+        "Database saved successfully. Graph size: %d nodes, %d edges.",
+        len(graph.nodes),
+        len(graph.edges),
+    )
 
 
 if __name__ == "__main__":

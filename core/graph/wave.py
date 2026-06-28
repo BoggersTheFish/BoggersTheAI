@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from typing import List
 
 from ..contradiction import detect_contradictions, resolve_contradiction
+from ..types import Node, Tension
 from .rules_engine import detect_tension as rules_detect_tension
 from .universal_living_graph import UniversalLivingGraph
-from ..types import Node, Tension
 
 _wave_history: deque[dict] = deque(maxlen=100)
 

@@ -267,23 +267,41 @@ class SQLiteGraphBackend:
         target.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return target
 
-    def save_wave_metrics(self, timestamp: str, tension: float, nodes: int, edges: int, emergence: int, pruned: int, contradictions: int, duration: float) -> None:
+    def save_wave_metrics(
+        self,
+        timestamp: str,
+        tension: float,
+        nodes: int,
+        edges: int,
+        emergence: int,
+        pruned: int,
+        contradictions: int,
+        duration: float,
+    ) -> None:
         conn = self._get_conn()
         try:
             conn.execute(
                 "INSERT INTO wave_metrics (timestamp, global_tension, nodes_count, edges_count, emergence_count, pruned_count, contradictions_resolved, cycle_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (timestamp, tension, nodes, edges, emergence, pruned, contradictions, duration)
+                (
+                    timestamp,
+                    tension,
+                    nodes,
+                    edges,
+                    emergence,
+                    pruned,
+                    contradictions,
+                    duration,
+                ),
             )
             conn.commit()
         except Exception as exc:
             logger.warning("Failed to save wave metrics: %s", exc)
 
-    def get_wave_metrics(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_wave_metrics(self, limit: int = 100) -> list[dict]:
         conn = self._get_conn()
         try:
             cursor = conn.execute(
-                "SELECT * FROM wave_metrics ORDER BY wave_id DESC LIMIT ?",
-                (limit,)
+                "SELECT * FROM wave_metrics ORDER BY wave_id DESC LIMIT ?", (limit,)
             )
             return [dict(row) for row in cursor.fetchall()]
         except Exception as exc:

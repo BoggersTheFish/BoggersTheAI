@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
-from BoggersTheAI.core.graph.wave import break_weakest, evolve, propagate, relax, run_wave
+from BoggersTheAI.core.graph.wave import (
+    break_weakest,
+    evolve,
+    propagate,
+    relax,
+    run_wave,
+)
 
 
 def test_propagate_spreads_activation():

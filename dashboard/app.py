@@ -350,7 +350,9 @@ def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
 
 
 @app.get("/api/metrics/wave")
-def get_wave_metrics_endpoint(_: None = Depends(_check_auth), limit: int = 100) -> list[dict[str, Any]]:
+def get_wave_metrics_endpoint(
+    _: None = Depends(_check_auth), limit: int = 100
+) -> list[dict[str, Any]]:
     try:
         return get_runtime().graph.get_wave_metrics(limit=limit)
     except Exception as exc:

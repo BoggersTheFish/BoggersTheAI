@@ -9,6 +9,7 @@ if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
 import pytest  # noqa: E402
+
 from BoggersTheAI.core.config_resolver import resolve_nested  # noqa: E402
 from BoggersTheAI.core.config_schema import validate_config  # noqa: E402
 

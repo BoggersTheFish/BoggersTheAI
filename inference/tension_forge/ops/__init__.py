@@ -69,6 +69,9 @@ from .workspace_backward import (
     cross_entropy_device,
     embedding_backward_device,
     embedding_forward_device,
+)
+from .workspace_backward import fill_device as workspace_fill_device
+from .workspace_backward import (
     gather_backward_device,
     gelu_backward_device,
     layer_norm_backward_device,
@@ -86,7 +89,6 @@ from .workspace_backward import (
     weighted_sum_backward_device,
     workspace_reduce_backward_device,
 )
-from .workspace_backward import fill_device as workspace_fill_device
 
 __all__ = [
     "ACTIVATION_SOURCE",

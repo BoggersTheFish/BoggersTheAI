@@ -14,13 +14,13 @@ from typing import Any, Callable
 
 from ..adapters import (
     AdapterRegistry,
+    ArXivAdapter,
     HackerNewsAdapter,
     MarkdownAdapter,
     RSSAdapter,
+    SemanticScholarAdapter,
     WikipediaAdapter,
     XApiAdapter,
-    ArXivAdapter,
-    SemanticScholarAdapter,
 )
 from ..core import (
     ModeManager,
@@ -201,7 +201,10 @@ class BoggersRuntime:
             if adapter_flags.get("hacker_news", True):
                 adapter_registry.register("hacker_news", HackerNewsAdapter())
             if adapter_flags.get("vault", True):
-                adapter_registry.register("vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path)))
+                adapter_registry.register(
+                    "vault",
+                    MarkdownAdapter(base_dir=str(self.config.insight_vault_path)),
+                )
             if adapter_flags.get("x_api", False):
                 adapter_registry.register("x_api", XApiAdapter())
             if adapter_flags.get("arxiv", True):
@@ -212,7 +215,9 @@ class BoggersRuntime:
             adapter_registry.register("wikipedia", WikipediaAdapter())
             adapter_registry.register("rss", RSSAdapter())
             adapter_registry.register("hacker_news", HackerNewsAdapter())
-            adapter_registry.register("vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path)))
+            adapter_registry.register(
+                "vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path))
+            )
             adapter_registry.register("x_api", XApiAdapter())
             adapter_registry.register("arxiv", ArXivAdapter())
             adapter_registry.register("semantic_scholar", SemanticScholarAdapter())

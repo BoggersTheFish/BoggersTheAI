@@ -6,6 +6,7 @@ from unittest.mock import patch
 from urllib.error import URLError
 
 import pytest
+
 from BoggersTheAI.shared.http import (
     fetch_json,
     fetch_url,

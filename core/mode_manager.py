@@ -48,14 +48,19 @@ class ModeManager:
             while self._cycle_active:
                 remaining = max(0.0, end_time - time.monotonic())
                 if remaining <= 0:
-                    logger.warning("request_user_mode timed out after %.2fs. Forcing USER mode takeover.", timeout)
+                    logger.warning(
+                        "request_user_mode timed out after %.2fs. Forcing USER mode takeover.",
+                        timeout,
+                    )
                     self._mode = Mode.USER
                     self._cycle_active = False
                     self._user_requested = False
                     self._condition.notify_all()
                     return False
                 if not self._condition.wait(timeout=remaining):
-                    logger.warning("request_user_mode wait timed out. Forcing USER mode takeover.")
+                    logger.warning(
+                        "request_user_mode wait timed out. Forcing USER mode takeover."
+                    )
                     self._mode = Mode.USER
                     self._cycle_active = False
                     self._user_requested = False
@@ -80,11 +85,11 @@ class ModeManager:
                 return True
             elapsed = time.time() - self.last_cycle_completed_time
             limit = max(60.0, 2.0 * interval_seconds)
-            self._wave_health_ok = (elapsed <= limit)
+            self._wave_health_ok = elapsed <= limit
             if not self._wave_health_ok:
                 logger.warning(
                     "Wave cycle has not completed in %.2fs (limit is %.2fs). Wave health degraded.",
                     elapsed,
-                    limit
+                    limit,
                 )
             return self._wave_health_ok
