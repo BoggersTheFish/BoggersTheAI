@@ -19,6 +19,8 @@ from ..adapters import (
     RSSAdapter,
     WikipediaAdapter,
     XApiAdapter,
+    ArXivAdapter,
+    SemanticScholarAdapter,
 )
 from ..core import (
     ModeManager,
@@ -202,12 +204,18 @@ class BoggersRuntime:
                 adapter_registry.register("vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path)))
             if adapter_flags.get("x_api", False):
                 adapter_registry.register("x_api", XApiAdapter())
+            if adapter_flags.get("arxiv", True):
+                adapter_registry.register("arxiv", ArXivAdapter())
+            if adapter_flags.get("semantic_scholar", True):
+                adapter_registry.register("semantic_scholar", SemanticScholarAdapter())
         else:
             adapter_registry.register("wikipedia", WikipediaAdapter())
             adapter_registry.register("rss", RSSAdapter())
             adapter_registry.register("hacker_news", HackerNewsAdapter())
             adapter_registry.register("vault", MarkdownAdapter(base_dir=str(self.config.insight_vault_path)))
             adapter_registry.register("x_api", XApiAdapter())
+            adapter_registry.register("arxiv", ArXivAdapter())
+            adapter_registry.register("semantic_scholar", SemanticScholarAdapter())
         adapter_plugins.discover_entry_points("boggers.adapters")
         for name in adapter_plugins.names():
             plugin = adapter_plugins.get(name)

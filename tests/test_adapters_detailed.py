@@ -119,6 +119,77 @@ class TestMarkdownAdapter:
 
 
 
+class TestArXivAdapter:
+    @patch("BoggersTheAI.shared.http.urlopen")
+    def test_arxiv_success(self, mock_urlopen):
+        xml_body = """<?xml version="1.0" encoding="UTF-8"?>
+        <feed xmlns="http://www.w3.org/2005/Atom">
+          <entry>
+            <id>http://arxiv.org/abs/1234.5678v1</id>
+            <title>Title of paper</title>
+            <summary>Abstract summary of the paper</summary>
+            <author><name>Author One</name></author>
+            <author><name>Author Two</name></author>
+          </entry>
+        </feed>
+        """
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = xml_body.encode()
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        mock_urlopen.return_value = mock_resp
+        
+        from BoggersTheAI.adapters.arxiv import ArXivAdapter
+        adapter = ArXivAdapter()
+        nodes = adapter.ingest("deep learning")
+        assert len(nodes) == 1
+        assert "1234.5678v1" in nodes[0].attributes["arxiv_id"]
+        assert "Title of paper" in nodes[0].content
+        assert "arxiv" in nodes[0].topics
+
+    @patch("BoggersTheAI.shared.http.urlopen", side_effect=Exception("timeout"))
+    def test_arxiv_error(self, mock_urlopen):
+        from BoggersTheAI.adapters.arxiv import ArXivAdapter
+        adapter = ArXivAdapter()
+        nodes = adapter.ingest("deep learning")
+        assert nodes == []
+
+
+class TestSemanticScholarAdapter:
+    @patch("BoggersTheAI.shared.http.urlopen")
+    def test_semantic_scholar_success(self, mock_urlopen):
+        json_body = json.dumps({
+            "data": [
+                {
+                    "paperId": "abcdef123456",
+                    "title": "Semantic Paper Title",
+                    "abstract": "Abstract of Semantic Paper",
+                    "citationCount": 99,
+                    "authors": [{"name": "Scholar One"}]
+                }
+            ]
+        }).encode()
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json_body
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        mock_urlopen.return_value = mock_resp
+        
+        from BoggersTheAI.adapters.semantic_scholar import SemanticScholarAdapter
+        adapter = SemanticScholarAdapter()
+        nodes = adapter.ingest("nlp")
+        assert len(nodes) == 1
+        assert nodes[0].attributes["paper_id"] == "abcdef123456"
+        assert "nlp" in nodes[0].topics
+
+    @patch("BoggersTheAI.shared.http.urlopen", side_effect=Exception("timeout"))
+    def test_semantic_scholar_error(self, mock_urlopen):
+        from BoggersTheAI.adapters.semantic_scholar import SemanticScholarAdapter
+        adapter = SemanticScholarAdapter()
+        nodes = adapter.ingest("nlp")
+        assert nodes == []
+
+
 class TestAdapterRegistryAdvanced:
     def test_cache_returns_same_on_repeat(self):
         registry = AdapterRegistry()

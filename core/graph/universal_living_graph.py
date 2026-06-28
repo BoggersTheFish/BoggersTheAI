@@ -491,6 +491,7 @@ class UniversalLivingGraph:
                     )  # summary boost
 
     def run_wave_cycle(self) -> RulesEngineCycleResult:
+        t0 = time.time()
         with self._lock:
             graph_nodes = {
                 node_id: self._to_graph_node(node)
@@ -524,6 +525,23 @@ class UniversalLivingGraph:
             self._apply_graph_node_updates(graph_nodes)
             self._adjacency = adjacency
             self._sync_edges_from_tuples(edges)
+            duration = time.time() - t0
+
+            # Save wave metrics
+            try:
+                tension_val = max(result.tensions.values()) if result.tensions else 0.0
+                self.save_wave_metrics(
+                    tension=tension_val,
+                    nodes=len(self.nodes),
+                    edges=len(self.edges),
+                    emergence=len(result.emergent_nodes),
+                    pruned=result.pruned_edges,
+                    contradictions=result.contradictions_resolved,
+                    duration=duration
+                )
+            except Exception:
+                pass
+
             # Phase 0: attach basic receipt
             try:
                 receipt = make_wave_receipt(
@@ -967,3 +985,17 @@ class UniversalLivingGraph:
             f"backend={'sqlite' if self._sqlite_backend else 'json'}, "
             f"path='{self.graph_path.as_posix()}')"
         )
+
+    def save_wave_metrics(self, tension: float, nodes: int, edges: int, emergence: int, pruned: int, contradictions: int, duration: float) -> None:
+        if self._sqlite_backend is not None:
+            try:
+                from datetime import datetime, timezone
+                ts = datetime.now(timezone.utc).isoformat()
+                self._sqlite_backend.save_wave_metrics(ts, tension, nodes, edges, emergence, pruned, contradictions, duration)
+            except Exception:
+                pass
+
+    def get_wave_metrics(self, limit: int = 100) -> list[dict]:
+        if self._sqlite_backend is not None:
+            return self._sqlite_backend.get_wave_metrics(limit)
+        return []

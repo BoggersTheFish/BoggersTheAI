@@ -349,6 +349,14 @@ def metrics_endpoint(_: None = Depends(_check_auth)) -> dict[str, Any]:
     }
 
 
+@app.get("/api/metrics/wave")
+def get_wave_metrics_endpoint(_: None = Depends(_check_auth), limit: int = 100) -> list[dict[str, Any]]:
+    try:
+        return get_runtime().graph.get_wave_metrics(limit=limit)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.get("/traces")
 def traces(_: None = Depends(_check_auth), limit: int = 20) -> dict[str, Any]:
     traces_dir = Path("traces")

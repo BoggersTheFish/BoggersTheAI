@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - BOGGERS_DASHBOARD_TOKEN=""
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./graph.db:/app/graph.db
+      - ./config.yaml:/app/config.yaml
+      - ./traces:/app/traces
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  ollama-pull-models:
+    image: curlimages/curl:latest
+    entrypoint: >
+      sh -c "
+      until curl -s http://ollama:11434/api/tags > /dev/null; do sleep 2; done;
+      echo 'Pulling nomic-embed-text...';
+      curl -s -X POST http://ollama:11434/api/pull -d '{\"name\": \"nomic-embed-text\"}' > /dev/null;
+      echo 'Pulling llama3.2...';
+      curl -s -X POST http://ollama:11434/api/pull -d '{\"name\": \"llama3.2\"}' > /dev/null;
+      echo 'Models successfully loaded!';
+      "
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
