@@ -1,9 +1,19 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable
+import logging
+from typing import Dict, Iterable, List, Optional
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None  # type: ignore
 
 from ..embeddings import cosine_similarity
 from .node import GraphNode
+
+logger = logging.getLogger("boggers.graph.vectorized")
 
 GLOBAL_ACTIVATION_CAP = 1.0
 
@@ -98,4 +108,77 @@ def normalise_activations(
         elif node.activation < 0.0:
             node.activation = 0.0
             clamped += 1
+
+
+# =============================================================================
+# Phase 1: Vectorized / Accelerated Wave Primitives (numpy when available)
+# Pure Python fallback for on-device compatibility and determinism.
+# =============================================================================
+
+def propagate_vectorized(
+    nodes: Dict[str, GraphNode],
+    adjacency: Dict[str, Dict[str, float]],
+    spread_factor: float = 0.1,
+    damping: float = 0.95,
+    activation_cap: float = GLOBAL_ACTIVATION_CAP,
+    semantic_weight: float = 0.3,
+) -> None:
+    """Phase 1 accelerated propagate.
+    Falls back to pure if no numpy or small graph.
+    """
+    if not HAS_NUMPY or len(nodes) < 200:
+        # fallback to original
+        propagate(nodes, adjacency, spread_factor, damping, activation_cap, semantic_weight)
+        return
+
+    # Build id list and arrays for speed
+    node_ids: List[str] = list(nodes.keys())
+    id_to_idx = {nid: i for i, nid in enumerate(node_ids)}
+    n = len(node_ids)
+
+    activations = np.array([nodes[nid].activation for nid in node_ids], dtype=np.float64)
+    caps = np.full(n, activation_cap, dtype=np.float64)
+
+    # Sparse updates via dict is still needed for generality, but vectorize deltas
+    deltas = np.zeros(n, dtype=np.float64)
+
+    for i, nid in enumerate(node_ids):
+        if nodes[nid].collapsed:
+            continue
+        neigh = adjacency.get(nid, {})
+        if not neigh:
+            continue
+        # topo
+        for neigh_id, weight in neigh.items():
+            if neigh_id not in id_to_idx or nodes[neigh_id].collapsed:
+                continue
+            j = id_to_idx[neigh_id]
+            topo = activations[i] * weight * spread_factor * damping
+            deltas[j] += topo
+
+            # semantic (still per-pair, but array update)
+            if semantic_weight > 0 and nodes[nid].embedding and nodes[neigh_id].embedding:
+                sim = cosine_similarity(nodes[nid].embedding, nodes[neigh_id].embedding)
+                sem = activations[i] * sim * spread_factor * damping * semantic_weight
+                deltas[j] += sem
+
+    # apply
+    activations = np.minimum(caps, activations + deltas)
+    activations = np.maximum(0.0, activations)
+
+    for i, nid in enumerate(node_ids):
+        if not nodes[nid].collapsed:
+            nodes[nid].activation = float(activations[i])
+
+
+def relax_vectorized(
+    nodes: Iterable[GraphNode],
+    decay: float = 0.85,
+    activation_cap: float = GLOBAL_ACTIVATION_CAP,
+) -> None:
+    if not HAS_NUMPY or len(list(nodes)) < 200:  # rough
+        relax_toward_base_strength(nodes, decay, activation_cap)
+        return
+    # For simplicity, fall back for relax (cheap)
+    relax_toward_base_strength(nodes, decay, activation_cap)
     return clamped

@@ -264,6 +264,17 @@ class BoggersRuntime(AutonomousLoopMixin, SelfImprovementMixin):
                     "Local LLM unavailable; using fallback synthesis: %s", exc
                 )
         self._setup_evolve_fn()
+        # Phase 0: wire graph native preference from config
+        try:
+            syn = (self.config or {}).get("inference", {}).get("synthesis", {}) if isinstance(self.config, dict) else {}
+            if isinstance(syn, dict):
+                gnp = bool(syn.get("graph_native_primary", True))
+            else:
+                gnp = True
+            if hasattr(self.graph, "set_prefer_graph_native"):
+                self.graph.set_prefer_graph_native(gnp)
+        except Exception:
+            pass
         self.query_processor = QueryProcessor(
             graph=self.graph,
             adapters=adapters,

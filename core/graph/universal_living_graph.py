@@ -11,6 +11,13 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
 
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None  # type: ignore
+
 from ..events import bus
 from ..types import Edge, Node
 from .migrate import migrate_graph_data
@@ -18,6 +25,7 @@ from .rules_engine import (
     RulesEngineCycleResult,
     run_rules_cycle,
 )
+from .receipts import make_wave_receipt, WaveStepReceipt, stable_hash
 from .wave_runner import WaveConfig, WaveCycleRunner
 
 logger = logging.getLogger("boggers.graph")
@@ -44,6 +52,7 @@ class UniversalLivingGraph:
         self._cycles_this_hour: int = 0
         self._hour_marker: int = 0
         self._evolve_fn: Optional[Callable[[str, List[str], str], str]] = None
+        self._prefer_graph_native: bool = False
         self._embedder = None
         self._snapshot_manager = None
         self._strongest_cache: Node | None = None
@@ -61,6 +70,10 @@ class UniversalLivingGraph:
 
     def set_evolve_fn(self, fn: Callable[[str, List[str], str], str]) -> None:
         self._evolve_fn = fn
+
+    def set_prefer_graph_native(self, val: bool = True) -> None:
+        """Phase 0 frontier: use graph-native emergence (no LLM) when possible."""
+        self._prefer_graph_native = bool(val)
 
     def set_embedder(self, embedder: object) -> None:
         self._embedder = embedder
@@ -320,8 +333,27 @@ class UniversalLivingGraph:
     def elect_strongest(self) -> Node | None:
         return self.strongest_node()
 
-    def propagate(self) -> None:
+    def propagate(self, use_vectorized: bool = False) -> None:
+        """Phase 1: supports vectorized path for scale."""
         with self._lock:
+            if use_vectorized:
+                try:
+                    from .wave_propagation import propagate_vectorized
+                    propagate_vectorized(
+                        self.nodes,
+                        self._adjacency,
+                        spread_factor=float(self._wave_settings.get("spread_factor", 0.1)),
+                        damping=float(self._wave_settings.get("damping", 0.95)),
+                        activation_cap=float(self._wave_settings.get("activation_cap", 1.0)),
+                        semantic_weight=float(self._wave_settings.get("semantic_weight", 0.3)),
+                    )
+                    for nid in self.nodes:
+                        self._dirty_nodes.add(nid)
+                    return
+                except Exception as e:
+                    logger.warning("Vectorized propagate failed, falling back: %s", e)
+
+            # original pure path
             cap = float(self._wave_settings.get("activation_cap", 1.0))
             damping = float(self._wave_settings.get("damping", 0.95))
             semantic = float(self._wave_settings.get("semantic_weight", 0.3))
@@ -403,6 +435,41 @@ class UniversalLivingGraph:
                     tensions[node.id] = tension
             return tensions
 
+    # Phase 1: Basic hierarchical / cluster support
+    def create_cluster(self, name: str, member_ids: List[str]) -> str:
+        """Create a first-class cluster/subgraph node."""
+        cid = f"cluster:{stable_hash(name)}"
+        if cid in self.nodes:
+            return cid
+        cluster_node = Node(
+            id=cid,
+            content=f"Cluster: {name}",
+            topics={"cluster"},
+            activation=0.5,
+            base_strength=0.4,
+            stability=0.8,
+            embedding=[],
+        )
+        self.nodes[cid] = cluster_node
+        self._adjacency[cid] = {}
+        for mid in member_ids:
+            if mid in self.nodes:
+                self.add_edge(source_id=mid, target_id=cid, relation="member_of", weight=0.8)
+                self.add_edge(source_id=cid, target_id=mid, relation="contains", weight=0.7)
+        self._dirty_nodes.add(cid)
+        return cid
+
+    def propagate_to_clusters(self) -> None:
+        """Phase 1 simple hierarchical propagation: clusters get summary activation."""
+        with self._lock:
+            for nid, node in self.nodes.items():
+                if "cluster" not in node.topics:
+                    continue
+                members = [e.source_id for e in self.edges if e.target_id == nid and e.relation == "member_of"]
+                if members:
+                    avg_act = sum(self.nodes[m].activation for m in members if m in self.nodes) / max(len(members), 1)
+                    node.activation = max(node.activation, avg_act * 0.6)  # summary boost
+
     def run_wave_cycle(self) -> RulesEngineCycleResult:
         with self._lock:
             graph_nodes = {
@@ -412,6 +479,15 @@ class UniversalLivingGraph:
             }
             adjacency = {src: dict(dst) for src, dst in self._adjacency.items()}
             edges = [(edge.src, edge.dst, edge.weight) for edge in self.edges]
+            # Phase 1: prefer vectorized for large graphs
+            use_vec = len(self.nodes) > 500 and HAS_NUMPY
+            if use_vec:
+                self.propagate(use_vectorized=True)
+                self.relax()  # relax still mostly pure for now
+            else:
+                self.propagate()
+                self.relax()
+
             result = run_rules_cycle(
                 graph_nodes,
                 adjacency,
@@ -420,11 +496,62 @@ class UniversalLivingGraph:
                 activation_cap=float(self._wave_settings.get("activation_cap", 1.0)),
                 semantic_weight=float(self._wave_settings.get("semantic_weight", 0.3)),
                 evolve_fn=self._evolve_fn,
+                prefer_graph_native=self._prefer_graph_native,
             )
             self._apply_graph_node_updates(graph_nodes)
             self._adjacency = adjacency
             self._sync_edges_from_tuples(edges)
+            # Phase 0: attach basic receipt
+            try:
+                receipt = make_wave_receipt(
+                    step=getattr(self, "_wave_cycle_count", 0),
+                    result=result,
+                    tensions=getattr(self, "detect_tensions", lambda: {})(),
+                )
+                if not hasattr(self, "_last_wave_receipts"):
+                    self._last_wave_receipts: List[WaveStepReceipt] = []
+                self._last_wave_receipts.append(receipt)
+            except Exception:
+                pass
             return result
+
+    # Wave 0: BOGVM + Graph Unification - make BOGVM programs first-class
+    def attach_bogvm_program(self, node_id: str, bogbin_path: str):
+        """Attach a BOGVM program to a node as payload for simulation/execution."""
+        if node_id not in self.nodes:
+            raise ValueError(f"Node {node_id} not found")
+        node = self.nodes[node_id]
+        if not hasattr(node, 'attributes') or node.attributes is None:
+            node.attributes = {}
+        node.attributes['bogvm_program'] = bogbin_path
+        self._dirty_nodes.add(node_id)
+
+    def spawn_bogvm_simulation(self, node_id: str, steps: int = 5) -> dict:
+        """Spawn and monitor a sub-BOGVM execution as thought step. Returns receipt."""
+        if node_id not in self.nodes:
+            raise ValueError(f"Node {node_id} not found")
+        node = self.nodes[node_id]
+        program = node.attributes.get('bogvm_program') if hasattr(node, 'attributes') and node.attributes else None
+        if not program:
+            return {"status": "no_program", "node": node_id}
+        # Use CLI for execution (real BOGVM)
+        import subprocess
+        import tempfile
+        import json as json_mod
+        receipt_path = tempfile.mktemp(suffix='.json')
+        try:
+            subprocess.check_call([
+                "python3", "-m", "core-vm.bogvm", "run", program, "--receipt", receipt_path
+            ])
+            with open(receipt_path) as f:
+                bog_receipt = json_mod.load(f)
+            # Feed tension/verifier back
+            tension = bog_receipt.get("max_tension", 0.1)
+            if node_id in self.nodes:
+                self.nodes[node_id].activation = min(1.0, self.nodes[node_id].activation + tension * 0.1)
+            return {"status": "executed", "receipt": bog_receipt, "node": node_id}
+        except Exception as e:
+            return {"status": "error", "error": str(e), "node": node_id}
 
     def _check_guardrails(self) -> str | None:
         with self._lock:

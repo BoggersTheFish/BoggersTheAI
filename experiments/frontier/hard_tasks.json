@@ -1,0 +1,32 @@
+[
+  {
+    "id": "t1",
+    "text": "All even numbers are integers. 2 + 2 = 4. Prove that 4 is even. Execute a plan to confirm the result using arithmetic.",
+    "type": "arithmetic_proof",
+    "expected": "4 is even (verified by execution)"
+  },
+  {
+    "id": "t2",
+    "text": "All mammals are animals. All dogs are mammals. All animals have hearts. Prove dogs have hearts.",
+    "type": "transitive_chain",
+    "expected": "dogs have hearts"
+  },
+  {
+    "id": "t3",
+    "text": "All numbers that are multiples of 2 are even. 6 is a multiple of 2 and 3. Prove 6 is even. Verify with code execution.",
+    "type": "mixed_math_code",
+    "expected": "6 is even"
+  },
+  {
+    "id": "t4",
+    "text": "All primes greater than 2 are odd. 7 is prime. Prove 7 is odd.",
+    "type": "logic",
+    "expected": "7 is odd"
+  },
+  {
+    "id": "t5",
+    "text": "If a number is divisible by 4 then it is even. 12 is divisible by 4. Prove 12 is even and execute verification.",
+    "type": "conditional",
+    "expected": "12 is even"
+  }
+]

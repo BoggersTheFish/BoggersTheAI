@@ -1,12 +1,20 @@
 # BoggersTheAI
 
-![Tests](https://img.shields.io/github/actions/workflow/status/BoggersTheFish/BoggersTheAI/test.yml?label=tests)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Coverage](https://img.shields.io/badge/coverage-~70%25-yellowgreen)
-![Version](https://img.shields.io/badge/release-v0.5.0-blue)
+**BoggersTheAI** is a **TS (Thinking System) Engine** — a deterministic, glass-box, verifier-first reasoning system for building a non-traditional "LLM". 
 
-**BoggersTheAI** is a local-first **TS-OS (Thinking System Operating System)** — a living graph and wave-propagation reasoning engine that treats truth as the most stable configuration its constraints allow. Instead of scaling a single monolithic language model, BoggersTheAI maintains a persistent knowledge graph of nodes (concepts) and edges (relations), each carrying activation, stability, and base-strength values that evolve continuously through a wave cycle of propagation, relaxation, pruning, tension detection, emergence, and contradiction resolution. The result is an AI runtime that learns, adapts, and reasons locally — with optional LLM synthesis, self-improvement via QLoRA fine-tuning, multimodal input/output, and a full observability stack.
+Core: Living graph + wave dynamics + tension for focus + Typed Verifier (kernel + arithmetic) + BOGVM for execution/simulation + TSLC language compiler. 
+
+Synthesis only from verified TS state via TensionLM (117M). Fast light paths for factual (direct graph fact + 2 waves, 0 BOGVM). Full pipeline for formal "prove + execute" producing real BOGVM traces.
+
+Self-data loop: generate traces from formal tasks → inject verified conclusions as high-stability nodes → math/prove queries prioritize them via boosts + proof prompts.
+
+Not a traditional transformer LLM. The intelligence is the TS mechanisms (graph as knowledge, waves for reasoning, verifier for authority, BOGVM for execution). Generator only for fluent output from verified context.
+
+Follows SERIOUS_GPT55_ROADMAP toward GPT-5.5+ level via verifiable long-horizon agency and frontier formal work with receipts. 
+
+Current: Wave 0 foundation complete (unified engine, BOGVM first-class, self-data from real runs, light factual, proof synthesis). Self-data flywheel starting to turn. Factual fast/light; formal produces verifiable traces. 
+
+See [SERIOUS_GPT55_ROADMAP.md](experiments/frontier/SERIOUS_GPT55_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 **Website:** [boggersthefish.com](https://www.boggersthefish.com/)
 **GitHub:** [BoggersTheFish/BoggersTheAI](https://github.com/BoggersTheFish/BoggersTheAI)
@@ -56,26 +64,32 @@ Full documentation: [`docs/`](docs/)
 
 ---
 
-## Philosophy — What Is TS-OS?
+## Current Architecture (TS Engine for Verifiable Reasoning + Synthesis)
 
-TS-OS (Thinking System Operating System) is founded on a single axiom:
+**Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:
 
-> **Everything that exists is a stable cluster of constraints.**
+- **Graph**: UniversalLivingGraph with nodes (facts, conclusions) carrying activation, stability, topics.
+- **Waves**: Dynamics for focus/tension propagation (run_wave_cycle).
+- **Verifier**: VerifierOS wrapping VerifierFirstRuntimeKernel + arithmetic checks. Authority, not confidence. Receipts.
+- **BOGVM**: First-class for execution/simulation inside formal paths (attach/spawn, real CLI with receipts).
+- **Language**: TSLCCompiler — deterministic text → graph_deltas + obligations + plan_skeleton.
+- **Synthesis**: TensionGenerator (117M TensionLM from bozo) only for generation from verified TS context. Proof prompts for reasoning.
 
-A "thought" is not a token sequence — it is a configuration of interconnected nodes whose activations have settled into a locally optimal arrangement. Change is wave propagation through the graph. Complexity emerges from local interactions. Truth is whatever configuration the constraints converge on.
+**Fast factual path**: Known facts (preload + injected self-data) returned direct from graph + light process (2 waves, 0 BOGVM, no model). E.g. capital of France, 2+2.
 
-The core loop — running continuously in a background thread — is:
+**Full formal path**: "Prove X and execute" → full process → BOGVM traces (real execution) + verifier + synthesis. Produces self-data.
 
-```
-while true:
-    Propagate()   — wave spreads activation from the strongest node
-    Relax()       — activations decay toward their base strength
-    if tension too high:
-        Break()   — collapse the weakest node / pattern
-    Evolve()      — spawn higher-stability structures (emergence)
-```
+**Self-data loop**: collect_self_data on hard tasks → high-quality traces with BOGVM/verifier/synth → inject conclusions as high-stability nodes → math/prove retrieval boosts them (is_mathy, topics, keywords) → proof prompt ("Prove the claim step by step using only these verified facts") + prioritized facts → synthesis references self-data.
 
-This loop is not a metaphor. It literally runs on a thread inside the runtime, mutating graph state every `wave.interval_seconds`. The graph is alive.
+**Graph state** now includes self-data nodes (high stability, topics). Retrieval + prompts make them surface in formal reasoning.
+
+See core/ts_engine.py, core/verifier/, core/language/tslc.py, core/intuition/tension_generator.py, experiments/frontier/ for traces and demos.
+
+**Progress**: Wave 0 foundation (unified engine, BOGVM, VerifierOS, TSLC, self-data, scale, hard tasks). Light factual. Self-data flywheel starting. Proof synthesis. See SERIOUS_GPT55_ROADMAP.md for full multi-wave plan to GPT-5.5+ (scale, deeper verifiers, agency, self-improvement). 
+
+Not frontier yet — graph modest (~35 nodes), model 117M, synthesis context-driven. But verifiable formal + feedback loop active. Factual practical. Formal produces real traces. 
+
+Run probes in experiments/frontier/ or gpt55_progress_demo.py (lightened).
 
 ### Core Primitives
 

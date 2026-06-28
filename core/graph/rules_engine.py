@@ -16,7 +16,7 @@ from .wave_propagation import (
 logger = logging.getLogger("boggers.graph.rules")
 
 PRUNE_EDGE_THRESHOLD = 0.25
-EMERGENCE_MAX_SPAWN = 2
+EMERGENCE_MAX_SPAWN = 5  # Increased for Phase 0 frontier scaling (was 2). Configurable via run_rules_cycle / wave settings.
 EMERGENCE_BASE_ACTIVATION = 0.3
 EMERGENCE_TENSION_MULTIPLIER = 0.2
 EMERGENCE_BASE_STABILITY = 0.7
@@ -80,11 +80,24 @@ def detect_tension(
     return tensions
 
 
+def _graph_native_evolve(source_content: str, neighbor_contents: List[str], topics: str) -> str:
+    """Phase 0: Pure graph-native emergence (no LLM).
+    Deterministic synthesis for frontier mode. See PHASE0_DETAIL_PLAN.md P0.4.
+    """
+    if not neighbor_contents:
+        return f"Synthesis under tension: {source_content} (topics: {topics})"
+    combined = " + ".join([c for c in neighbor_contents if c][:2])
+    if any(kw in source_content.lower() for kw in ("are", "is", "all ")):
+        return f"Emergent: {source_content} implies relations with {combined}"
+    return f"Emergent: {source_content} synthesized via neighbors [{combined}] (topics={topics})"
+
+
 def spawn_emergence(
     nodes: Dict[str, GraphNode],
     tensions: Dict[str, float],
     edges: List[Tuple[str, str, float]],
     evolve_fn: Optional[Callable[[str, List[str], str], str]] = None,
+    prefer_graph_native: bool = False,  # New Phase 0 flag
 ) -> List[str]:
     created: List[str] = []
     if not tensions:
@@ -102,16 +115,23 @@ def spawn_emergence(
             nodes[nid].content for nid in neighbor_ids[:3] if nid in nodes
         ]
 
-        content = f"Emerged from tension around {node_id}"
-        if evolve_fn is not None:
-            try:
-                content = evolve_fn(
-                    source.content,
-                    neighbor_contents,
-                    ",".join(source.topics),
-                )
-            except Exception as exc:
-                logger.warning("LLM evolve failed for %s: %s", node_id, exc)
+        use_native = prefer_graph_native or (evolve_fn is None)
+        if use_native:
+            content = _graph_native_evolve(
+                source.content, neighbor_contents, ",".join(source.topics)
+            )
+        else:
+            content = f"Emerged from tension around {node_id}"
+            if evolve_fn is not None:
+                try:
+                    content = evolve_fn(
+                        source.content,
+                        neighbor_contents,
+                        ",".join(source.topics),
+                    )
+                except Exception as exc:
+                    logger.warning("LLM evolve failed for %s: %s", node_id, exc)
+                    content = _graph_native_evolve(source.content, neighbor_contents, ",".join(source.topics))
 
         nodes[emergent_id] = GraphNode(
             id=emergent_id,
@@ -123,15 +143,16 @@ def spawn_emergence(
             ),
             stability=EMERGENCE_BASE_STABILITY,
             base_strength=EMERGENCE_BASE_STRENGTH,
-            attributes={"type": "emergent", "source": node_id},
+            attributes={"type": "emergent", "source": node_id, "graph_native": use_native},
         )
         edges.append((node_id, emergent_id, 0.3))
         created.append(emergent_id)
         logger.info(
-            "Emergence: spawned %s from tension on %s (tension=%.3f)",
+            "Emergence: spawned %s from tension on %s (tension=%.3f, native=%s)",
             emergent_id,
             node_id,
             tension,
+            use_native,
         )
     return created
 
@@ -236,6 +257,7 @@ def run_rules_cycle(
     activation_cap: float = 1.0,
     semantic_weight: float = 0.3,
     evolve_fn: Optional[Callable[[str, List[str], str], str]] = None,
+    prefer_graph_native: bool = False,
 ) -> RulesEngineCycleResult:
     strongest = elect_strongest(nodes)
     propagate(

@@ -1,33 +1,28 @@
-# TS-OS Documentation — The Trojan Horse
+# BoggersTheAI Documentation — TS Engine Focus
 
-Developers come for the code. To use it, they must learn the epistemological
-rulebook. These documents are not supplementary. They are the interface to the
-physics.
+**Current focus (2026-06)**: TS Engine (core/ts_engine.py + verifier/language/intuition) for verifiable reasoning. Graph + waves + tension + VerifierOS + BOGVM + TSLC. TensionLM *only* for synthesis from verified state. 
 
-**Read in this order. Do not skip.**
+Fast factual paths (light: 2 waves, 0 BOGVM, direct graph). Full formal pipeline produces BOGVM traces for self-data. Self-data injection + math/proof boosts + proof prompts so self-data surfaces in reasoning. 
 
----
+See root README.md, SERIOUS_GPT55_ROADMAP.md (progress), ARCHITECTURE.md, CHANGELOG.md.
 
-## The Ideological Stack
-
-| # | Document | Role |
-|---|----------|------|
-| 1 | **[MANIFESTO.md](MANIFESTO.md)** | The front door — axioms of cognitive physics, rejection of the black box, open-source mandate |
-| 2 | **[anti-token-prediction.md](anti-token-prediction.md)** | The weapon — systematic deconstruction of softmax and next-token prediction |
-| 3 | **[truth-graph.md](truth-graph.md)** | The payload — exact mechanics of the living computing medium |
-| 4 | **[bogpk-pipeline.md](bogpk-pipeline.md)** | The receipt — how resolution paths are frozen, hashed, and exported |
-| 5 | **[directory-structure.md](directory-structure.md)** | The map — where each substrate lives in the monorepo |
-
-If you read only the API docs, you will build a wrapper around statistical
-fluency and call it reasoning. The stack above exists to make that impossible.
+**Not full traditional LLM**. TS mechanisms = intelligence (verifiable, receipts, on-device). Generator for fluent output only.
 
 ---
 
-## Infrastructure & Reference
+## Key Docs (updated)
 
-| Document | Contents |
-|----------|----------|
-| [bogpk-pipeline.md](bogpk-pipeline.md) | `.bogpk` serialization contract across all layers |
+- [SERIOUS_GPT55_ROADMAP](../experiments/frontier/SERIOUS_GPT55_ROADMAP.md) — plan + status (Wave 0 done, loop active)
+- [WAVE0_SPRINT_PLAN](../experiments/frontier/WAVE0_SPRINT_PLAN.md)
+- [ARCHITECTURE](../ARCHITECTURE.md)
+- [CHANGELOG](../CHANGELOG.md)
+- [MANIFESTO.md](MANIFESTO.md) (ideology)
+- [truth-graph.md](truth-graph.md)
+- [directory-structure.md](directory-structure.md)
+
+Full monorepo history in other .md; focus here on TS engine + self-data. 
+
+See probes in experiments/frontier/ and gpt55_progress_demo.py for current behavior (factual light; formal + self-data feedback).
 | [directory-structure.md](directory-structure.md) | `core-vm/`, `inference/`, `reasoner/` logic map |
 | [METRICS_TODO.md](METRICS_TODO.md) | Benchmark artifacts before publishing performance claims |
 | [templates/ARCHIVE_README.md](templates/ARCHIVE_README.md) | Satellite repo redirect template |

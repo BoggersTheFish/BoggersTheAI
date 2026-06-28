@@ -5,6 +5,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased / TS Engine + Self-Data Foundation] - 2026-06-28
+
+### TS Engine (core/ts_engine.py)
+- Unified TSEngine: process/answer/agency_loop with language (TSLC) → graph deltas + obligations → waves (tension) → VerifierOS (kernel + arithmetic) → BOGVM (first-class attach/spawn, real receipts) → TensionGenerator synthesis from verified state.
+- Fast factual paths: direct from graph (preload + self-data nodes) for known facts (capital of France, 2+2 etc.). 2 waves, 0 BOGVM, no model load. Clean answer + light receipt.
+- Full formal: "prove + execute" → TSLC → graph/waves/verifier → BOGVM traces (real exec, 1-2+ per task) → synthesis. Produces self-data.
+
+### Self-Data Loop
+- collect_self_data / generate_synthetic on hard tasks (unified engine). Traces capture BOGVM, verifier, wave, synth. High-quality filter.
+- Injection: verified conclusions added as high-stability nodes (math/even/selfdata topics, high activation/stability).
+- Retrieval: is_mathy boost + topics/keywords prioritize self-data facts for prove/math queries.
+- Proof prompts: for "prove" + is_mathy, use "Prove the claim step by step using only these verified facts..." + prioritized list. Generator on proof context; synthesis references self-data.
+
+### Other
+- BOGVM gating: only explicit execute or "needs" (plain prove uses verifier).
+- Receipt: used_facts_sample, high_activation_sample for probes/visibility.
+- Verifier: arith results carry "action"; kernel + properties.
+- Demos: gpt55_progress_demo lightened (fewer traces/scale, timings, flush, fixed dead code). Probes show factual fast, formal traces, injection.
+- Preload: expanded ~ +20 facts (more math/science). Graph ~35 nodes post-injection.
+- Generator: lazy, setter for robustness. Context builds prefer math/self-data.
+- Roadmap progress: Wave 0 foundation (unified, BOGVM first-class, VerifierOS, TSLC, self-data from real runs, scale probe, hard tasks). Early Wave 1 (proof prompts, injection, deep sim hooks). See SERIOUS_GPT55_ROADMAP.md.
+
+See README.md (updated), ARCHITECTURE.md, experiments/frontier/ (roadmaps/plans updated with status). Factual now practical/light. Formal produces verifiable self-data traces. Loop feeds back (injected nodes surface in prove synthesis). Not frontier/full LLM yet (graph modest, model 117M, synthesis context-driven) — but TS mechanisms + feedback active toward GPT-5.5+ per roadmap.
+
+### Prior (pre-focus)
+See git history for older TS-OS / Phase 0 unification.
+
 ## [0.5.0] - 2026-03-22
 
 Seven-tier modular roadmap: correctness, security, architecture splits,

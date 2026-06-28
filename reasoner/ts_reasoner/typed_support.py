@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from hashlib import sha256
 from typing import Any, Iterable
 
-from ts_reasoner.runtime_kernel import normalize_claim
+from .runtime_kernel import normalize_claim
 
 
 TYPED_VERIFIER_TRACE = "typed_verifier_trace"

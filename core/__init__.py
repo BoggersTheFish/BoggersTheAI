@@ -1,31 +1,19 @@
-from .config_loader import apply_yaml_to_config, find_config, load_and_apply, load_yaml
-from .config_resolver import resolve_nested
-from .config_schema import validate_config
-from .events import EventBus, bus
-from .graph.universal_living_graph import UniversalLivingGraph
-from .health import HealthChecker, health_checker
-from .logger import get_logger, setup_logging
-from .metrics import MetricsCollector, metrics
-from .mode_manager import Mode, ModeManager
-from .plugins import PluginRegistry, adapter_plugins, tool_plugins
-from .protocols import (
-    GraphProtocol,
-    ImageInProtocol,
-    VoiceInProtocol,
-    VoiceOutProtocol,
-)
-from .query_processor import (
-    InferenceProtocol,
-    IngestProtocol,
-    QueryAdapters,
-    QueryProcessor,
-    QueryResponse,
-    ToolProtocol,
-    process_query,
-)
-from .router import QueryRouter, RegistryIngestAdapter, RouterConfig
-from .types import Edge, Node, Tension
-from .wave import WaveResult, break_weakest, evolve, propagate, relax, run_wave
+# Lazy imports to reduce tension in module dependency graph (TS theory: eager loading creates high tension on circular/relative imports; relax by on-demand)
+def __getattr__(name):
+    if name == 'UniversalLivingGraph':
+        from .graph.universal_living_graph import UniversalLivingGraph
+        return UniversalLivingGraph
+    if name == 'QueryProcessor':
+        from .query_processor import QueryProcessor
+        return QueryProcessor
+    # Add more as needed for Wave 0 unification
+    if name == 'VerifierOS':
+        from .verifier.verifier_os import VerifierOS
+        return VerifierOS
+    if name == 'TSLCCompiler':
+        from .language.tslc import TSLCCompiler
+        return TSLCCompiler
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     "Edge",

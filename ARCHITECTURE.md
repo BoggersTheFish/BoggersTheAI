@@ -1,8 +1,10 @@
-# BoggersTheAI — Exhaustive Architecture Reference
+# BoggersTheAI — TS Engine Architecture (Current Focus)
 
-> **Version**: 2.1 — aligned with v0.5.0 (2026-03-22)
+> **Version**: TS Engine foundation (2026-06, post Wave 0 / early self-data)
 > **Canonical source**: `BoggersTheAI/ARCHITECTURE.md`
-> **Runtime**: Python 3.11+, local-first, graph-native cognitive engine
+> **Focus**: Verifiable reasoning engine (graph + waves + verifier + BOGVM) + TensionLM synthesis from verified state. Not full traditional LLM.
+
+See README.md and experiments/frontier/SERIOUS_GPT55_ROADMAP.md for status. Current: light factual paths, full formal pipeline producing BOGVM traces, self-data generation + injection, proof prompts, math boosts. Graph ~35 nodes. Factual fast (2 waves, 0 BOGVM). Formal generates real self-data. Loop closing.
 
 ---
 
