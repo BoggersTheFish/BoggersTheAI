@@ -113,6 +113,9 @@ class DeterministicTSParser:
                     "predicate": claim.predicate,
                     "object": claim.object,
                     "polarity": claim.polarity,
+                    "modality": claim.modality,
+                    "status": claim.status,
+                    "claim_provenance": asdict(claim.provenance),
                 },
                 provenance=provenance,
             )
@@ -124,7 +127,8 @@ class DeterministicTSParser:
         *,
         declared_classes: set[str],
         declared_properties: set[str],
-        provenance: Provenance,
+        representation_provenance: Provenance,
+        claim_provenance: Provenance,
     ) -> ClaimNode | None:
         document = getattr(self, "_active_document", None)
         match = re.fullmatch(
@@ -160,8 +164,8 @@ class DeterministicTSParser:
             self._warn(document, sentence, "unsupported_ambiguous_predication")
             return None
 
-        self._add_entity(document, subject, "individual", provenance)
-        self._add_entity(document, obj, object_type, provenance)
+        self._add_entity(document, subject, "individual", representation_provenance)
+        self._add_entity(document, obj, object_type, representation_provenance)
         claim = ClaimNode(
             id=_claim_id(
                 {
@@ -175,10 +179,10 @@ class DeterministicTSParser:
             predicate=predicate,
             object=obj,
             polarity=polarity,
-            status="proposed",
-            provenance=provenance,
+            status="unverified_premise",
+            provenance=claim_provenance,
         )
-        self._add_claim(document, claim, "CREATE_CLAIM", provenance)
+        self._add_claim(document, claim, "CREATE_CLAIM", representation_provenance)
         return claim
 
     def _add_target_obligation(
@@ -187,7 +191,8 @@ class DeterministicTSParser:
         target_text: str,
         declared_classes: set[str],
         declared_properties: set[str],
-        provenance: Provenance,
+        representation_provenance: Provenance,
+        claim_provenance: Provenance,
         *,
         required: bool,
         status_query: bool = False,
@@ -206,8 +211,10 @@ class DeterministicTSParser:
                     _normalize_phrase(universal.group(1), strip_things=True),
                 )
                 obj = _term_id("class", _normalize_phrase(universal.group(2)))
-                self._add_entity(document, subject, "property", provenance)
-                self._add_entity(document, obj, "class", provenance)
+                self._add_entity(
+                    document, subject, "property", representation_provenance
+                )
+                self._add_entity(document, obj, "class", representation_provenance)
                 target = ClaimNode(
                     id=_claim_id(
                         {
@@ -220,7 +227,7 @@ class DeterministicTSParser:
                     predicate="implies_property",
                     object=obj,
                     status="under_verification",
-                    provenance=provenance,
+                    provenance=claim_provenance,
                 )
                 document.add_claim_once(target)
             else:
@@ -228,7 +235,8 @@ class DeterministicTSParser:
                     target_text,
                     declared_classes=declared_classes,
                     declared_properties=declared_properties,
-                    provenance=provenance,
+                    representation_provenance=representation_provenance,
+                    claim_provenance=claim_provenance,
                 )
                 if parsed_target is None:
                     self._warn(document, target_text, "unsupported_target")
@@ -256,7 +264,14 @@ class DeterministicTSParser:
                 premises=sorted(
                     claim.id
                     for claim in document.claims
-                    if claim.id != target.id and claim.status == "proposed"
+                    if claim.id != target.id
+                    and claim.status
+                    in {
+                        "proposed",
+                        "asserted",
+                        "transaction_assumption",
+                        "unverified_premise",
+                    }
                 ),
                 expected_property={"status_query": status_query},
                 required=required,
@@ -267,11 +282,67 @@ class DeterministicTSParser:
                     operation_type="REQUEST_VERIFICATION",
                     target=obligation.id,
                     payload={"target_claim": target.id, "verifier_type": "syllogism"},
-                    provenance=provenance,
+                    provenance=representation_provenance,
                 )
             )
         finally:
             self._active_document = old_active
+
+    def _add_arithmetic_obligation(
+        self,
+        document: TSIRDocument,
+        sentence: str,
+        provenance: Provenance,
+    ) -> bool:
+        expression = self._arithmetic_expression(sentence)
+        if expression is None:
+            return False
+        obligation = VerifierObligation(
+            id="obl:arith:" + stable_hash({"expression": expression})[:16],
+            verifier_type="arithmetic",
+            target_claim=expression,
+            expected_property={"expression": expression},
+            required=True,
+        )
+        document.obligations.append(obligation)
+        document.operations.append(
+            TSOperation(
+                operation_type="REQUEST_VERIFICATION",
+                target=obligation.id,
+                payload={
+                    "target_claim": expression,
+                    "verifier_type": "arithmetic",
+                },
+                provenance=provenance,
+            )
+        )
+        return True
+
+    def _arithmetic_expression(self, sentence: str) -> str | None:
+        value = sentence.strip().rstrip("?!.").strip()
+        lower = value.lower()
+        for prefix in (
+            "what is ",
+            "calculate ",
+            "compute ",
+            "verify that ",
+            "verify ",
+            "prove that ",
+            "prove ",
+        ):
+            if lower.startswith(prefix):
+                value = value[len(prefix) :].strip()
+                lower = value.lower()
+                break
+        if re.fullmatch(r"[0-9\s+\-*/().=%]+", value):
+            return value
+        if re.fullmatch(r"[0-9\s+\-*/().%]+\s+is\s+(even|odd)", lower):
+            return lower
+        if re.fullmatch(
+            r"[0-9\s+\-*/().%]+\s+(is\s+)?divisible\s+by\s+[0-9\s+\-*/().%]+", lower
+        ):
+            return lower
+        return None
 
     def _add_representation_challenge(
         self,
@@ -338,7 +409,16 @@ class DeterministicTSParser:
         document = TSIRDocument()
         self._active_document = document
         try:
-            provenance = Provenance("deterministic_parser", reliability=1.0)
+            representation_provenance = Provenance(
+                "deterministic_parser",
+                detail="deterministic surface-to-TSIR representation",
+                reliability=1.0,
+            )
+            claim_provenance = Provenance(
+                "user",
+                detail="user asserted premise; not verifier-derived truth",
+                reliability=0.5,
+            )
             sentences = self._sentences(text)
             declared_classes: set[str] = set()
             declared_properties: set[str] = set()
@@ -361,8 +441,12 @@ class DeterministicTSParser:
                     obj = _term_id("property", object_label)
                     declared_classes.add(subject)
                     declared_properties.add(obj)
-                    self._add_entity(document, subject, "class", provenance)
-                    self._add_entity(document, obj, "property", provenance)
+                    self._add_entity(
+                        document, subject, "class", representation_provenance
+                    )
+                    self._add_entity(
+                        document, obj, "property", representation_provenance
+                    )
                     claim = ClaimNode(
                         id=_claim_id(
                             {
@@ -374,14 +458,20 @@ class DeterministicTSParser:
                         subject=subject,
                         predicate="implies_property",
                         object=obj,
-                        status="proposed",
-                        provenance=provenance,
+                        status="unverified_premise",
+                        provenance=claim_provenance,
                     )
-                    self._add_claim(document, claim, "DECLARE_RULE", provenance)
+                    self._add_claim(
+                        document, claim, "DECLARE_RULE", representation_provenance
+                    )
 
             for sentence in sentences:
                 lower = sentence.lower()
                 if lower.startswith(("all ", "prove ", "determine ", "step ")):
+                    continue
+                if self._add_arithmetic_obligation(
+                    document, sentence, representation_provenance
+                ):
                     continue
                 if " can be " in lower:
                     self._warn(document, sentence, "unsupported_modal_ambiguity")
@@ -393,7 +483,8 @@ class DeterministicTSParser:
                     sentence,
                     declared_classes=declared_classes,
                     declared_properties=declared_properties,
-                    provenance=provenance,
+                    representation_provenance=representation_provenance,
+                    claim_provenance=claim_provenance,
                 )
                 if parsed is None and sentence:
                     self._warn(document, sentence, "unsupported_sentence")
@@ -407,7 +498,8 @@ class DeterministicTSParser:
                         target_text,
                         declared_classes,
                         declared_properties,
-                        provenance,
+                        representation_provenance,
+                        claim_provenance,
                         required=True,
                     )
                 elif lower.startswith("prove "):
@@ -417,7 +509,8 @@ class DeterministicTSParser:
                         target_text,
                         declared_classes,
                         declared_properties,
-                        provenance,
+                        representation_provenance,
+                        claim_provenance,
                         required=True,
                     )
                 elif lower.startswith("determine "):
@@ -433,7 +526,8 @@ class DeterministicTSParser:
                         target_text,
                         declared_classes,
                         declared_properties,
-                        provenance,
+                        representation_provenance,
+                        claim_provenance,
                         required=True,
                         status_query=True,
                     )

@@ -182,13 +182,20 @@ class TraceProcessor:
             return False
         obligations = receipt.get("verifier_obligations", [])
         results = receipt.get("verification_results", [])
-        passed = {
-            str(result.get("obligation_id", ""))
-            for result in results
-            if result.get("outcome") == "pass"
-        }
+        results_by_obligation: dict[str, list[dict[str, Any]]] = {}
+        for result in results:
+            results_by_obligation.setdefault(
+                str(result.get("obligation_id", "")), []
+            ).append(result)
         for obligation in obligations:
-            if obligation.get("required", True) and obligation.get("id") not in passed:
+            if not obligation.get("required", True):
+                continue
+            obligation_results = results_by_obligation.get(
+                str(obligation.get("id", "")), []
+            )
+            if len(obligation_results) != 1:
+                return False
+            if obligation_results[0].get("outcome") != "pass":
                 return False
         if receipt.get("commit_reason", "").startswith("requires_repair"):
             return False

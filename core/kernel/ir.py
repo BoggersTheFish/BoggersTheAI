@@ -23,6 +23,9 @@ PROVENANCE_SOURCES = {
 
 STATE_STATUSES = {
     "proposed",
+    "asserted",
+    "transaction_assumption",
+    "unverified_premise",
     "sandboxed",
     "under_verification",
     "accepted",

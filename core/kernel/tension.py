@@ -36,8 +36,10 @@ class TensionReport:
 def build_tension_report(
     document: TSIRDocument,
     verification_results: list[Any] | None = None,
+    obligations: list[Any] | None = None,
 ) -> TensionReport:
     verification_results = verification_results or []
+    obligations = obligations if obligations is not None else list(document.obligations)
     by_type = {name: 0.0 for name in sorted(TENSION_TYPES)}
     by_node: dict[str, list[dict[str, Any]]] = {}
     by_claim: dict[str, list[dict[str, Any]]] = {}
@@ -53,9 +55,9 @@ def build_tension_report(
             actions.append("branch_or_abstain_on_ambiguous_representation")
 
     claims = list(document.claims)
-    by_signature: dict[tuple[str, str, str, str], list[ClaimNode]] = {}
+    by_signature: dict[tuple[str, str, str], list[ClaimNode]] = {}
     for claim in claims:
-        key = (claim.subject, claim.predicate, claim.object, claim.modality)
+        key = (claim.subject, claim.predicate, claim.object)
         by_signature.setdefault(key, []).append(claim)
         reliability = float(claim.provenance.reliability)
         if claim.status == "accepted" and reliability < 0.7:
@@ -82,13 +84,14 @@ def build_tension_report(
                     }
                 )
 
-    result_by_obligation = {
-        str(getattr(result, "obligation_id", "")): str(getattr(result, "outcome", ""))
-        for result in verification_results
-    }
-    for obligation in document.obligations:
-        outcome = result_by_obligation.get(obligation.id)
-        if obligation.required and outcome != "pass":
+    results_by_obligation: dict[str, list[str]] = {}
+    for result in verification_results:
+        results_by_obligation.setdefault(
+            str(getattr(result, "obligation_id", "")), []
+        ).append(str(getattr(result, "outcome", "")))
+    for obligation in obligations:
+        outcomes = results_by_obligation.get(obligation.id, [])
+        if obligation.required and (len(outcomes) != 1 or outcomes[0] != "pass"):
             unresolved.append(obligation.id)
             by_type["verification_tension"] = max(by_type["verification_tension"], 1.0)
             actions.append("resolve_required_verifier_obligation")

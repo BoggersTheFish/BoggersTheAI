@@ -264,18 +264,47 @@ class CommitPolicyVerifier:
         obligation: VerifierObligation,
         workspace: Any,
     ) -> VerificationResult:
+        required = [
+            item
+            for item in getattr(workspace, "obligations", [])
+            if item.required and item.id != obligation.id
+        ]
+        results_by_obligation: dict[str, list[VerificationResult]] = {}
+        for result in workspace.verification_results:
+            results_by_obligation.setdefault(result.obligation_id, []).append(result)
+
+        missing = [
+            item.id for item in required if not results_by_obligation.get(item.id)
+        ]
+        duplicate = [
+            item.id
+            for item in required
+            if len(results_by_obligation.get(item.id, [])) > 1
+        ]
         failed = [
             result
-            for result in workspace.verification_results
+            for item in required
+            for result in results_by_obligation.get(item.id, [])
             if result.outcome != "pass"
-            and workspace.is_required_obligation(result.obligation_id)
         ]
-        if failed:
+        if missing or duplicate or failed:
+            issues = []
+            if missing:
+                issues.append("missing required results: " + ", ".join(sorted(missing)))
+            if duplicate:
+                issues.append(
+                    "duplicate required results: " + ", ".join(sorted(duplicate))
+                )
+            if failed:
+                issues.append(
+                    "failed required results: "
+                    + ", ".join(sorted(result.obligation_id for result in failed))
+                )
             return VerificationResult(
                 obligation.id,
                 self.verifier_type,
                 "fail",
-                "mandatory verifier obligations did not all pass",
+                "; ".join(issues),
                 evidence=[result.to_dict() for result in failed],
             )
         return VerificationResult(

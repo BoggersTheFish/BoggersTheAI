@@ -7,7 +7,7 @@ from typing import Any
 
 from ..graph.universal_living_graph import UniversalLivingGraph
 from .commit import commit_document, render_claim
-from .ir import ClaimNode, TSOperation, VerifierObligation, stable_hash
+from .ir import ClaimNode, Provenance, TSOperation, VerifierObligation, stable_hash
 from .obligations import (
     ArithmeticVerifier,
     BOGVMExecutionVerifier,
@@ -82,12 +82,14 @@ class TSKernel:
             target_claim="__document__",
             required=True,
         )
+        self._append_obligation(workspace, structural_obligation)
         self._append_result(
             workspace,
             self.structural_verifier.verify(structural_obligation, workspace),
         )
 
         for obligation in sorted(document.obligations, key=lambda item: item.id):
+            self._append_obligation(workspace, obligation)
             try:
                 if obligation.verifier_type == "syllogism":
                     result = self.syllogism_verifier.verify(obligation, workspace)
@@ -132,6 +134,7 @@ class TSKernel:
                 expected_property={"proof_object_hash": proof_hash},
                 required=True,
             )
+            self._append_obligation(workspace, bog_obligation)
             self._append_result(
                 workspace, self.bogvm_verifier.verify(bog_obligation, workspace)
             )
@@ -139,6 +142,7 @@ class TSKernel:
         initial_tension = build_tension_report(
             document,
             verification_results=workspace.verification_results,
+            obligations=workspace.obligations,
         )
         decision, reason = self._decide(workspace, initial_tension)
 
@@ -149,13 +153,17 @@ class TSKernel:
             required=True,
         )
         if decision in {CommitDecision.COMMIT, CommitDecision.BRANCH}:
-            self._append_result(
-                workspace, self.commit_policy.verify(commit_obligation, workspace)
-            )
+            self._append_obligation(workspace, commit_obligation)
+            commit_result = self.commit_policy.verify(commit_obligation, workspace)
+            self._append_result(workspace, commit_result)
+            if commit_result.outcome != "pass":
+                decision = CommitDecision.REJECT
+                reason = commit_result.explanation
 
         final_tension = build_tension_report(
             document,
             verification_results=workspace.verification_results,
+            obligations=workspace.obligations,
         )
         if (
             decision in {CommitDecision.COMMIT, CommitDecision.BRANCH}
@@ -164,12 +172,18 @@ class TSKernel:
             decision = CommitDecision.REJECT
             reason = "commit policy rejected unresolved mandatory obligations"
 
-        accepted_claim_ids = self._accepted_claim_ids(workspace, decision)
+        claim_status_by_id = self._claim_commit_statuses(workspace, decision)
+        accepted_claim_ids = {
+            claim_id
+            for claim_id, status in claim_status_by_id.items()
+            if status == "accepted"
+        }
         if decision == CommitDecision.COMMIT:
             workspace.committed_graph_delta = commit_document(
                 self.graph,
                 document,
                 accepted_claim_ids=accepted_claim_ids,
+                claim_status_by_id=claim_status_by_id,
             )
         elif decision == CommitDecision.BRANCH:
             workspace.committed_graph_delta = commit_document(
@@ -179,6 +193,7 @@ class TSKernel:
                 commit_branch_only=True,
             )
 
+        self._mark_bogvm_commit_authorization(workspace, decision)
         post_hash = graph_state_hash(self.graph)
         rendered = self._render(decision, reason, workspace)
         receipt = build_receipt(
@@ -188,10 +203,7 @@ class TSKernel:
             proposed_operations=[asdict(op) for op in document.operations],
             representation_warnings=list(document.diagnostics),
             tension_reports=[initial_tension.to_dict(), final_tension.to_dict()],
-            verifier_obligations=[
-                asdict(structural_obligation),
-                *[asdict(item) for item in document.obligations],
-            ],
+            verifier_obligations=[asdict(item) for item in workspace.obligations],
             verification_results=[
                 result.to_dict() for result in workspace.verification_results
             ],
@@ -209,6 +221,7 @@ class TSKernel:
             renderer_metadata={
                 "rendered_language_is_not_proof": True,
                 "renderer": "deterministic_kernel_renderer",
+                "replay_verified": False,
             },
             reasoning_artifacts=[
                 {"artifact_type": "TSIR", "hash": document.hash()},
@@ -251,6 +264,13 @@ class TSKernel:
     ) -> None:
         workspace.verification_results.append(result)
 
+    def _append_obligation(
+        self,
+        workspace: TransactionWorkspace,
+        obligation: VerifierObligation,
+    ) -> None:
+        workspace.add_obligation(obligation)
+
     def _materialize_proof_claim(
         self,
         workspace: TransactionWorkspace,
@@ -265,9 +285,13 @@ class TSKernel:
             predicate=target.predicate,
             object=target.object,
             polarity=target.polarity,
-            modality=target.modality,
+            modality="verified",
             status="accepted",
-            provenance=target.provenance,
+            provenance=Provenance(
+                "verifier",
+                detail=f"derived_by:{obligation.id}",
+                reliability=1.0,
+            ),
         )
         workspace.document.claims = [
             accepted if claim.id == accepted.id else claim
@@ -344,29 +368,36 @@ class TSKernel:
             "mandatory verifiers passed and commit is authorized",
         )
 
-    def _accepted_claim_ids(
+    def _claim_commit_statuses(
         self,
         workspace: TransactionWorkspace,
         decision: CommitDecision,
-    ) -> set[str]:
+    ) -> dict[str, str]:
         if decision != CommitDecision.COMMIT:
-            return set()
+            return {}
+        statuses: dict[str, str] = {}
+        produced: set[str] = set()
+        consumed: set[str] = set()
+        for result in workspace.verification_results:
+            if result.outcome != "pass":
+                continue
+            produced.update(result.produced_claims)
+            consumed.update(result.consumed_premises)
+        for claim_id in sorted(produced):
+            statuses[claim_id] = "accepted"
+        for claim_id in sorted(consumed):
+            statuses.setdefault(claim_id, "transaction_assumption")
         if workspace.document.obligations:
-            produced: set[str] = set()
-            for result in workspace.verification_results:
-                if result.outcome == "pass":
-                    produced.update(result.produced_claims)
-            premise_ids = {
-                premise
-                for obligation in workspace.document.obligations
-                for premise in obligation.premises
-            }
-            return produced | premise_ids
-        return {
-            claim.id
-            for claim in workspace.document.claims
-            if claim.status in {"proposed", "accepted"}
-        }
+            return statuses
+        for claim in workspace.document.claims:
+            if claim.status in {
+                "proposed",
+                "asserted",
+                "transaction_assumption",
+                "unverified_premise",
+            }:
+                statuses.setdefault(claim.id, "unverified_premise")
+        return statuses
 
     def _render(
         self,
@@ -380,11 +411,32 @@ class TSKernel:
                 f"{render_claim(claim, workspace.document)}. "
                 "The receipt contains the proof object and verifier results."
             )
+        arithmetic = [
+            result
+            for result in workspace.verification_results
+            if result.verifier_type == "arithmetic" and result.outcome == "pass"
+        ]
+        if arithmetic and decision == CommitDecision.COMMIT:
+            evidence = arithmetic[-1].evidence[0] if arithmetic[-1].evidence else {}
+            expression = evidence.get("expression", "the arithmetic proposition")
+            computed = evidence.get("computed")
+            parsed_kind = evidence.get("parsed_kind")
+            if parsed_kind == "truthy_expression":
+                return f"{expression} = {computed}. The arithmetic verifier passed."
+            return "The arithmetic verifier passed."
         if decision == CommitDecision.QUARANTINE:
             return "The claim is under contradiction tension; no clean certainty was committed."
         if decision == CommitDecision.BRANCH:
             return "The representation was branched because authoritative evidence challenged the entity."
         return reason
+
+    def _mark_bogvm_commit_authorization(
+        self,
+        workspace: TransactionWorkspace,
+        decision: CommitDecision,
+    ) -> None:
+        for artifact in workspace.bogvm_artifacts:
+            artifact["state_commit_authorized"] = decision == CommitDecision.COMMIT
 
     def _verify_replay_from_workspace(
         self,
@@ -415,4 +467,7 @@ class TSKernel:
                     weight=edge.weight,
                     relation=edge.relation,
                 )
-        return replay_receipt(replay_graph, receipt) == receipt.post_state_hash
+        return (
+            replay_receipt(replay_graph, receipt, verify_hash=False)
+            == receipt.post_state_hash
+        )

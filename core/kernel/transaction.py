@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Any
 
 from ..types import Edge, Node
-from .ir import TSIRDocument, stable_hash
+from .ir import TSIRDocument, VerifierObligation, stable_hash
 
 
 class CommitDecision(str, Enum):
@@ -34,6 +34,7 @@ class TransactionWorkspace:
     document: TSIRDocument
     base_nodes: dict[str, Node]
     base_edges: list[Edge]
+    obligations: list[VerifierObligation] = field(default_factory=list)
     proof_objects: list[Any] = field(default_factory=list)
     verification_results: list[Any] = field(default_factory=list)
     bogvm_artifacts: list[dict[str, Any]] = field(default_factory=list)
@@ -44,12 +45,15 @@ class TransactionWorkspace:
     )
 
     def is_required_obligation(self, obligation_id: str) -> bool:
-        if obligation_id.startswith("kernel:"):
-            return True
-        for obligation in self.document.obligations:
+        for obligation in self.obligations:
             if obligation.id == obligation_id:
                 return obligation.required
         return False
+
+    def add_obligation(self, obligation: VerifierObligation) -> None:
+        if any(existing.id == obligation.id for existing in self.obligations):
+            return
+        self.obligations.append(obligation)
 
 
 @dataclass(frozen=True, slots=True)

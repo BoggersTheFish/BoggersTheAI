@@ -32,6 +32,7 @@ def commit_document(
     document: TSIRDocument,
     *,
     accepted_claim_ids: set[str],
+    claim_status_by_id: dict[str, str] | None = None,
     commit_branch_only: bool = False,
 ) -> dict[str, Any]:
     """Apply accepted TSIR deltas atomically to the persistent graph."""
@@ -42,6 +43,9 @@ def commit_document(
         for entity in sorted(document.entities, key=lambda item: item.id):
             if commit_branch_only and entity.entity_type != "branch":
                 continue
+            entity_status = (
+                "branched" if entity.entity_type == "branch" else "represented"
+            )
             node = graph.add_node(
                 node_id=entity.id,
                 content=entity.label,
@@ -50,27 +54,43 @@ def commit_document(
                 stability=0.9,
                 base_strength=0.6,
                 attributes={
-                    "status": (
-                        "accepted" if entity.entity_type != "branch" else "branched"
-                    ),
+                    "status": entity_status,
                     "tsir": asdict(entity),
                 },
             )
             delta["nodes"].append(asdict(node))
 
+        claim_status_by_id = claim_status_by_id or {}
         for claim in sorted(document.claims, key=lambda item: item.id):
-            if commit_branch_only or claim.id not in accepted_claim_ids:
+            if commit_branch_only:
                 continue
+            commit_status = claim_status_by_id.get(claim.id)
+            if commit_status is None and claim.id in accepted_claim_ids:
+                commit_status = "accepted"
+            if commit_status is None:
+                continue
+            existing = graph.nodes.get(claim.id)
+            if (
+                existing is not None
+                and existing.attributes.get("status") == "accepted"
+                and commit_status != "accepted"
+            ):
+                continue
+            accepted = commit_status == "accepted"
+            tsir_payload = asdict(claim)
+            tsir_payload["status"] = commit_status
             node = graph.add_node(
                 node_id=claim.id,
                 content=render_claim(claim, document),
-                topics=["tsir_claim", claim.predicate, "accepted"],
+                topics=["tsir_claim", claim.predicate, commit_status],
                 activation=0.0,
-                stability=0.95,
-                base_strength=0.7,
+                stability=0.95 if accepted else 0.6,
+                base_strength=0.7 if accepted else 0.45,
                 attributes={
-                    "status": "accepted",
-                    "tsir": asdict(claim),
+                    "status": commit_status,
+                    "epistemic_status": commit_status,
+                    "asserted_assumption": not accepted,
+                    "tsir": tsir_payload,
                 },
             )
             delta["nodes"].append(asdict(node))
