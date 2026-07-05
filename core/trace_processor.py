@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
 
+from .kernel.receipts import validate_receipt_hash
+
 
 @dataclass(slots=True)
 class TraceProcessorConfig:
@@ -24,11 +26,24 @@ class TraceProcessor:
     def build_dataset(self, max_samples: int = 5000) -> dict:
         cap = max(1, min(int(max_samples), int(self.config.max_samples)))
         rows: List[Dict[str, Any]] = []
+        rejected_rows: List[Dict[str, Any]] = []
+        category_counts: Dict[str, int] = {}
         confidence_values: List[float] = []
 
         if self.traces_dir.exists():
             for trace_file in sorted(self.traces_dir.glob("*.jsonl")):
                 for raw in self._read_jsonl(trace_file):
+                    category = self._trace_category(raw)
+                    category_counts[category] = category_counts.get(category, 0) + 1
+                    if not self._is_training_eligible(raw):
+                        rejected_rows.append(
+                            {
+                                "trace_category": category,
+                                "query": raw.get("query", ""),
+                                "reason": "not_a_replay_verified_committed_transaction",
+                            }
+                        )
+                        continue
                     confidence = float(raw.get("confidence", 0.0))
                     if confidence < float(self.config.min_confidence):
                         continue
@@ -49,8 +64,10 @@ class TraceProcessor:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         train_path = self.output_dir / "train.jsonl"
         val_path = self.output_dir / "val.jsonl"
+        rejected_path = self.output_dir / "rejected_traces.jsonl"
         self._write_jsonl(train_path, train_rows)
         self._write_jsonl(val_path, val_rows)
+        self._write_jsonl(rejected_path, rejected_rows)
 
         avg_confidence = (
             sum(confidence_values) / len(confidence_values)
@@ -67,11 +84,15 @@ class TraceProcessor:
             "output_dir": str(self.output_dir),
             "train_path": str(train_path),
             "val_path": str(val_path),
+            "rejected_path": str(rejected_path),
+            "category_counts": category_counts,
         }
 
     def _resolve_config(self, config: object | None) -> TraceProcessorConfig:
         if config is None:
             return TraceProcessorConfig()
+        if isinstance(config, TraceProcessorConfig):
+            return config
 
         if isinstance(config, dict):
             inference = config.get("inference", {})
@@ -123,6 +144,56 @@ class TraceProcessor:
             "input": f"Graph context (tension: {tension:.2f}, cycle: {cycle})",
             "output": f"{answer}\n\nReasoning trace: {reasoning_trace}",
         }
+
+    def _trace_category(self, raw: Dict[str, Any]) -> str:
+        explicit = str(raw.get("trace_category", "")).strip()
+        if explicit:
+            return explicit
+        receipt = raw.get("receipt")
+        if isinstance(receipt, dict):
+            decision = str(receipt.get("commit_decision", ""))
+            if decision == "commit":
+                return "verified_success"
+            if decision == "reject":
+                return "verified_rejection"
+            if decision == "abstain":
+                return "abstention"
+            if decision == "quarantine":
+                return "verifier_failure"
+            if decision == "branch":
+                return "representation_failure"
+        return "unverified_confidence_trace"
+
+    def _is_training_eligible(self, raw: Dict[str, Any]) -> bool:
+        receipt = raw.get("receipt")
+        if not isinstance(receipt, dict):
+            return False
+        if receipt.get("commit_decision") != "commit":
+            return False
+        if not validate_receipt_hash(receipt):
+            return False
+        renderer_metadata = receipt.get("renderer_metadata", {})
+        replay_verified = bool(raw.get("replay_verified", False)) or bool(
+            renderer_metadata.get("replay_verified", False)
+            if isinstance(renderer_metadata, dict)
+            else False
+        )
+        if not replay_verified:
+            return False
+        obligations = receipt.get("verifier_obligations", [])
+        results = receipt.get("verification_results", [])
+        passed = {
+            str(result.get("obligation_id", ""))
+            for result in results
+            if result.get("outcome") == "pass"
+        }
+        for obligation in obligations:
+            if obligation.get("required", True) and obligation.get("id") not in passed:
+                return False
+        if receipt.get("commit_reason", "").startswith("requires_repair"):
+            return False
+        operations = receipt.get("proposed_operations", [])
+        return any(op.get("provenance") for op in operations)
 
     def _read_jsonl(self, path: Path) -> List[Dict[str, Any]]:
         rows: List[Dict[str, Any]] = []

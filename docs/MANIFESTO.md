@@ -138,6 +138,21 @@ hashed, and reproducible.
 5. **Archive satellites stay frozen.** Fifty-two historic repositories merged into
    this claim boundary. Development happens here only.
 
+### Executable Kernel Boundary
+
+These rules now have a canonical implementation boundary in
+`core/kernel/TSKernel`. The kernel receives a request, builds a proposed
+`TSIR-0.1` representation, validates it, applies deltas only in a transaction
+sandbox, derives typed tensions and verifier obligations, runs typed verifiers
+and semantic BOGVM-linked execution where applicable, then either commits,
+rejects, quarantines, branches, repairs or abstains. The result is a hash-linked
+`TSReceipt-0.1`.
+
+The first implemented domain is deliberately narrow typed syllogistic reasoning.
+It is not a claim of universal cognition. It is the first executable proof that
+the repository can separate proposal from accepted state and replay the accepted
+transition without treating language or confidence as authority.
+
 ---
 
 ## VI. How to Read This Stack (The Trap You Walked Into)

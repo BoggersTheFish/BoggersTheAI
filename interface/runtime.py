@@ -26,6 +26,7 @@ from ..core import (
     ModeManager,
     QueryAdapters,
     QueryProcessor,
+    QueryResponse,
     QueryRouter,
     RegistryIngestAdapter,
     RouterConfig,
@@ -34,6 +35,7 @@ from ..core.events import bus
 from ..core.fine_tuner import UnslothFineTuner
 from ..core.graph.universal_living_graph import UniversalLivingGraph
 from ..core.health import health_checker
+from ..core.kernel import TransactionRequest, TSKernel
 from ..core.local_llm import LocalLLM
 from ..core.metrics import metrics
 from ..core.plugins import adapter_plugins, tool_plugins
@@ -171,6 +173,7 @@ class BoggersRuntime:
 
         self.graph = UniversalLivingGraph(config=self.config)
         self.graph.load()
+        self.kernel = TSKernel(graph=self.graph)
 
         self._setup_embedder()
 
@@ -356,12 +359,55 @@ class BoggersRuntime:
         bus.emit("query", query=query)
         metrics.increment("queries_total")
         with metrics.timer("ask_duration"):
-            effective_query = self._apply_history_context(query)
-            response = self.query_router.process_text(effective_query)
+            if self.kernel.can_handle(query):
+                tx_result = self.transact(query)
+                response = self._query_response_from_transaction(query, tx_result)
+            else:
+                effective_query = self._apply_history_context(query)
+                response = self.query_router.process_text(effective_query)
         response.query = query
         self._save_conversation_turn(user_query=query, answer=response.answer)
         bus.emit("query_complete", query=query, answer=response.answer)
         return response
+
+    def transact(self, query: str):
+        return self.kernel.transact(
+            TransactionRequest(raw_input=query, provenance="user", render_language=True)
+        )
+
+    def propose(self, query: str):
+        return self.kernel.parser.parse(query).document
+
+    def verify(self, query: str):
+        return self.transact(query).receipt
+
+    def replay(self, receipt: dict) -> str:
+        return self.kernel.replay(receipt)
+
+    def _query_response_from_transaction(self, query: str, tx_result) -> QueryResponse:
+        receipt = tx_result.receipt.to_dict()
+        topics = ["kernel", tx_result.decision.value]
+        confidence = 1.0 if tx_result.decision.value == "commit" else 0.0
+        return QueryResponse(
+            query=query,
+            topics=topics,
+            context=[],
+            sufficiency_score=1.0,
+            used_research=False,
+            used_tool=False,
+            tool_name=None,
+            context_nodes=[],
+            activation_scores=[],
+            consolidated_merges=0,
+            insight_path=None,
+            hypotheses=[],
+            confidence=confidence,
+            reasoning_trace="canonical_kernel_transaction",
+            answer=tx_result.rendered,
+            receipt=receipt,
+            decision=tx_result.decision.value,
+            receipt_hash=tx_result.receipt.receipt_hash,
+        )
 
     def ask_audio(self, audio: bytes):
         with self._state_lock:

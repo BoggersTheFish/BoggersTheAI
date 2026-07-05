@@ -177,7 +177,29 @@ Only then do we decide what the next wave looks like or whether we need to chang
 This is the serious plan.
 
 **Current Progress (as of 2026-06, post multiple probes):**
-- Wave 0 foundation: Unified TSEngine (core/ts_engine.py) tying graph/waves/verifier/BOGVM/language/intuition. BOGVM first-class (attach/spawn in universal_living_graph + bridge). VerifierOS (kernel + arithmetic). TSLC v0.2 (clean claims, plans). Hard tasks + scale support.
+- Wave 0 foundation now has a canonical transaction kernel:
+  `core/kernel/TSKernel`. The kernel owns TSIR proposal, representation
+  validation, sandboxed graph mutation, typed tensions, verifier obligations,
+  semantic BOGVM-linked proof artifacts, commit policy, hash-linked
+  `TSReceipt-0.1`, and deterministic replay for the first narrow domain.
+- `TSEngine.process()` is a compatibility wrapper around `TSKernel.transact()`;
+  `BoggersRuntime.ask()` routes supported formal grammar through the same
+  kernel while retaining adapters, tools, sessions, dashboards and multimodal
+  infrastructure around it.
+- First vertical slice: `All mammals are warm-blooded. Whales are mammals.
+  Prove that whales are warm-blooded.` commits only after the syllogism verifier
+  passes and the proof-object-derived BOGVM execution artifact completes.
+  Invalid converse inference rejects, contradictions quarantine, and
+  representation challenge branches the entity instead of changing confidence.
+- Raw arithmetic `eval()` has been removed from verifier arithmetic and replaced
+  with an allowlisted AST grammar for arithmetic equality, parity and
+  divisibility.
+- Self-improvement dataset eligibility is receipt-gated: committed transaction,
+  mandatory verifier passes, valid receipt hash, replay evidence and explicit
+  provenance. Confidence-only traces are kept out of training data.
+- Legacy Wave 0 components remain: graph/waves/verifier/BOGVM/language/intuition
+  scaffolding, BOGVM bridge, VerifierOS compatibility, TSLC compatibility, hard
+  tasks and scale support.
 - Light factual: fast path in answer() for known (capital, 2+2 etc.) — direct graph fact, 2 waves, 0 BOGVM, no model. Clean + light receipt.
 - Full formal: process for "prove + execute" → TSLC → graph/waves → verifier (OS + kernel/arith) → real BOGVM (traces, 1-2+ execs) → synthesis.
 - Self-data (w0-4): generate_synthetic/collect_self_data on hard tasks using unified engine. Traces capture BOGVM/verif/synth. High-quality filter. Injection: conclusions as high-stability nodes (math/even/selfdata, high act/stability).

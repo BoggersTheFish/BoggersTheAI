@@ -16,12 +16,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import json
-import re
 import subprocess
 import tempfile
 
 from reasoner.ts_reasoner.runtime_kernel import VerifierFirstRuntimeKernel
 from reasoner.ts_reasoner.typed_support import make_typed_support
+
+from ..kernel.ir import TSIRDocument, VerifierObligation
+from ..kernel.obligations import ArithmeticVerifier
+from ..kernel.transaction import TransactionWorkspace
 
 
 class VerifierOS:
@@ -30,6 +33,7 @@ class VerifierOS:
     def __init__(self):
         self.kernel = VerifierFirstRuntimeKernel()
         self.receipts = []
+        self._arithmetic = ArithmeticVerifier()
 
     def verify_claim(self, premises: list[str], claim: str, state: dict = None) -> dict:
         """Core: use real kernel for typed verification."""
@@ -59,48 +63,37 @@ class VerifierOS:
         }
 
     def arithmetic_verify(self, expr: str, expected: bool = True) -> dict:
-        """New domain: arithmetic property, can delegate to BOGVM. Handles even/odd claims and exprs."""
-        expr_l = expr.lower().strip()
-        try:
-            # Direct support for "N is even" style
-            m = re.search(r"(\d+)\s+is\s+(even|odd)", expr_l)
-            if m:
-                n = int(m.group(1))
-                want_even = m.group(2) == "even"
-                passed = (n % 2 == 0) == want_even
-                support = make_typed_support(
-                    channel="arithmetic",
-                    premises=[expr],
-                    derived_claim=expr,
-                    verifier_passed=passed,
-                )
-                return {
-                    "passed": passed,
-                    "computed": n % 2 == 0,
-                    "support": support,
-                    "claim": expr,
-                }
-            # Fallback eval for = and simple
-            if "=" in expr:
-                left, right = expr.split("=", 1)
-                passed = eval(left.strip()) == eval(right.strip())
-            else:
-                computed = eval(expr)
-                passed = bool(computed) == expected
-            support = make_typed_support(
-                channel="arithmetic",
-                premises=[expr],
-                derived_claim=expr,
-                verifier_passed=passed,
-            )
-            return {
-                "passed": passed,
-                "computed": computed if "computed" in dir() else None,
-                "support": support,
-                "action": "accept" if passed else "open_repair",
-            }
-        except Exception as e:
-            return {"passed": False, "error": str(e)}
+        """Verify arithmetic through the canonical allowlisted AST grammar."""
+        obligation = VerifierObligation(
+            id="legacy:arithmetic",
+            verifier_type="arithmetic",
+            target_claim=expr,
+            expected_property={"expression": expr, "expected": expected},
+            required=True,
+        )
+        workspace = TransactionWorkspace(
+            base_graph_hash="legacy",
+            document=TSIRDocument(),
+            base_nodes={},
+            base_edges=[],
+        )
+        result = self._arithmetic.verify(obligation, workspace)
+        passed = result.outcome == "pass"
+        support = make_typed_support(
+            channel="arithmetic",
+            premises=[expr],
+            derived_claim=expr,
+            verifier_passed=passed,
+        )
+        return {
+            "passed": passed,
+            "outcome": result.outcome,
+            "explanation": result.explanation,
+            "evidence": result.evidence,
+            "support": support,
+            "claim": expr,
+            "action": "accept" if passed else "open_repair",
+        }
 
     def code_property_verify(self, plan: str, inputs: dict) -> dict:
         """BOGVM-backed code property checker for Wave 0."""

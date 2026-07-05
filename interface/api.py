@@ -48,4 +48,7 @@ def handle_query(
         "hypotheses": response.hypotheses,
         "confidence": response.confidence,
         "reasoning_trace": response.reasoning_trace,
+        "decision": getattr(response, "decision", None),
+        "receipt_hash": getattr(response, "receipt_hash", None),
+        "receipt": getattr(response, "receipt", None),
     }

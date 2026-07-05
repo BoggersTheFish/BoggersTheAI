@@ -101,6 +101,9 @@ class QueryResponse:
     confidence: float
     reasoning_trace: str
     answer: str
+    receipt: dict | None = None
+    decision: str | None = None
+    receipt_hash: str | None = None
 
 
 class QueryProcessor:
@@ -668,6 +671,8 @@ class QueryProcessor:
             "reasoning_trace": reasoning_trace,
             "graph_tension": float(wave_status.get("tension", 0.0)),
             "cycle_count": int(wave_status.get("cycle_count", 0)),
+            "trace_category": "unverified_confidence_trace",
+            "training_eligible": False,
         }
         trace_file.write_text(json.dumps(payload) + "\n", encoding="utf-8")
 

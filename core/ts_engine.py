@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from core.graph.universal_living_graph import UniversalLivingGraph
+from core.kernel import TransactionRequest, TSKernel
 from core.language.tslc import TSLCCompiler
 from core.verifier.verifier_os import VerifierOS
 from experiments.frontier.bogvm_graph_bridge import attach_bogvm_program
@@ -80,6 +81,7 @@ class TSEngine:
 
     def __init__(self, auto_load: bool = False):
         self.graph = UniversalLivingGraph(auto_load=auto_load)
+        self.kernel = TSKernel(graph=self.graph)
         self.verifier = VerifierOS()
         self.language = TSLCCompiler()
         self.proposer = SelfDataGenerator()
@@ -182,6 +184,7 @@ class TSEngine:
                 topics=topics,
                 stability=0.9,
                 base_strength=0.85,
+                attributes={"provenance": "system_seed", "demo_seed": True},
             )
 
         # Build small explanation graph for "why is the sky blue" so that waves + tension can perform reasoning
@@ -217,6 +220,7 @@ class TSEngine:
                     stability=0.85,
                     base_strength=0.8,
                     activation=0.2,
+                    attributes={"provenance": "system_seed", "demo_seed": True},
                 )
                 # Link them as "supports" or "explains" the main sky fact
                 self.graph.add_edge(
@@ -247,11 +251,11 @@ class TSEngine:
     def generate_response(self, query: str) -> str:
         """LLM-like generation: use the TS stack for reasoning, then synthesize with TensionLM."""
         receipt = self.process(query)
-        return (
-            receipt.synthesized_response
-            if hasattr(receipt, "synthesized_response")
-            else "No response synthesized."
-        )
+        if hasattr(receipt, "rendered_explanation"):
+            return receipt.rendered_explanation
+        if hasattr(receipt, "synthesized_response"):
+            return receipt.synthesized_response
+        return "No response synthesized."
 
     def _stable_hash(self, obj: Any) -> str:
         return hashlib.sha256(
@@ -260,6 +264,12 @@ class TSEngine:
 
     def process(self, text: str, use_bogvm: bool = True) -> TSReceipt:
         """Main entry: full TS pipeline for a query."""
+        kernel_result = self.kernel.transact(
+            TransactionRequest(raw_input=text, use_bogvm=use_bogvm)
+        )
+        self.receipts.append(kernel_result.receipt)
+        return kernel_result.receipt
+
         self.turn_counter += 1
         turn_id = f"turn-{self.turn_counter:04d}"
 

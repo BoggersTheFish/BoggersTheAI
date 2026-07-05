@@ -79,6 +79,7 @@ packages = [
   "BoggersTheAI.adapters",
   "BoggersTheAI.core",
   "BoggersTheAI.core.graph",
+  "BoggersTheAI.core.kernel",
   "BoggersTheAI.dashboard",
   "BoggersTheAI.entities",
   "BoggersTheAI.interface",
@@ -103,7 +104,7 @@ line-length = 88
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I"]
+select = ["E", "F", "W"]
 ignore = [
     "E501",  # black handles line length
     "E402",  # module level import not at top - legacy code in core-vm/reasoner

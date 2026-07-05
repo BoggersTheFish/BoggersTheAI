@@ -66,6 +66,63 @@ Full documentation: [`docs/`](docs/)
 
 ## Current Architecture (TS Engine for Verifiable Reasoning + Synthesis)
 
+### Canonical TS Kernel v0.1
+
+BoggersTheAI now has one canonical verifier-gated transaction boundary:
+
+```
+Input
+  ↓
+Representation proposal
+  ↓
+TSIR validation
+  ↓
+Transaction sandbox
+  ↓
+Waves + typed tensions
+  ↓
+Verifier obligations
+  ↓
+Semantic execution
+  ↓
+Commit policy
+  ├── Commit
+  ├── Reject
+  ├── Quarantine
+  ├── Repair
+  └── Abstain
+  ↓
+Receipt + optional rendering
+```
+
+The public API is `TSKernel.transact(request)`. `BoggersRuntime.ask()` routes the
+supported formal grammar through this kernel, and `TSEngine.process()` is now a
+compatibility wrapper around the same transaction path. The older query stack
+still provides retrieval, tools, sessions, adapters, dashboards and multimodal
+I/O, but accepted TS reasoning state is committed only by the kernel.
+
+The first vertical slice is deliberately narrow: typed syllogistic reasoning of
+the form `All X are Y`, `A is an X`, `A is not Y`, and
+`Prove/Determine whether A is Y`. It demonstrates proposal/state separation,
+sandboxed graph mutation,
+typed tensions, verifier obligations, semantic BOGVM-linked execution artifacts,
+atomic commit/reject/quarantine/branch decisions, hash-linked `TSReceipt-0.1`,
+and deterministic replay. It does not claim universal semantic understanding.
+
+Run it without Ollama, a GPU, or network access:
+
+```bash
+python -m core.kernel.demo
+python -m core.kernel.demo --json
+boggers kernel demo
+```
+
+Correct claim boundary:
+
+> BoggersTheAI now has a canonical verifier-gated transaction kernel that can
+> perform and replay a narrow class of typed reasoning tasks without treating
+> generated language or confidence as authority.
+
 **Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:
 
 - **Graph**: UniversalLivingGraph with nodes (facts, conclusions) carrying activation, stability, topics.
@@ -80,6 +137,11 @@ Full documentation: [`docs/`](docs/)
 **Full formal path**: "Prove X and execute" → full process → BOGVM traces (real execution) + verifier + synthesis. Produces self-data.
 
 **Self-data loop**: collect_self_data on hard tasks → high-quality traces with BOGVM/verifier/synth → inject conclusions as high-stability nodes → math/prove retrieval boosts them (is_mathy, topics, keywords) → proof prompt ("Prove the claim step by step using only these verified facts") + prioritized facts → synthesis references self-data.
+
+Canonical self-improvement eligibility is verifier-gated: a trace is training
+eligible only with a committed transaction, passing mandatory verifier
+obligations, a valid receipt hash, replay evidence and explicit provenance.
+Confidence-only traces are retained separately for repair/adversarial analysis.
 
 **Graph state** now includes self-data nodes (high stability, topics). Retrieval + prompts make them surface in formal reasoning.
 
