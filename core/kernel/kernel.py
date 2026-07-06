@@ -120,18 +120,17 @@ class TSKernel:
                         obligation.id,
                         obligation.verifier_type,
                         "error",
-                        str(exc),
-                        deterministic=False,
+                        f"{exc.__class__.__name__}: {exc}",
                     ),
                 )
 
-        for artifact in workspace.bogvm_artifacts:
-            proof_hash = str(artifact.get("proof_object_hash", ""))
+        for proof in workspace.proof_objects:
+            proof_hash = proof.hash()
             bog_obligation = VerifierObligation(
                 id="kernel:bogvm:" + proof_hash[:16],
                 verifier_type="bogvm_execution",
-                target_claim=str(artifact.get("target_claim", "")),
-                expected_property={"proof_object_hash": proof_hash},
+                target_claim=proof.target_claim,
+                expected_property={"semantic_proof_object_hash": proof_hash},
                 required=True,
             )
             self._append_obligation(workspace, bog_obligation)
@@ -313,6 +312,7 @@ class TSKernel:
         proof = workspace.proof_objects[-1]
         artifact = compile_proof_to_bogvm_artifact(proof, workspace.document)
         artifact["target_claim"] = proof.target_claim
+        artifact["semantic_proof_object_hash"] = proof.hash()
         semantic_pass = any(
             result.outcome == "pass"
             and result.verifier_type == "syllogism"
@@ -436,7 +436,18 @@ class TSKernel:
         decision: CommitDecision,
     ) -> None:
         for artifact in workspace.bogvm_artifacts:
-            artifact["state_commit_authorized"] = decision == CommitDecision.COMMIT
+            expected_hash = str(artifact.get("semantic_proof_object_hash", ""))
+            bogvm_passed = any(
+                result.verifier_type == "bogvm_execution"
+                and result.outcome == "pass"
+                and result.obligation_id == "kernel:bogvm:" + expected_hash[:16]
+                for result in workspace.verification_results
+            )
+            artifact["state_commit_authorized"] = (
+                decision == CommitDecision.COMMIT
+                and bool(artifact.get("proof_obligation_satisfied", False))
+                and bogvm_passed
+            )
 
     def _verify_replay_from_workspace(
         self,

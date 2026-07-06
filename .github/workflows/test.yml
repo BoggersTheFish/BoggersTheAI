@@ -33,5 +33,7 @@ jobs:
         run: isort --check .
       - name: Type check with mypy
         run: mypy core/kernel --explicit-package-bases --ignore-missing-imports --follow-imports=skip --no-error-summary
+      - name: Package smoke type check with mypy
+        run: mypy core/kernel core/trace_processor.py core/ts_engine.py interface/api.py --ignore-missing-imports --follow-imports=skip --no-error-summary
       - name: Run tests
         run: pytest --cov=BoggersTheAI --cov-report=term-missing --cov-fail-under=60

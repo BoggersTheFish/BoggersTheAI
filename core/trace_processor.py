@@ -147,21 +147,27 @@ class TraceProcessor:
 
     def _trace_category(self, raw: Dict[str, Any]) -> str:
         explicit = str(raw.get("trace_category", "")).strip()
-        if explicit:
-            return explicit
         receipt = raw.get("receipt")
         if isinstance(receipt, dict):
             decision = str(receipt.get("commit_decision", ""))
             if decision == "commit":
-                return "verified_success"
+                if explicit and explicit != "verified_success":
+                    return explicit
+                return (
+                    "verified_success"
+                    if self._is_training_eligible(raw)
+                    else "committed_unverified_trace"
+                )
             if decision == "reject":
-                return "verified_rejection"
+                return "repair_candidate"
             if decision == "abstain":
                 return "abstention"
             if decision == "quarantine":
-                return "verifier_failure"
+                return "quarantine_trace"
             if decision == "branch":
-                return "representation_failure"
+                return "adversarial_branch_trace"
+        if explicit and explicit != "verified_success":
+            return explicit
         return "unverified_confidence_trace"
 
     def _is_training_eligible(self, raw: Dict[str, Any]) -> bool:
@@ -200,7 +206,17 @@ class TraceProcessor:
         if receipt.get("commit_reason", "").startswith("requires_repair"):
             return False
         operations = receipt.get("proposed_operations", [])
-        return any(op.get("provenance") for op in operations)
+        return any(self._has_explicit_provenance(op) for op in operations)
+
+    def _has_explicit_provenance(self, operation: Any) -> bool:
+        if not isinstance(operation, dict):
+            return False
+        provenance = operation.get("provenance")
+        if not isinstance(provenance, dict):
+            return False
+        source = str(provenance.get("source", "")).strip()
+        detail = str(provenance.get("detail", "")).strip()
+        return bool(source and detail)
 
     def _read_jsonl(self, path: Path) -> List[Dict[str, Any]]:
         rows: List[Dict[str, Any]] = []
