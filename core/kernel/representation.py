@@ -47,6 +47,13 @@ def _normalize_phrase(text: str, *, strip_things: bool = False) -> str:
     return " ".join(normalized).replace(" ", "_").replace("-", "_")
 
 
+def _normalize_class_phrase(text: str) -> str:
+    lower = text.lower().strip()
+    if re.search(r"\bthings?$", lower) and "-" not in lower:
+        return _normalize_phrase(text)
+    return _normalize_phrase(text, strip_things=True)
+
+
 def _singularize(word: str) -> str:
     if word.endswith("ies") and len(word) > 4:
         return word[:-3] + "y"
@@ -422,48 +429,76 @@ class DeterministicTSParser:
             sentences = self._sentences(text)
             declared_classes: set[str] = set()
             declared_properties: set[str] = set()
+            universal_sentences: list[tuple[str, re.Match[str]]] = []
+            universal_subject_labels: set[str] = set()
+            article_class_labels: set[str] = set()
 
             for sentence in sentences:
                 universal = re.fullmatch(r"all (.+?) are (.+)", sentence, flags=re.I)
                 if universal:
-                    subject_raw = universal.group(1).strip()
-                    object_raw = universal.group(2).strip()
-                    if "hot dogs" in subject_raw.lower():
-                        self._warn(
-                            document,
-                            sentence,
-                            "unsupported_ambiguous_compound_universal",
-                        )
-                        continue
-                    subject_label = _normalize_phrase(subject_raw, strip_things=True)
-                    object_label = _normalize_phrase(object_raw, strip_things=True)
-                    subject = _term_id("class", subject_label)
-                    obj = _term_id("property", object_label)
-                    declared_classes.add(subject)
+                    universal_sentences.append((sentence, universal))
+                    universal_subject_labels.add(
+                        _normalize_class_phrase(universal.group(1))
+                    )
+                    continue
+                fact_match = re.fullmatch(
+                    r"(.+?)\s+(is|are)\s+(not\s+)?(an?\s+)(.+)",
+                    sentence,
+                    flags=re.I,
+                )
+                if fact_match:
+                    article_class_labels.add(
+                        _normalize_class_phrase(fact_match.group(5))
+                    )
+
+            for sentence, universal in universal_sentences:
+                subject_raw = universal.group(1).strip()
+                object_raw = universal.group(2).strip()
+                if "hot dogs" in subject_raw.lower():
+                    self._warn(
+                        document,
+                        sentence,
+                        "unsupported_ambiguous_compound_universal",
+                    )
+                    continue
+                subject_label = _normalize_class_phrase(subject_raw)
+                object_class_label = _normalize_class_phrase(object_raw)
+                object_property_label = _normalize_phrase(object_raw, strip_things=True)
+                subject = _term_id("class", subject_label)
+                object_is_class = (
+                    object_class_label in universal_subject_labels
+                    or object_class_label in article_class_labels
+                )
+                if object_is_class:
+                    obj = _term_id("class", object_class_label)
+                    predicate = "is_subclass_of"
+                    declared_classes.add(obj)
+                    object_type = "class"
+                else:
+                    obj = _term_id("property", object_property_label)
+                    predicate = "implies_property"
                     declared_properties.add(obj)
-                    self._add_entity(
-                        document, subject, "class", representation_provenance
-                    )
-                    self._add_entity(
-                        document, obj, "property", representation_provenance
-                    )
-                    claim = ClaimNode(
-                        id=_claim_id(
-                            {
-                                "predicate": "implies_property",
-                                "subject": subject,
-                                "object": obj,
-                            }
-                        ),
-                        subject=subject,
-                        predicate="implies_property",
-                        object=obj,
-                        status="unverified_premise",
-                        provenance=claim_provenance,
-                    )
-                    self._add_claim(
-                        document, claim, "DECLARE_RULE", representation_provenance
-                    )
+                    object_type = "property"
+                declared_classes.add(subject)
+                self._add_entity(document, subject, "class", representation_provenance)
+                self._add_entity(document, obj, object_type, representation_provenance)
+                claim = ClaimNode(
+                    id=_claim_id(
+                        {
+                            "predicate": predicate,
+                            "subject": subject,
+                            "object": obj,
+                        }
+                    ),
+                    subject=subject,
+                    predicate=predicate,
+                    object=obj,
+                    status="unverified_premise",
+                    provenance=claim_provenance,
+                )
+                self._add_claim(
+                    document, claim, "DECLARE_RULE", representation_provenance
+                )
 
             for sentence in sentences:
                 lower = sentence.lower()

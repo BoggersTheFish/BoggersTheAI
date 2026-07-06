@@ -5,13 +5,18 @@ import json
 import pytest
 
 from BoggersTheAI.core.graph.universal_living_graph import UniversalLivingGraph
-from BoggersTheAI.core.kernel import TSKernel, validate_receipt_hash
+from BoggersTheAI.core.kernel import TSKernel
+from BoggersTheAI.core.kernel import kernel as kernel_module
+from BoggersTheAI.core.kernel import validate_receipt_hash
 from BoggersTheAI.core.kernel.arithmetic import (
     ArithmeticParseError,
     SafeArithmeticEvaluator,
 )
-from BoggersTheAI.core.kernel.ir import stable_hash
-from BoggersTheAI.core.kernel.obligations import VerificationResult
+from BoggersTheAI.core.kernel.ir import VerifierObligation, stable_hash
+from BoggersTheAI.core.kernel.obligations import (
+    BOGVMExecutionVerifier,
+    VerificationResult,
+)
 from BoggersTheAI.core.kernel.replay import replay_receipt
 from BoggersTheAI.core.kernel.transaction import graph_state_hash
 from BoggersTheAI.core.trace_processor import TraceProcessor, TraceProcessorConfig
@@ -32,6 +37,22 @@ CONTRADICTION = """All mammals are warm-blooded.
 Whales are mammals.
 Whales are not warm-blooded.
 Determine the current status of the claim that whales are warm-blooded."""
+
+CHAIN_TWO_STEP = """All whales are mammals.
+All mammals are animals.
+Moby is a whale.
+Prove that Moby is an animal."""
+
+CHAIN_THREE_STEP = """All whales are mammals.
+All mammals are animals.
+All animals are living things.
+Moby is a whale.
+Prove that Moby is a living thing."""
+
+CHAIN_PROPERTY_TERMINAL = """All whales are mammals.
+All mammals are warm-blooded.
+Moby is a whale.
+Prove that Moby is warm-blooded."""
 
 
 def test_valid_syllogism_commits_receipt_and_replays():
@@ -117,6 +138,95 @@ def test_commit_policy_failure_blocks_mutation():
     )
 
 
+def test_duplicate_required_obligation_result_rejects_without_mutation():
+    class DuplicatingVerifier:
+        def __init__(self, delegate):
+            self.delegate = delegate
+
+        def verify(self, obligation, workspace):
+            result = self.delegate.verify(obligation, workspace)
+            workspace.verification_results.append(result)
+            return result
+
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    kernel.syllogism_verifier = DuplicatingVerifier(kernel.syllogism_verifier)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact(VALID)
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert "duplicate required results" in result.receipt.commit_reason
+    assert any(
+        item["obligation_id"] == "kernel:commit_policy" and item["outcome"] == "fail"
+        for item in result.receipt.verification_results
+    )
+
+
+def test_missing_required_verifier_result_rejects_without_mutation():
+    class MissingResultVerifier:
+        def __init__(self, delegate):
+            self.delegate = delegate
+
+        def verify(self, obligation, workspace):
+            workspace.add_obligation(
+                VerifierObligation(
+                    id="external:missing",
+                    verifier_type="external",
+                    target_claim="claim:external",
+                    required=True,
+                )
+            )
+            return self.delegate.verify(obligation, workspace)
+
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    kernel.syllogism_verifier = MissingResultVerifier(kernel.syllogism_verifier)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact(VALID)
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert "missing required results: external:missing" in result.receipt.commit_reason
+
+
+def test_unsupported_required_verifier_rejects_without_mutation():
+    class UnsupportedParser:
+        def __init__(self, delegate):
+            self.delegate = delegate
+
+        def parse(self, text):
+            parsed = self.delegate.parse(text)
+            parsed.document.obligations.append(
+                VerifierObligation(
+                    id="external:unsupported",
+                    verifier_type="unsupported_required_verifier",
+                    target_claim="claim:unsupported",
+                    required=True,
+                )
+            )
+            return parsed
+
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    kernel.parser = UnsupportedParser(kernel.parser)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact(VALID)
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    unsupported = [
+        item
+        for item in result.receipt.verification_results
+        if item["obligation_id"] == "external:unsupported"
+    ]
+    assert unsupported[0]["outcome"] == "unsupported"
+    assert unsupported[0]["outcome"] != "pass"
+
+
 def test_receipt_contains_all_required_obligations():
     receipt = (
         TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(VALID).receipt
@@ -142,6 +252,238 @@ def test_committed_artifact_marks_state_commit_authorized():
     assert artifact["execution_completed"] is True
     assert artifact["proof_obligation_satisfied"] is True
     assert artifact["state_commit_authorized"] is True
+
+
+def test_bogvm_artifact_proof_hash_mismatch_fails(monkeypatch):
+    original_compile = kernel_module.compile_proof_to_bogvm_artifact
+
+    def compile_with_bad_claimed_hash(proof, document):
+        artifact = original_compile(proof, document)
+        artifact["proof_object_hash"] = "bad-self-certified-proof-hash"
+        artifact["artifact_hash"] = stable_hash(artifact)
+        return artifact
+
+    monkeypatch.setattr(
+        kernel_module,
+        "compile_proof_to_bogvm_artifact",
+        compile_with_bad_claimed_hash,
+    )
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact(VALID)
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert result.receipt.BOGVM_artifacts[0]["proof_obligation_satisfied"] is True
+    assert result.receipt.BOGVM_artifacts[0]["state_commit_authorized"] is False
+    assert any(
+        item["verifier_type"] == "bogvm_execution" and item["outcome"] == "fail"
+        for item in result.receipt.verification_results
+    )
+
+
+def test_bogvm_execution_success_alone_cannot_authorize_state_commit():
+    class Workspace:
+        bogvm_artifacts = [
+            {
+                "target_claim": "claim:target",
+                "semantic_proof_object_hash": "proof:semantic",
+                "proof_object_hash": "proof:semantic",
+                "execution_completed": True,
+                "proof_obligation_satisfied": False,
+                "state_commit_authorized": False,
+                "artifact_hash": "artifact",
+            }
+        ]
+
+    obligation = VerifierObligation(
+        id="kernel:bogvm:proof",
+        verifier_type="bogvm_execution",
+        target_claim="claim:target",
+        expected_property={"semantic_proof_object_hash": "proof:semantic"},
+        required=True,
+    )
+
+    result = BOGVMExecutionVerifier().verify(obligation, Workspace())
+
+    assert result.outcome == "fail"
+    assert result.evidence[0]["execution_completed"] is True
+    assert result.evidence[0]["proof_obligation_satisfied"] is False
+
+
+def test_semantic_proof_and_bogvm_execution_are_recorded_separately():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(VALID).receipt
+    )
+
+    semantic = [
+        item
+        for item in receipt.verification_results
+        if item["verifier_type"] == "syllogism"
+    ]
+    execution = [
+        item
+        for item in receipt.verification_results
+        if item["verifier_type"] == "bogvm_execution"
+    ]
+    artifact = receipt.BOGVM_artifacts[0]
+
+    assert semantic and semantic[0]["outcome"] == "pass"
+    assert execution and execution[0]["outcome"] == "pass"
+    assert artifact["execution_completed"] is True
+    assert artifact["proof_obligation_satisfied"] is True
+    assert artifact["semantic_proof_object_hash"] == semantic[0]["artifact_hashes"][0]
+
+
+def test_failed_required_bogvm_obligation_rejects_without_mutating_graph(monkeypatch):
+    original_compile = kernel_module.compile_proof_to_bogvm_artifact
+
+    def compile_with_failed_execution(proof, document):
+        artifact = original_compile(proof, document)
+        artifact["execution_completed"] = False
+        artifact["artifact_hash"] = stable_hash(artifact)
+        return artifact
+
+    monkeypatch.setattr(
+        kernel_module,
+        "compile_proof_to_bogvm_artifact",
+        compile_with_failed_execution,
+    )
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact(VALID)
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert any(
+        item["verifier_type"] == "bogvm_execution" and item["outcome"] == "fail"
+        for item in result.receipt.verification_results
+    )
+
+
+def test_direct_one_step_proof_still_works():
+    result = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(VALID)
+
+    assert result.decision.value == "commit"
+    assert len(result.receipt.proof_artifacts[0]["payload"]["steps"]) == 1
+
+
+def test_two_step_class_chain_proof_works():
+    result = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        CHAIN_TWO_STEP
+    )
+
+    assert result.decision.value == "commit"
+    assert "moby is a animal" in result.rendered
+    assert len(result.receipt.proof_artifacts[0]["payload"]["steps"]) == 2
+
+
+def test_three_step_class_chain_proof_works():
+    result = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        CHAIN_THREE_STEP
+    )
+
+    assert result.decision.value == "commit"
+    assert "moby is a living thing" in result.rendered
+    assert len(result.receipt.proof_artifacts[0]["payload"]["steps"]) == 3
+
+
+def test_class_to_property_terminal_chain_proof_works():
+    result = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        CHAIN_PROPERTY_TERMINAL
+    )
+
+    assert result.decision.value == "commit"
+    assert "warm blooded" in result.rendered
+    assert len(result.receipt.proof_artifacts[0]["payload"]["steps"]) == 2
+
+
+def test_missing_bridge_rule_fails():
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact("""All whales are mammals.
+All animals are living things.
+Moby is a whale.
+Prove that Moby is a living thing.""")
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert not result.receipt.proof_artifacts
+
+
+def test_unsupported_target_fails_deterministically():
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact("""All whales are mammals.
+Moby is a whale.
+Prove that Moby is not an animal.""")
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert any(
+        item["verifier_type"] == "syllogism"
+        and item["outcome"] == "fail"
+        and item["deterministic"] is True
+        for item in result.receipt.verification_results
+    )
+
+
+def test_proof_object_contains_multiple_steps():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(CHAIN_THREE_STEP)
+        .receipt
+    )
+
+    steps = receipt.proof_artifacts[0]["payload"]["steps"]
+
+    assert len(steps) == 3
+    assert all(step["rule_id"].startswith("claim:") for step in steps)
+    assert (
+        steps[-1]["produced_claim"]
+        == receipt.proof_artifacts[0]["payload"]["target_claim"]
+    )
+
+
+def test_proof_object_hash_is_stable_across_repeated_runs():
+    first = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(CHAIN_THREE_STEP)
+        .receipt
+    )
+    second = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(CHAIN_THREE_STEP)
+        .receipt
+    )
+
+    assert first.proof_artifacts[0]["hash"] == second.proof_artifacts[0]["hash"]
+
+
+def test_negative_fact_does_not_license_contrapositive_inference():
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact("""All mammals are warm-blooded.
+Whales are not warm-blooded.
+Prove that whales are not mammals.""")
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    assert not result.receipt.derived_claims
+    assert any(
+        item["verifier_type"] == "syllogism" and item["outcome"] == "fail"
+        for item in result.receipt.verification_results
+    )
 
 
 def test_tse_engine_answer_compatibility():
@@ -263,6 +605,13 @@ def test_atomicity_on_verifier_error_after_sandbox_parse():
     assert any(
         item["outcome"] == "error" for item in result.receipt.verification_results
     )
+    error = [
+        item
+        for item in result.receipt.verification_results
+        if item["outcome"] == "error"
+    ][0]
+    assert error["deterministic"] is True
+    assert "RuntimeError: forced verifier failure" in error["explanation"]
 
 
 def test_receipt_round_trip_hash_validation():
@@ -334,6 +683,42 @@ def test_replay_rejects_post_state_mismatch():
     assert graph_state_hash(replay_graph) == before
 
 
+def test_replay_rolls_back_after_partial_mutation_failure():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(VALID).receipt
+    )
+    replay_graph = UniversalLivingGraph(auto_load=False)
+    before = graph_state_hash(replay_graph)
+    payload = receipt.to_dict()
+    payload["committed_graph_delta"]["edges"].append(
+        {"dst": "missing-src-key", "relation": "broken", "weight": 1.0}
+    )
+    payload["receipt_hash"] = _receipt_hash_for_payload(payload)
+
+    with pytest.raises((KeyError, ValueError)):
+        replay_receipt(replay_graph, payload)
+
+    assert graph_state_hash(replay_graph) == before
+
+
+def test_receipt_authority_boundary_hash_fields():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(VALID).receipt
+    )
+
+    authoritative = receipt.to_dict()
+    authoritative["commit_decision"] = "reject"
+    assert validate_receipt_hash(authoritative) is False
+
+    non_authoritative_timestamp = receipt.to_dict()
+    non_authoritative_timestamp["timestamp"] = "2099-01-01T00:00:00+00:00"
+    assert validate_receipt_hash(non_authoritative_timestamp) is True
+
+    non_authoritative_rendering = receipt.to_dict()
+    non_authoritative_rendering["rendered_explanation"] = "changed surface text"
+    assert validate_receipt_hash(non_authoritative_rendering) is True
+
+
 def test_self_improvement_only_trains_verified_replayed_success(tmp_path):
     kernel = TSKernel(graph=UniversalLivingGraph(auto_load=False))
     receipt = kernel.transact(VALID).receipt.to_dict()
@@ -380,6 +765,105 @@ def test_self_improvement_only_trains_verified_replayed_success(tmp_path):
     assert stats["samples_built"] == 1
     assert stats["category_counts"]["verified_success"] == 1
     assert stats["category_counts"]["unverified_confidence_trace"] == 1
+
+
+def test_committed_replay_verified_receipt_is_training_eligible():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    processor = TraceProcessor()
+
+    assert processor._is_training_eligible(
+        {
+            "query": VALID,
+            "answer": "whales are warm-blooded",
+            "confidence": 1.0,
+            "receipt": receipt,
+            "replay_verified": True,
+        }
+    )
+
+
+def test_rejected_receipt_is_not_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(INVALID)
+        .receipt.to_dict()
+    )
+    processor = TraceProcessor()
+    raw = {
+        "receipt": receipt,
+        "replay_verified": True,
+        "trace_category": "verified_success",
+    }
+
+    assert processor._is_training_eligible(raw) is False
+    assert processor._trace_category(raw) == "repair_candidate"
+
+
+def test_quarantined_receipt_is_not_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(CONTRADICTION)
+        .receipt.to_dict()
+    )
+    processor = TraceProcessor()
+    raw = {
+        "receipt": receipt,
+        "replay_verified": True,
+        "trace_category": "verified_success",
+    }
+
+    assert processor._is_training_eligible(raw) is False
+    assert processor._trace_category(raw) == "quarantine_trace"
+
+
+def test_high_confidence_answer_without_receipt_is_not_verified_success():
+    processor = TraceProcessor()
+    raw = {
+        "query": "unverified",
+        "answer": "fluent answer",
+        "confidence": 1.0,
+        "trace_category": "verified_success",
+    }
+
+    assert processor._is_training_eligible(raw) is False
+    assert processor._trace_category(raw) == "unverified_confidence_trace"
+
+
+def test_tampered_receipt_is_not_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    receipt["commit_reason"] = "tampered"
+    processor = TraceProcessor()
+
+    assert (
+        processor._is_training_eligible({"receipt": receipt, "replay_verified": True})
+        is False
+    )
+
+
+def test_missing_provenance_blocks_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    for operation in receipt["proposed_operations"]:
+        operation.pop("provenance", None)
+    receipt["receipt_hash"] = _receipt_hash_for_payload(receipt)
+    processor = TraceProcessor()
+
+    assert validate_receipt_hash(receipt) is True
+    assert (
+        processor._is_training_eligible({"receipt": receipt, "replay_verified": True})
+        is False
+    )
 
 
 def test_runtime_and_api_route_formal_query_through_kernel(tmp_path):

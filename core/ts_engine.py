@@ -11,6 +11,7 @@ from .graph.universal_living_graph import UniversalLivingGraph
 from .kernel import TransactionRequest, TSKernel
 from .kernel.receipts import TSReceipt as KernelTSReceipt
 from .language.tslc import TSLCCompiler
+from .trace_processor import TraceProcessor
 
 TSReceipt = KernelTSReceipt
 
@@ -117,7 +118,7 @@ class TSEngine:
         return receipts
 
     def collect_self_data(self, num_traces: int = 12) -> dict:
-        problems = []
+        problems: list[str] = []
         if self.hard_tasks:
             problems.extend(str(item.get("text", "")) for item in self.hard_tasks)
         problems.extend(
@@ -127,9 +128,22 @@ class TSEngine:
             ]
         )
         traces = []
+        trace_processor = TraceProcessor()
         for problem in [item for item in problems if item][:num_traces]:
             try:
                 receipt = self.process(problem)
+                receipt_payload = receipt.to_dict()
+                trace = {
+                    "query": problem,
+                    "answer": receipt.rendered_explanation,
+                    "confidence": 1.0 if receipt.commit_decision == "commit" else 0.0,
+                    "reasoning_trace": "canonical_kernel_transaction",
+                    "receipt": receipt_payload,
+                    "replay_verified": bool(
+                        receipt.renderer_metadata.get("replay_verified", False)
+                    ),
+                }
+                verified_success = trace_processor._is_training_eligible(trace)
                 traces.append(
                     {
                         "problem": problem,
@@ -137,8 +151,14 @@ class TSEngine:
                         "bogvm_executions": receipt.BOGVM_artifacts,
                         "tension_reports": receipt.tension_reports,
                         "synthesized": receipt.rendered_explanation,
-                        "success": receipt.commit_decision == "commit",
+                        "success": verified_success,
+                        "trace_category": (
+                            "verified_success"
+                            if verified_success
+                            else trace_processor._trace_category(trace)
+                        ),
                         "receipt_hash": receipt.receipt_hash,
+                        "receipt": receipt_payload,
                     }
                 )
             except Exception as exc:

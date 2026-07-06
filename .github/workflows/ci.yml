@@ -33,6 +33,8 @@ jobs:
         run: isort --check .
       - name: Mypy
         run: mypy core/kernel --explicit-package-bases --ignore-missing-imports --follow-imports=skip --no-error-summary
+      - name: Package smoke mypy
+        run: mypy core/kernel core/trace_processor.py core/ts_engine.py interface/api.py --ignore-missing-imports --follow-imports=skip --no-error-summary
       - name: Tests
         run: pytest -q
       - name: Coverage

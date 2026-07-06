@@ -123,6 +123,33 @@ Correct claim boundary:
 > perform and replay a narrow class of typed reasoning tasks without treating
 > generated language or confidence as authority.
 
+### Kernel v0.2 Boundary
+
+Kernel v0.1 established the canonical transaction path: deterministic TSIR
+parsing, transaction workspace, typed verifier obligations, BOGVM execution
+artifacts where applicable, commit policy, receipt creation and deterministic
+replay. Kernel v0.2 hardens the authority checks on that path and adds bounded
+deterministic chained syllogism proofs.
+
+The proof expansion remains deliberately small. The syllogism verifier can
+prove a requested target across a bounded class chain, such as class-to-class
+membership and a terminal class-to-property rule. It records the actual proof
+steps and stable proof hash, but it does not compute unbounded graph closure or
+general predicate logic.
+
+Authority boundary:
+
+- General language output may propose, but it is not proof.
+- Confidence may suggest, but confidence is not proof.
+- Rendered explanations are not proof authority.
+- Evidence and BOGVM execution completion are not semantic proof by themselves.
+- BOGVM artifacts are anchored to the semantic proof-object hash produced by the
+  verifier; `execution_completed`, `proof_obligation_satisfied`, and
+  `state_commit_authorized` are recorded separately.
+- Only verifier-backed committed receipts with valid hash, replay verification,
+  passing mandatory obligations and explicit provenance are eligible for
+  verified self-improvement data.
+
 **Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:
 
 - **Graph**: UniversalLivingGraph with nodes (facts, conclusions) carrying activation, stability, topics.

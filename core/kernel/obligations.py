@@ -10,6 +10,7 @@ from typing import Any, Protocol
 
 from .arithmetic import ArithmeticParseError, SafeArithmeticEvaluator
 from .ir import (
+    ClaimNode,
     ProofObject,
     ProofStep,
     TSIRDocument,
@@ -94,6 +95,7 @@ class StructuralVerifier:
 
 class SyllogismVerifier:
     verifier_type = "syllogism"
+    max_chain_depth = 5
 
     def verify(
         self,
@@ -117,12 +119,17 @@ class SyllogismVerifier:
 
         workspace.proof_objects.append(proof)
         produced = [proof.target_claim]
+        consumed: list[str] = []
+        for step in proof.steps:
+            for premise in step.consumed_premises:
+                if premise not in consumed:
+                    consumed.append(premise)
         return VerificationResult(
             obligation.id,
             self.verifier_type,
             "pass",
-            "universal rule and membership fact license the target property claim",
-            consumed_premises=proof.steps[0].consumed_premises,
+            "bounded syllogistic proof licenses the requested target claim",
+            consumed_premises=consumed,
             produced_claims=produced,
             evidence=[
                 {"proof_object_hash": proof.hash(), "proof_type": proof.proof_type}
@@ -138,10 +145,17 @@ class SyllogismVerifier:
         target = document.claim_by_id(obligation.target_claim)
         if target is None:
             return None
-        if target.predicate != "has_property" or target.polarity != "positive":
+        if target.predicate not in {"has_property", "is_a"}:
+            return None
+        if target.polarity != "positive":
             return None
 
-        rules = [
+        subclass_rules = [
+            claim
+            for claim in document.claims
+            if claim.predicate == "is_subclass_of" and claim.polarity == "positive"
+        ]
+        property_rules = [
             claim
             for claim in document.claims
             if claim.predicate == "implies_property" and claim.polarity == "positive"
@@ -151,26 +165,98 @@ class SyllogismVerifier:
             for claim in document.claims
             if claim.predicate == "is_a"
             and claim.subject == target.subject
+            and claim.id != target.id
             and claim.polarity == "positive"
         ]
-        for rule in sorted(rules, key=lambda item: item.id):
-            if rule.object != target.object:
-                continue
-            for fact in sorted(facts, key=lambda item: item.id):
-                if fact.object != rule.subject:
+        for fact in sorted(facts, key=lambda item: item.id):
+            proof = self._search_from_fact(
+                fact=fact,
+                target=target,
+                subclass_rules=sorted(subclass_rules, key=lambda item: item.id),
+                property_rules=sorted(property_rules, key=lambda item: item.id),
+            )
+            if proof is not None:
+                return proof
+        return None
+
+    def _search_from_fact(
+        self,
+        *,
+        fact: ClaimNode,
+        target: ClaimNode,
+        subclass_rules: list[ClaimNode],
+        property_rules: list[ClaimNode],
+    ) -> ProofObject | None:
+        frontier: list[tuple[str, str, list[ProofStep], tuple[str, ...]]] = [
+            (fact.object, fact.id, [], (fact.object,))
+        ]
+        for _depth in range(self.max_chain_depth + 1):
+            next_frontier: list[tuple[str, str, list[ProofStep], tuple[str, ...]]] = []
+            for current_class, current_claim_id, steps, visited in frontier:
+                if target.predicate == "is_a" and current_class == target.object:
+                    return ProofObject(
+                        proof_type="bounded_chained_syllogism",
+                        target_claim=target.id,
+                        steps=steps,
+                        exact_match=True,
+                    )
+                if target.predicate == "has_property":
+                    for rule in property_rules:
+                        if (
+                            rule.subject != current_class
+                            or rule.object != target.object
+                        ):
+                            continue
+                        step = ProofStep(
+                            rule_id=rule.id,
+                            consumed_premises=[current_claim_id, rule.id],
+                            substitution={
+                                "x": target.subject,
+                                "class": current_class,
+                                "property": target.object,
+                            },
+                            produced_claim=target.id,
+                        )
+                        return ProofObject(
+                            proof_type="bounded_chained_syllogism",
+                            target_claim=target.id,
+                            steps=[*steps, step],
+                            exact_match=True,
+                        )
+                if len(steps) >= self.max_chain_depth:
                     continue
-                step = ProofStep(
-                    rule_id=rule.id,
-                    consumed_premises=[rule.id, fact.id],
-                    substitution={"x": target.subject},
-                    produced_claim=target.id,
-                )
-                return ProofObject(
-                    proof_type="universal_instantiation_modus_ponens",
-                    target_claim=target.id,
-                    steps=[step],
-                    exact_match=True,
-                )
+                for rule in subclass_rules:
+                    if rule.subject != current_class:
+                        continue
+                    next_class = rule.object
+                    if next_class in visited:
+                        continue
+                    produced_claim = (
+                        target.id
+                        if target.predicate == "is_a" and next_class == target.object
+                        else _derived_is_a_claim_id(target.subject, next_class)
+                    )
+                    step = ProofStep(
+                        rule_id=rule.id,
+                        consumed_premises=[current_claim_id, rule.id],
+                        substitution={
+                            "x": target.subject,
+                            "from_class": current_class,
+                            "to_class": next_class,
+                        },
+                        produced_claim=produced_claim,
+                    )
+                    next_frontier.append(
+                        (
+                            next_class,
+                            produced_claim,
+                            [*steps, step],
+                            (*visited, next_class),
+                        )
+                    )
+            frontier = sorted(next_frontier, key=lambda item: (item[0], item[1]))
+            if not frontier:
+                break
         return None
 
 
@@ -220,9 +306,15 @@ class BOGVMExecutionVerifier:
         workspace: Any,
     ) -> VerificationResult:
         artifact = None
-        expected_hash = str(obligation.expected_property.get("proof_object_hash", ""))
+        expected_hash = str(
+            obligation.expected_property.get("semantic_proof_object_hash", "")
+            or obligation.expected_property.get("proof_object_hash", "")
+        )
         for item in workspace.bogvm_artifacts:
-            if item.get("proof_object_hash") == expected_hash:
+            if (
+                item.get("target_claim") == obligation.target_claim
+                and item.get("semantic_proof_object_hash") == expected_hash
+            ):
                 artifact = item
                 break
         if artifact is None:
@@ -234,7 +326,22 @@ class BOGVMExecutionVerifier:
             )
         execution_completed = bool(artifact.get("execution_completed", False))
         proof_matches = bool(artifact.get("proof_object_hash") == expected_hash)
-        outcome = "pass" if execution_completed and proof_matches else "fail"
+        semantic_anchor_matches = bool(
+            artifact.get("semantic_proof_object_hash") == expected_hash
+        )
+        proof_obligation_satisfied = bool(
+            artifact.get("proof_obligation_satisfied", False)
+        )
+        outcome = (
+            "pass"
+            if (
+                execution_completed
+                and proof_matches
+                and semantic_anchor_matches
+                and proof_obligation_satisfied
+            )
+            else "fail"
+        )
         return VerificationResult(
             obligation.id,
             self.verifier_type,
@@ -249,6 +356,8 @@ class BOGVMExecutionVerifier:
                 {
                     "execution_completed": execution_completed,
                     "proof_object_matches": proof_matches,
+                    "semantic_anchor_matches": semantic_anchor_matches,
+                    "proof_obligation_satisfied": proof_obligation_satisfied,
                     "vm_receipt_hash": artifact.get("vm_receipt_hash"),
                 }
             ],
@@ -323,11 +432,20 @@ def compile_proof_to_bogvm_artifact(proof: ProofObject, document: TSIRDocument) 
     symbols. The independent syllogism verifier remains the semantic authority.
     """
 
-    step = proof.steps[0]
+    if not proof.steps:
+        return {
+            "artifact_type": "bogvm_execution",
+            "execution_completed": False,
+            "proof_obligation_satisfied": False,
+            "state_commit_authorized": False,
+            "error": "proof object contains no executable steps",
+            "proof_object_hash": proof.hash(),
+        }
+
+    step = proof.steps[-1]
     rule = document.claim_by_id(step.rule_id)
-    fact = document.claim_by_id(step.consumed_premises[1])
     target = document.claim_by_id(proof.target_claim)
-    if rule is None or fact is None or target is None:
+    if rule is None or target is None:
         return {
             "artifact_type": "bogvm_execution",
             "execution_completed": False,
@@ -340,19 +458,19 @@ def compile_proof_to_bogvm_artifact(proof: ProofObject, document: TSIRDocument) 
     symbols = {
         "subject": target.subject.replace("entity:", "").replace(":", "_"),
         "class": rule.subject.replace("entity:", "").replace(":", "_"),
-        "property": rule.object.replace("entity:", "").replace(":", "_"),
+        "object": rule.object.replace("entity:", "").replace(":", "_"),
         "claim": target.id.replace("claim:", "").replace(":", "_").replace("-", "_"),
     }
     assembly = "\n".join(
         [
             f"CREATE_NODE {symbols['subject']}",
             f"CREATE_NODE {symbols['class']}",
-            f"CREATE_NODE {symbols['property']}",
+            f"CREATE_NODE {symbols['object']}",
             f"CREATE_EDGE {symbols['subject']} {symbols['class']} support",
-            f"CREATE_EDGE {symbols['class']} {symbols['property']} support",
+            f"CREATE_EDGE {symbols['class']} {symbols['object']} support",
             (
                 f"CREATE_CLAIM {symbols['claim']} "
-                f"{symbols['subject']} {symbols['property']}"
+                f"{symbols['subject']} {symbols['object']}"
             ),
             f"ACTIVATE {symbols['subject']} 1000",
             f"PROPAGATE {symbols['subject']} support 2",
@@ -411,3 +529,17 @@ def compile_proof_to_bogvm_artifact(proof: ProofObject, document: TSIRDocument) 
         }
     )
     return artifact
+
+
+def _derived_is_a_claim_id(subject: str, obj: str) -> str:
+    return (
+        "claim:"
+        + stable_hash(
+            {
+                "subject": subject,
+                "predicate": "is_a",
+                "object": obj,
+                "polarity": "positive",
+            }
+        )[:20]
+    )

@@ -16,6 +16,8 @@ def render_claim(claim: ClaimNode, document: TSIRDocument) -> str:
     obj = _label(document, claim.object)
     if claim.predicate == "implies_property":
         text = f"all {subject}s are {obj}"
+    elif claim.predicate == "is_subclass_of":
+        text = f"all {subject}s are {obj}s"
     elif claim.predicate == "is_a":
         text = f"{subject} is a {obj}"
     elif claim.predicate == "has_property":
