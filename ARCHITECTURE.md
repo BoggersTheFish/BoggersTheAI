@@ -31,6 +31,62 @@ See README.md and experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md for status. 
 
 ## System Overview
 
+### Canonical Transaction Path
+
+Authoritative reasoning now enters through `core/kernel/TSKernel`:
+
+```
+Input
+  ↓
+Representation proposal
+  ↓
+TSIR validation
+  ↓
+Transaction sandbox
+  ↓
+Waves + typed tensions
+  ↓
+Verifier obligations
+  ↓
+Semantic execution
+  ↓
+Commit policy
+  ├── Commit
+  ├── Reject
+  ├── Quarantine
+  ├── Repair
+  └── Abstain
+  ↓
+Receipt + optional rendering
+```
+
+`TSIR-0.1` represents entities, claims, relations, evidence, verifier
+obligations, proposed operations and provenance. `TSReceipt-0.1` records the
+base graph hash, proposed operations, typed tensions, verifier results, BOGVM
+artifacts, derived/rejected claims, commit decision, post-state hash, parent
+receipt hash and deterministic receipt hash.
+
+The kernel owns proposal/state separation. Proposed graph deltas are applied to
+a transaction workspace first. Persistent graph mutation happens only after the
+mandatory verifier obligations and commit policy pass. `unknown`,
+`unsupported`, `error` and failed mandatory obligations are not passes.
+
+The initial semantic domain is intentionally small: universal syllogistic
+reasoning over `All X are Y`, `A is an X`, `A is not Y`,
+`Prove that A is Y`, and status queries. BOGVM artifacts are compiled from the
+actual proof object and remain separate from semantic proof acceptance:
+`execution_completed`, `proof_obligation_satisfied`, and
+`state_commit_authorized` are independently recorded.
+
+Compatibility status:
+
+- `BoggersRuntime` is the application shell for config, persistence, adapters,
+  tools, sessions, dashboards, multimodal I/O and background scheduling. Its
+  supported formal `ask()` inputs route through `TSKernel`.
+- `TSEngine.process()` is a compatibility wrapper around `TSKernel.transact()`.
+- The older `QueryProcessor` path remains available for general retrieval and
+  synthesis, but confidence-only output is not authority for accepted TS state.
+
 BoggersTheAI is a **graph-native cognitive engine** that implements the TS-OS (Thinking System Operating System) loop. All knowledge lives in a living graph of interconnected nodes. A continuous background wave cycle propagates activation, relaxes tension, prunes weak connections, detects contradictions, and spawns emergent nodes — all autonomously.
 
 User queries flow through a pipeline that retrieves context from the graph, optionally ingests external data via adapters, routes to tools when needed, synthesizes answers via local LLM or extractive fallback, and feeds high-confidence reasoning traces back into a self-improvement pipeline.

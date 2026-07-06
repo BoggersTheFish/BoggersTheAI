@@ -27,6 +27,10 @@ class SelfDataGenerator:
         self._engine = None  # lazy - only create when we actually run generate_synthetic for traces
         self._has_engine = HAS_ENGINE
 
+    @property
+    def engine(self):
+        return self._engine
+
     def generate_synthetic(self, n=30):
         """Run unified engine on hard tasks + variations. Collect full receipts as traces."""
         if self._engine is None:
@@ -65,51 +69,57 @@ class SelfDataGenerator:
                     (
                         isinstance(v, dict)
                         and (
-                            v.get("support", {}).get("verifier_passed")
+                            v.get("outcome") == "pass"
+                            or v.get("support", {}).get("verifier_passed")
                             or v.get("passed")
-                            or v.get("execution_status") == "completed"
                         )
                     )
-                    for v in receipt.verifier_results
+                    for v in receipt.verification_results
                 )
                 any_bogvm_ok = any(
                     (
                         isinstance(b, dict)
                         and (
-                            b.get("status") in ("executed", "completed")
+                            b.get("execution_completed") is True
+                            or b.get("status") in ("executed", "completed")
                             or (
                                 isinstance(b.get("receipt"), dict)
                                 and b["receipt"].get("execution_status") == "completed"
                             )
                         )
                     )
-                    for b in (receipt.bogvm_executions or [])
+                    for b in (receipt.BOGVM_artifacts or [])
                 )
                 pipeline_complete = (
-                    bool(receipt.bogvm_executions)
-                    or bool(receipt.verifier_results)
-                    or bool(receipt.synthesized_response)
+                    bool(receipt.BOGVM_artifacts)
+                    or bool(receipt.verification_results)
+                    or bool(receipt.rendered_explanation)
                 )
                 success = (
                     any_pass or any_bogvm_ok or pipeline_complete or True
                 )  # all completed unified runs are usable traces for curriculum
                 trace = {
                     "problem": prob,
-                    "premises": receipt.language_output.get("graph_deltas", {}).get(
-                        "premises", []
-                    ),
-                    "obligations": receipt.language_output.get(
-                        "verifier_obligations", []
-                    ),
-                    "verifier_results": receipt.verifier_results,
-                    "bogvm_executions": receipt.bogvm_executions,
+                    "premises": [
+                        op
+                        for op in receipt.proposed_operations
+                        if op.get("operation_type") in {"CREATE_CLAIM", "DECLARE_RULE"}
+                    ],
+                    "obligations": receipt.verifier_obligations,
+                    "verifier_results": receipt.verification_results,
+                    "bogvm_executions": receipt.BOGVM_artifacts,
                     "wave_max_tension": (
-                        max([w.get("max_tension", 0) for w in receipt.wave_trace])
-                        if receipt.wave_trace
+                        max(
+                            [
+                                max(w.get("by_type", {}).values(), default=0)
+                                for w in receipt.tension_reports
+                            ]
+                        )
+                        if receipt.tension_reports
                         else 0
                     ),
-                    "synthesized": receipt.synthesized_response,
-                    "nodes_after": receipt.graph_state.get("nodes", 0),
+                    "synthesized": receipt.rendered_explanation,
+                    "nodes_after": len(eng.graph.nodes),
                     "success": success,
                     "receipt_hash": receipt.receipt_hash,
                 }

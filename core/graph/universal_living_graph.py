@@ -452,7 +452,7 @@ class UniversalLivingGraph:
         cluster_node = Node(
             id=cid,
             content=f"Cluster: {name}",
-            topics={"cluster"},
+            topics=["cluster"],
             activation=0.5,
             base_strength=0.4,
             stability=0.8,
@@ -462,12 +462,8 @@ class UniversalLivingGraph:
         self._adjacency[cid] = {}
         for mid in member_ids:
             if mid in self.nodes:
-                self.add_edge(
-                    source_id=mid, target_id=cid, relation="member_of", weight=0.8
-                )
-                self.add_edge(
-                    source_id=cid, target_id=mid, relation="contains", weight=0.7
-                )
+                self.add_edge(src=mid, dst=cid, relation="member_of", weight=0.8)
+                self.add_edge(src=cid, dst=mid, relation="contains", weight=0.7)
         self._dirty_nodes.add(cid)
         return cid
 
@@ -478,9 +474,9 @@ class UniversalLivingGraph:
                 if "cluster" not in node.topics:
                     continue
                 members = [
-                    e.source_id
+                    e.src
                     for e in self.edges
-                    if e.target_id == nid and e.relation == "member_of"
+                    if e.dst == nid and e.relation == "member_of"
                 ]
                 if members:
                     avg_act = sum(

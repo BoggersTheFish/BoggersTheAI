@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+import sys
+
 from .runtime import BoggersRuntime
 
 
 def run_chat(runtime: BoggersRuntime | None = None) -> None:
+    if len(sys.argv) >= 3 and sys.argv[1:3] == ["kernel", "demo"]:
+        from ..core.kernel.demo import main as kernel_demo_main
+
+        raise SystemExit(kernel_demo_main(sys.argv[3:]))
+
     rt = runtime or BoggersRuntime()
     print("BoggersTheAI chat interface. Type 'help' for commands, 'exit' to quit.")
     while True:

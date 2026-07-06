@@ -16,6 +16,10 @@ def __getattr__(name):
         from .language.tslc import TSLCCompiler
 
         return TSLCCompiler
+    if name == "TSKernel":
+        from .kernel import TSKernel
+
+        return TSKernel
     if name == "ModeManager":
         from .mode_manager import ModeManager
 
@@ -116,6 +120,7 @@ __all__ = [
     "RegistryIngestAdapter",
     "RouterConfig",
     "Tension",
+    "TSKernel",
     "ToolProtocol",
     "UniversalLivingGraph",
     "VoiceInProtocol",
