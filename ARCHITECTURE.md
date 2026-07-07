@@ -135,6 +135,36 @@ malformed code/property requests, failed verifier results, required-but-missing
 BOGVM artifacts and replay failures do not authorize canonical state or
 training eligibility.
 
+### Kernel v0.2 Authority Boundary
+
+Kernel v0.1 established the canonical transaction path from input through
+deterministic TSIR parsing, transaction workspace, structural verification,
+typed obligations, verifier results, optional BOGVM execution artifacts, tension
+reporting, commit policy, receipt creation and deterministic replay.
+
+Kernel v0.2 keeps that path narrow and hardens the authority boundary:
+
+- General language output remains non-authoritative. It may propose surface
+  text, but rendered language is not proof.
+- Confidence is not proof.
+- Evidence is not proof authority unless a typed verifier commits it through a
+  required obligation.
+- BOGVM execution completion is not semantic proof by itself. A BOGVM artifact
+  must match the semantic proof-object hash produced by the syllogism verifier,
+  and execution pass, semantic proof satisfaction and state commit authorization
+  are separate receipt fields.
+- Only verifier-backed committed receipts can authorize canonical TS state.
+- Only committed receipts with a valid hash, replay verification, passing
+  mandatory verifier obligations and explicit provenance are eligible for
+  verified self-improvement data.
+
+Kernel v0.2 also adds bounded deterministic chained syllogism proofs. The
+syllogism verifier can prove only the requested target across a fixed-depth
+class chain, including class-to-class membership chains and class-to-property
+terminal chains. Proof objects record each actual proof step and have stable
+hashes across repeated runs. The kernel still does not perform unbounded graph
+closure, broad retrieval, general chat reasoning or general predicate logic.
+
 Compatibility status:
 
 - `BoggersRuntime` is the application shell for config, persistence, adapters,
