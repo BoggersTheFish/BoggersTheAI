@@ -177,18 +177,20 @@ is the interface to the epistemology. The code enforces it.
 
 ## VII. The Claim Boundary
 
-Fifty-two historic repositories were merged into this monorepo. Four active
-satellites are archived with redirect notices:
+Fifty-two historic repositories were merged into this monorepo. Canonical TS-OS
+development now happens in this repository; satellite repositories are
+preserved for history/citation unless explicitly stated otherwise.
 
 | Former satellite | Monorepo home |
 |------------------|---------------|
 | BoggersTheMind | `core/`, `interface/`, `entities/`, `mind/` |
 | BoggersTheLLM | `inference/` (language substrate) |
-| bozo (TensionLM) | `inference/tension_lm/` |
+| bozo / TensionLM | `inference/tension_lm/` |
+| TensionLM | `inference/tension_lm/` and `reasoner/ts_reasoner/*tensionlm*` adapters |
 | TS-Reasoner-v0 | `reasoner/ts_reasoner/` |
-| bogbin (BOGVM-0) | `core-vm/bogvm/` |
+| bogbin / BOGVM-0 | `core-vm/bogvm/` |
 
-The boundary is closed. The physics is unified. The receipts are public.
+The authority boundary is the verifier-backed kernel receipt path.
 
 ---
 

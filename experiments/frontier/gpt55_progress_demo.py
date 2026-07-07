@@ -14,7 +14,8 @@ Run:
   PYTHONPATH=. python3 experiments/frontier/gpt55_progress_demo.py
 
 This is NOT a full traditional LLM. It is the TS cognitive engine foundation.
-Per COGNITIVE_PHYSICS_ROADMAP, this is the production base for scaling to GPT-5.5+ level verifiable intelligence.
+Per COGNITIVE_PHYSICS_ROADMAP, this is a research foundation for verifier-gated
+TS experiments, not a frontier LLM release.
 """
 
 import hashlib
@@ -36,7 +37,7 @@ def stable_hash(payload):
 
 def main():
     print("=" * 80)
-    print("GPT-5.5 PROGRESS DEMO (Wave 0 complete foundation + Wave 1 sim start)")
+    print("TS PROGRESS DEMO (Wave 0 foundation + early Wave 1 experiments)")
     print(
         "TS Engine: deterministic glass-box | verifier authority | BOGVM execution | Tension proposals"
     )
@@ -143,7 +144,7 @@ def main():
         "- Verifier behavior: honest (open_repair common until premises entail via richer rules or execution)"
     )
     print(
-        "- This is a real TS-based reasoning/generation system. Not yet full general LLM / frontier capability."
+        "- This is a TS-based reasoning/generation experiment. Not a general LLM or frontier capability."
     )
     print(
         "Next: use self-data to improve proposers, symbolic verifiers, deeper BOGVM sims, larger self-improving graphs."
@@ -152,7 +153,7 @@ def main():
 
     print("\nCurrent skill: Real kernel + BOGVM + waves + receipts on formal task.")
     print(
-        "Per roadmap, this is Wave 0 foundation. Ready for deeper verifiers, larger graphs, self-loop."
+        "Per roadmap, this is Wave 0 foundation work. Next: deeper verifiers before scale."
     )
 
 

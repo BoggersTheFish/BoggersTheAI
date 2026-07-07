@@ -17,7 +17,9 @@ Not a traditional transformer LLM. The authority boundary is the TS kernel and
 typed verifiers; generator output is only fluent surface text over verified
 context.
 
-Follows COGNITIVE_PHYSICS_ROADMAP toward GPT-5.5+ level via verifiable long-horizon agency and frontier formal work with receipts. 
+The long-range research plan is in
+[COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md);
+the current implementation is much narrower than that roadmap.
 
 Current: Kernel v0.2 is the authority boundary. Wave 0 foundation has a
 receipt-first seed runner, narrow verifier-backed formal traces, light factual
@@ -27,14 +29,31 @@ can run bounded graph payloads as wave observations, and a narrow observation
 verifier can consume exact artifact facts. Those observations remain evidence
 only, not proof authority.
 
+Status: alpha, local-first solo research infrastructure; not a frontier LLM,
+general verifier, or general code-proof system.
+
+Version map: `v0.5.0` is the package/release line for the whole repo;
+`Kernel v0.2` tracks the verifier-gated transaction authority boundary;
+`Wave 0 / Wave 1` are roadmap and spike phases, not package versions.
+
 See [COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 **Website:** [boggersthefish.com](https://www.boggersthefish.com/)
 **GitHub:** [BoggersTheFish/BoggersTheAI](https://github.com/BoggersTheFish/BoggersTheAI)
 
-> **Claim Boundary:** This monorepo unifies 52 historic TS-OS repositories. Active satellites
-> (BoggersTheMind, BoggersTheLLM, bozo, TS-Reasoner-v0) are archived with redirect notices.
-> All development happens here. Read [`docs/MANIFESTO.md`](docs/MANIFESTO.md) first.
+> **Claim Boundary:** This monorepo unifies the current TS-OS authority surface
+> from 52 historic repositories. Canonical TS-OS development now happens here;
+> satellite repos are preserved for history/citation unless explicitly stated
+> otherwise. Read [`docs/MANIFESTO.md`](docs/MANIFESTO.md) first.
+
+| Historical satellite | Monorepo home |
+|----------------------|---------------|
+| `BoggersTheMind` | `interface/`, `mind/`, `entities/`, parts of `core/` |
+| `BoggersTheLLM` | `inference/` language and synthesis patterns |
+| `bozo / TensionLM` | `inference/tension_lm/` |
+| `TensionLM` | `inference/tension_lm/` and `reasoner/ts_reasoner/*tensionlm*` adapters |
+| `TS-Reasoner-v0` | `reasoner/ts_reasoner/` |
+| `bogbin / BOGVM-0` | `core-vm/bogvm/` |
 
 ### TS-OS Logic Map
 
@@ -53,12 +72,12 @@ Full documentation: [`docs/`](docs/)
 
 1. [Philosophy — What Is TS-OS?](#philosophy--what-is-ts-os)
 2. [How It Differs from Standard AI](#how-it-differs-from-standard-ai)
-3. [Complete Feature List](#complete-feature-list)
+3. [Capability Map](#capability-map)
 4. [Prerequisites](#prerequisites)
 5. [Installation](#installation)
 6. [First Run](#first-run)
-7. [Complete Configuration Reference](#complete-configuration-reference)
-8. [CLI Command Reference](#cli-command-reference)
+7. [Configuration](#configuration)
+8. [CLI](#cli)
 9. [Python API](#python-api)
 10. [HTTP API & Dashboard](#http-api--dashboard)
 11. [Data Flow — Query Lifecycle](#data-flow--query-lifecycle)
@@ -73,7 +92,9 @@ Full documentation: [`docs/`](docs/)
 20. [Contributing](#contributing)
 21. [License](#license)
 
-**Release:** Living OS **v0.5.0** — modular runtime (wave runner + mixins), shared HTTP client with retries, path sandboxing, graph operation helpers, extended tools, stricter config validation, and expanded test/CI.
+**Package/release line:** **v0.5.0** — modular runtime (wave runner + mixins),
+shared HTTP client with retries, path sandboxing, graph operation helpers,
+extended tools, stricter config validation, and expanded test/CI.
 
 ---
 
@@ -281,7 +302,7 @@ BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is 
 
 ---
 
-## Complete Feature List
+## Capability Map
 
 ### Graph Engine
 - **WaveCycleRunner** (`core/graph/wave_runner.py`) — owns background wave thread lifecycle and step order; graph holds data, runner executes elect → propagate → relax → … → save
@@ -482,239 +503,26 @@ Open `http://localhost:8000/wave` for the live tension chart, or `http://localho
 
 ---
 
-## Complete Configuration Reference
+## Configuration
 
-All behavior is driven by **`config.yaml`** in the working directory, deep-merged over `RuntimeConfig` defaults by `core/config_loader.py`. The `core/config_schema.py` validator checks required sections and numeric ranges on startup. Set **`BOGGERS_CONFIG_STRICT=1`** (or pass `strict=True` to `validate_config`) to **raise** on validation warnings instead of only logging them.
+Runtime settings are loaded from `config.yaml`, deep-merged over
+`RuntimeConfig` defaults by `core/config_loader.py`, and validated by
+`core/config_schema.py`. Set `BOGGERS_CONFIG_STRICT=1` to raise on config
+warnings instead of logging them.
 
-### `modules` — Feature Toggles
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `modules.core` | bool | `true` | Enable core graph and wave engine. Must be `true` for the system to function. |
-| `modules.adapters` | bool | `true` | Enable external data adapters (Wikipedia, RSS, HN, Vault, X). |
-| `modules.tools` | bool | `true` | Enable tool execution (calc, search, code_run, file_read). |
-| `modules.multimodal` | bool | `true` | Enable voice and image processing. |
-| `modules.consolidation_insight` | bool | `true` | Enable consolidation engine and insight writing. |
-| `modules.interface` | bool | `true` | Enable CLI and TUI interfaces. |
-
-### `inference` — LLM & Synthesis
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `inference.mode` | str | `"local"` | Inference mode. Currently only `"local"` is fully implemented. |
-| `inference.local_engine` | str | `"boggers_synthesis"` | Which local engine to use. `"boggers_synthesis"` uses the extractive fallback + Ollama. |
-| `inference.remote_fallback` | str | `"disabled"` | Remote API fallback. `"disabled"` means no cloud calls. |
-| `inference.throttle_seconds` | int | `60` | Minimum seconds between inference calls (rate limiting). |
-
-### `inference.ollama` — Ollama LLM
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `inference.ollama.enabled` | bool | `true` | Use Ollama for LLM synthesis. When `false`, the system uses extractive fallback only. |
-| `inference.ollama.base_url` | str | `"http://localhost:11434"` | Ollama HTTP API base URL (passed to `ollama.Client(host=...)`). |
-| `inference.ollama.model` | str | `"llama3.2"` | Ollama model name. Must be pulled locally via `ollama pull <model>`. |
-| `inference.ollama.temperature` | float | `0.3` | Sampling temperature. Lower = more deterministic. Range: 0.0–2.0. |
-| `inference.ollama.max_tokens` | int | `512` | Maximum tokens in LLM response. |
-
-### `inference.self_improvement` — Trace & Training Pipeline
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `inference.self_improvement.trace_logging_enabled` | bool | `true` | Log high-confidence reasoning traces to disk. |
-| `inference.self_improvement.min_confidence_for_log` | float | `0.7` | Minimum confidence score to trigger trace logging. Range: 0.0–1.0. |
-| `inference.self_improvement.traces_dir` | str | `"traces"` | Directory for trace JSONL files. |
-
-### `inference.self_improvement.dataset_build` — Dataset Generation
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `inference.self_improvement.dataset_build.min_confidence` | float | `0.75` | Minimum confidence for a trace to be included in training data. |
-| `inference.self_improvement.dataset_build.max_samples` | int | `5000` | Maximum samples in the training dataset. |
-| `inference.self_improvement.dataset_build.output_dir` | str | `"dataset"` | Output directory for `train.jsonl` and `val.jsonl`. |
-| `inference.self_improvement.dataset_build.split_ratio` | float | `0.8` | Train/validation split ratio. 0.8 = 80% train, 20% val. |
-
-### `inference.self_improvement.fine_tuning` — QLoRA Fine-Tuning
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `inference.self_improvement.fine_tuning.enabled` | bool | `false` | Enable fine-tuning pipeline. **Requires GPU.** |
-| `inference.self_improvement.fine_tuning.base_model` | str | `"unsloth/llama-3.2-1b-instruct"` | HuggingFace model ID for the base model. Must be in `supported_models` list. |
-| `inference.self_improvement.fine_tuning.max_seq_length` | int | `2048` | Maximum sequence length for training. |
-| `inference.self_improvement.fine_tuning.learning_rate` | float | `2e-4` | Learning rate for the LoRA optimizer. |
-| `inference.self_improvement.fine_tuning.epochs` | int | `1` | Number of training epochs. |
-| `inference.self_improvement.fine_tuning.adapter_save_path` | str | `"models/fine_tuned_adapter"` | Where to save the trained LoRA adapter. |
-| `inference.self_improvement.fine_tuning.auto_hotswap` | bool | `true` | Automatically swap in the new adapter after successful training + validation. |
-| `inference.self_improvement.fine_tuning.auto_schedule` | bool | `false` | Automatically trigger fine-tuning when enough new traces accumulate. |
-| `inference.self_improvement.fine_tuning.min_new_traces` | int | `50` | Minimum new traces required before auto-scheduled training triggers. |
-| `inference.self_improvement.fine_tuning.validation_enabled` | bool | `true` | Run validation after training. If val loss exceeds threshold, hot-swap is blocked. |
-| `inference.self_improvement.fine_tuning.max_memory_gb` | int | `12` | Maximum GPU memory allocation in GB. |
-| `inference.self_improvement.fine_tuning.safety_dry_run` | bool | `true` | When `true`, training runs but adapter is NOT loaded. Useful for testing the pipeline. |
-| `inference.self_improvement.fine_tuning.backup_dir` | str | `"models/backups"` | Directory for pre-swap adapter backups (enables rollback). |
-| `inference.self_improvement.fine_tuning.supported_models` | list | See config | Allowlist of base model IDs. Training is refused if `base_model` is not in this list. |
-
-### `inference.synthesis` — Answer Synthesis
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `inference.synthesis.use_graph_subgraph` | bool | `true` | Pass the activated subgraph as context to the LLM (not just top-k nodes). |
-| `inference.synthesis.top_k_nodes` | int | `5` | Maximum number of context nodes to include in the LLM prompt. |
-| `inference.synthesis.max_retries` | int | `2` | Number of LLM call retries on failure. |
-
-### `adapters` — External Data Sources
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `adapters.enabled.wikipedia` | bool | `true` | Enable Wikipedia adapter for knowledge ingestion. |
-| `adapters.enabled.rss` | bool | `true` | Enable RSS feed adapter. HTTPS-only feeds enforced. |
-| `adapters.enabled.hacker_news` | bool | `true` | Enable Hacker News adapter (Algolia API). |
-| `adapters.enabled.vault` | bool | `true` | Enable vault adapter (reads markdown insights from vault directory). |
-| `adapters.enabled.x_api` | bool | `false` | Enable X/Twitter adapter. Requires `X_BEARER_TOKEN` env var. |
-
-All adapters share the AdapterRegistry's rate limiting (30 calls/minute per adapter) and TTL cache (5-minute expiry).
-
-### `tools` — Built-in Tools
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `tools.enabled.search` | bool | `true` | Enable web search tool (Hacker News Algolia API). |
-| `tools.enabled.calc` | bool | `true` | Enable calculator tool (AST-based safe arithmetic). |
-| `tools.enabled.code_run` | bool | `true` | Enable sandboxed Python code execution tool. |
-| `tools.enabled.file_read` | bool | `true` | Enable file reading tool (base-directory restricted, extension allowlist). |
-| `tools.code_run_timeout_seconds` | int | `5` | Maximum execution time for code_run before termination. |
-| `tools.code_run_sandbox` | bool | `true` | Enforce sandbox restrictions on code execution. |
-
-### `multimodal` — Voice & Image Backends
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `multimodal.voice_in_backend` | str | `"faster-whisper"` | Speech-to-text backend. Falls back to placeholder if faster-whisper is not installed. |
-| `multimodal.voice_out_backend` | str | `"piper"` | Text-to-speech backend. Falls back to placeholder if piper is not installed. |
-| `multimodal.image_in_backend` | str | `"blip2"` | Image captioning backend. Falls back to placeholder if transformers is not installed. |
-
-### `runtime` — Persistence & Session
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `runtime.graph_path` | str | `"./graph.json"` | Path for JSON graph persistence (used when `graph_backend` is `"json"`). |
-| `runtime.graph_backend` | str | `"sqlite"` | Graph storage backend: `"sqlite"` (recommended) or `"json"`. SQLite uses WAL mode for concurrent reads. |
-| `runtime.sqlite_path` | str | `"./graph.db"` | Path for SQLite database file. |
-| `runtime.insight_vault_path` | str | `"./vault"` | Directory for markdown insight files generated by the insight engine. |
-| `runtime.max_hypotheses_per_cycle` | int | `2` | Maximum hypotheses processed per autonomous cycle. |
-| `runtime.session_id` | str | `"auto"` | Session identifier. `"auto"` generates a persistent UUID stored in the graph's meta store. |
-| `runtime.snapshot_dir` | str | `"snapshots"` | Directory for full graph snapshots. |
-
-### `wave` — Wave Propagation Parameters
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `wave.interval_seconds` | int | `30` | Seconds between background wave cycles. |
-| `wave.enabled` | bool | `true` | Enable the background wave thread. |
-| `wave.log_each_cycle` | bool | `true` | Log details of each wave cycle. |
-| `wave.auto_save` | bool | `true` | Enable incremental graph persistence after wave cycles. |
-| `wave.damping` | float | `0.95` | Activation damping factor applied during normalization. Higher = slower decay. Range: 0.0–1.0. |
-| `wave.activation_cap` | float | `1.0` | Maximum activation any node can reach. |
-| `wave.semantic_weight` | float | `0.3` | Weight given to semantic (embedding cosine similarity) channel vs. topological (edge weight) channel during propagation. Range: 0.0–1.0. |
-| `wave.incremental_save_interval` | int | `5` | Save dirty nodes to persistence every N wave cycles. |
-| `wave.spread_factor` | float | `0.10` | How much activation the elected strongest node spreads to neighbors. |
-| `wave.relax_decay` | float | `0.85` | Decay multiplier during relaxation (activation trends toward `base_strength * relax_decay`). |
-| `wave.tension_threshold` | float | `0.20` | Tension score above which Break/Evolve is triggered. |
-| `wave.prune_threshold` | float | `0.25` | Edge weight below which edges are pruned during the wave cycle. |
-| `wave.temperament` | str | `"default"` | Cognitive temperament preset. Overrides spread_factor, relax_decay, prune_threshold, damping. See [Temperament Presets](#temperament-presets). |
-
-#### Temperament Presets
-
-| Preset | spread_factor | relax_decay | prune_threshold | damping | Character |
-|--------|--------------|-------------|-----------------|---------|-----------|
-| `contemplative` | 0.05 | 0.90 | 0.15 | 0.98 | Slow, careful, retains more |
-| `analytical` | 0.10 | 0.85 | 0.25 | 0.95 | Balanced analysis |
-| `reactive` | 0.20 | 0.75 | 0.20 | 0.90 | Fast spreading, quick decay |
-| `critical` | 0.10 | 0.80 | 0.35 | 0.95 | Aggressive pruning |
-| `creative` | 0.15 | 0.80 | 0.15 | 0.92 | Low threshold, high emergence |
-| `default` | 0.10 | 0.85 | 0.25 | 0.95 | Balanced (same as analytical) |
-
-### `os_loop` — Autonomous Operation
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `os_loop.enabled` | bool | `true` | Enable the background OS loop (exploration, consolidation, insight). |
-| `os_loop.interval_seconds` | int | `60` | Seconds between OS loop ticks. |
-| `os_loop.idle_threshold_seconds` | int | `120` | Seconds since last user query before the system considers itself "idle" and begins autonomous exploration. |
-| `os_loop.autonomous_modes` | list | `["exploration", "consolidation", "insight"]` | Which autonomous behaviors are active. Remove items to disable specific modes. |
-| `os_loop.nightly_hour_utc` | int | `3` | UTC hour to run nightly deep consolidation (prune, merge, emergence). Range: 0–23. |
-| `os_loop.consolidation_on_shutdown` | bool | `true` | When `true`, `shutdown()` runs `run_nightly_consolidation(force=True)` so the graph is consolidated on exit, not only at `nightly_hour_utc`. |
-| `os_loop.multi_turn_enabled` | bool | `true` | Maintain conversation context across queries via session nodes in the graph. |
-
-### `tui` — Rich Terminal UI
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `tui.enabled` | bool | `false` | Launch the Rich TUI on startup. |
-| `tui.theme` | str | `"matrix"` | TUI color theme. |
-
-### `autonomous` — Autonomous Behavior Tuning
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `autonomous.exploration_strength` | float | `0.3` | Activation boost applied during autonomous exploration. |
-| `autonomous.consolidation_prune_threshold` | float | `0.2` | Stability threshold below which nodes are pruned during consolidation. |
-| `autonomous.insight_min_tension` | float | `0.8` | Minimum tension required for the insight engine to generate a vault entry. |
-
-### `guardrails` — Resource Limits
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `guardrails.max_nodes` | int | `5000` | Maximum nodes allowed in the graph. New nodes are rejected beyond this limit (hard cap in rules_engine is 10000). |
-| `guardrails.max_cycles_per_hour` | int | `200` | Maximum wave cycles allowed per hour. Wave thread pauses if exceeded. |
-| `guardrails.high_tension_pause` | float | `0.95` | Tension level above which the wave thread auto-pauses to prevent runaway cascades. |
-
-### `embeddings` — Vector Embeddings
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `embeddings.enabled` | bool | `true` | Enable embedding generation for new nodes. Requires Ollama running with the configured model. |
-| `embeddings.model` | str | `"nomic-embed-text"` | Ollama embedding model. Must be pulled via `ollama pull <model>`. |
-| `embeddings.embed_on_creation` | bool | `true` | Automatically embed nodes when they are created. When `false`, embeddings can be generated later. |
-
-### `deployment_tiers` — Informational Presets
-
-These are informational hints, not enforced constraints. They document recommended configurations for different hardware.
-
-| Tier | graph | inference | throttle_seconds |
-|------|-------|-----------|-----------------|
-| `laptop` | `local-json` | `local-3b-equivalent` | `60` |
-| `desktop` | `local-json` | `local-7b-equivalent` | `30` |
-| `cloud_burst` | `local-plus-sync` | `api-fallback` | `10` |
-
-### Environment Variables
-
-| Variable | Purpose |
-|----------|---------|
-| `X_BEARER_TOKEN` | Bearer token for X/Twitter API adapter |
-| `BOGGERS_DASHBOARD_TOKEN` | Protects dashboard endpoints with `Authorization: Bearer <token>`. If unset, a **warning** is logged at startup (bind still works). |
-| `BOGGERS_DASHBOARD_HOST` | Dashboard bind host (default: **`127.0.0.1`** — loopback only; set `0.0.0.0` explicitly for LAN exposure behind a reverse proxy) |
-| `BOGGERS_DASHBOARD_PORT` | Dashboard bind port (default: `8000`) |
-| `BOGGERS_CONFIG_STRICT` | If `1` or `true`, `validate_config` raises `ValueError` on any config warning |
+See [docs/configuration.md](docs/configuration.md) for the maintained config
+map and environment variables.
 
 ---
 
-## CLI Command Reference
+## CLI
 
-Entry point: `boggers` → `BoggersTheAI.interface.chat:run_chat`
+Entry point: `boggers` -> `BoggersTheAI.interface.chat:run_chat`.
 
-| Command | Action |
-|---------|--------|
-| `help` or `/help` | List all available commands |
-| `status` or `/status` | Show wave engine status: cycle count, node/edge counts, current tension |
-| `graph` or `graph stats` | Show graph metrics: nodes, edges, density, mean activation, topic distribution |
-| `trace` or `trace show` | Print the beginning of the latest `traces/*.jsonl` file |
-| `wave pause` | Stop the background wave thread |
-| `wave resume` | Restart the background wave thread |
-| `improve` | Run `trigger_self_improvement()` — build dataset and optionally fine-tune |
-| `health` | Run all registered health checks and display results |
-| `history` | Show recent conversation turn nodes from the current session |
-| `exit` or `quit` | Call `shutdown()` (saves graph, stops threads) and exit |
+Common commands: `help`, `status`, `graph`, `trace`, `wave pause`,
+`wave resume`, `improve`, `health`, `history`, `exit`.
 
-Any other input is sent to `rt.ask(query)` as a natural-language query.
+See [docs/cli.md](docs/cli.md) for command notes.
 
 ---
 
@@ -839,11 +647,13 @@ Override host/port with `BOGGERS_DASHBOARD_HOST` and `BOGGERS_DASHBOARD_PORT` en
 
 **Lazy runtime:** The dashboard module does **not** construct `BoggersRuntime` at import time; it calls **`get_runtime()`** on first request (thread-safe singleton).
 
-### Meta-critique traces & Grok loop
+### Meta-critique traces
 
-- **`traces/` is gitignored** (dynamic JSONL). The repo includes **`traces/meta_critique/.gitkeep`** so the path exists; your local `waves.jsonl` and `NEXT_GROK_PROMPT.txt` are still ignored.
+- **`traces/` is gitignored** (dynamic JSONL). The repo includes **`traces/meta_critique/.gitkeep`** so the path exists; local trace and prompt-helper files remain ignored.
 - **Fold waves into the living graph:** set `runtime.fold_waves_jsonl_on_startup: true` in `config.yaml` to ingest `traces/meta_critique/waves.jsonl` as `meta:*` nodes on startup (inspectable in the dashboard Cytoscape view and `/metrics`).
-- **One-shot loop continuation:** copy the **`embedded_full_cursor_prompt`** field from any row in local `waves.jsonl` and paste into Grok for instant TS-wave continuation (same content as `NEXT_GROK_PROMPT.txt` after each wave).
+- Manual third-party chat hand-off notes are documented separately in
+  [docs/personal-workflows.md](docs/personal-workflows.md). They are not an
+  automated runtime feature or proof authority.
 - **TUI:** when `tui.enabled` is true, the Rich Live dashboard refreshes at **~8 Hz** with live `folded_wave` counts (see `mind/tui.py`).
 
 ---
