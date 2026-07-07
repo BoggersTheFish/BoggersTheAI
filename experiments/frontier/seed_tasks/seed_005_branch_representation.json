@@ -1,0 +1,8 @@
+{
+  "id": "seed_005_branch_representation",
+  "title": "Representation challenge branches instead of pretending confidence is proof",
+  "input": "Introduce stronger authoritative evidence that \"whales\" refers to mechanical devices named Whales, not biological animals.",
+  "expected_decision": "branch",
+  "expected_contains": ["representation challenge", "branch"],
+  "notes": "The current deterministic parser supports this narrow representation-challenge shape and records a branch decision."
+}

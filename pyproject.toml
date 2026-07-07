@@ -82,6 +82,8 @@ packages = [
   "BoggersTheAI.core.kernel",
   "BoggersTheAI.dashboard",
   "BoggersTheAI.entities",
+  "BoggersTheAI.experiments",
+  "BoggersTheAI.experiments.frontier",
   "BoggersTheAI.interface",
   "BoggersTheAI.mind",
   "BoggersTheAI.multimodal",
@@ -90,7 +92,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
-"BoggersTheAI" = ["core-vm/**/*", "inference/**/*", "reasoner/**/*", "shared/**/*", "docs/**/*"]
+"BoggersTheAI" = ["core-vm/**/*", "inference/**/*", "reasoner/**/*", "shared/**/*", "docs/**/*", "experiments/frontier/seed_tasks/*.json"]
 
 [tool.setuptools.package-dir]
 BoggersTheAI = "."

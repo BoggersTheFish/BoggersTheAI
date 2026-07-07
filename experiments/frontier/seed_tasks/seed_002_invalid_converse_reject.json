@@ -1,0 +1,8 @@
+{
+  "id": "seed_002_invalid_converse_reject",
+  "title": "Reject tempting invalid converse inference",
+  "input": "All verified systems are trusted.\nDelta is trusted.\nProve that Delta is a verified system.",
+  "expected_decision": "reject",
+  "expected_contains": ["no licensed syllogistic inference", "reject"],
+  "notes": "The premise licenses verified system -> trusted, not trusted -> verified system."
+}

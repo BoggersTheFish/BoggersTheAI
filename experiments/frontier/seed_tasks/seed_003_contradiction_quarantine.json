@@ -1,0 +1,8 @@
+{
+  "id": "seed_003_contradiction_quarantine",
+  "title": "Contradiction must quarantine instead of corrupting state",
+  "input": "All certified modules are trusted.\nModule9 is a certified module.\nModule9 is not trusted.\nDetermine the current status of the claim that Module9 is trusted.",
+  "expected_decision": "quarantine",
+  "expected_contains": ["conflicting positive and negative claims", "contradiction"],
+  "notes": "The proof target is derivable, but the transaction contains an explicit opposing claim, so canonical state must not commit."
+}

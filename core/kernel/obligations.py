@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import ast
+import operator
 import sys
 import tempfile
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -295,6 +298,168 @@ class ArithmeticVerifier:
             evidence=[asdict(receipt)],
             artifact_hashes=[stable_hash(asdict(receipt))],
         )
+
+
+_PROPERTY_OPS: dict[type[ast.AST], Callable[..., int | float]] = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
+_MAX_CODE_PROPERTY_ABS_VALUE = 1_000_000
+
+
+class CodePropertyVerifier:
+    verifier_type = "code_property"
+
+    def verify(
+        self,
+        obligation: VerifierObligation,
+        workspace: Any,
+    ) -> VerificationResult:
+        spec = obligation.expected_property
+        if spec.get("unsupported_input"):
+            return VerificationResult(
+                obligation.id,
+                self.verifier_type,
+                "unsupported",
+                "code/property verifier supports only bounded arithmetic examples",
+                limitations=["bounded_single_argument_arithmetic_examples_only"],
+            )
+
+        function_name = str(spec.get("function", "")).strip()
+        parameter = str(spec.get("parameter", "")).strip()
+        body = str(spec.get("body", "")).strip()
+        examples = spec.get("examples", [])
+        if (
+            not function_name.isidentifier()
+            or not parameter.isidentifier()
+            or not body
+            or not isinstance(examples, list)
+            or not examples
+        ):
+            return VerificationResult(
+                obligation.id,
+                self.verifier_type,
+                "unsupported",
+                "code/property obligation is outside the supported bounded shape",
+                limitations=["bounded_single_argument_arithmetic_examples_only"],
+            )
+
+        evidence: list[dict[str, Any]] = []
+        try:
+            for example in examples:
+                if not isinstance(example, dict):
+                    raise ArithmeticParseError("example must be an object")
+                input_value = example["input"]
+                expected = example["expected"]
+                actual = self._evaluate_body(body, parameter, input_value)
+                passed = actual == expected
+                evidence.append(
+                    {
+                        "function": function_name,
+                        "input": input_value,
+                        "expected": expected,
+                        "actual": actual,
+                        "passed": passed,
+                    }
+                )
+        except (
+            ArithmeticError,
+            ArithmeticParseError,
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as exc:
+            return VerificationResult(
+                obligation.id,
+                self.verifier_type,
+                "error",
+                f"code/property check failed to parse safely: {exc}",
+                limitations=["bounded_single_argument_arithmetic_examples_only"],
+            )
+
+        outcome = "pass" if all(item["passed"] for item in evidence) else "fail"
+        return VerificationResult(
+            obligation.id,
+            self.verifier_type,
+            outcome,
+            (
+                "bounded arithmetic code/property examples all passed"
+                if outcome == "pass"
+                else "bounded arithmetic code/property examples failed"
+            ),
+            evidence=evidence,
+            artifact_hashes=[
+                stable_hash(
+                    {
+                        "function": function_name,
+                        "parameter": parameter,
+                        "body": body,
+                        "examples": evidence,
+                    }
+                )
+            ],
+            limitations=[
+                "bounded_single_argument_arithmetic_examples_only",
+                "not_general_code_verification",
+            ],
+        )
+
+    def _evaluate_body(
+        self,
+        expression: str,
+        parameter: str,
+        value: Any,
+    ) -> int | float:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ArithmeticParseError("example input must be numeric")
+        self._ensure_bounded_number(value)
+        try:
+            parsed = ast.parse(expression, mode="eval")
+        except SyntaxError as exc:
+            raise ArithmeticParseError(str(exc)) from exc
+        return self._eval_node(parsed.body, parameter, value)
+
+    def _eval_node(
+        self,
+        node: ast.AST,
+        parameter: str,
+        value: int | float,
+    ) -> int | float:
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
+                raise ArithmeticParseError("only numeric literals are allowed")
+            return self._ensure_bounded_number(node.value)
+        if isinstance(node, ast.Name):
+            if node.id != parameter:
+                raise ArithmeticParseError(f"unsupported variable: {node.id}")
+            return value
+        if isinstance(node, ast.BinOp) and type(node.op) in _PROPERTY_OPS:
+            op = _PROPERTY_OPS[type(node.op)]
+            return self._ensure_bounded_number(
+                op(
+                    self._eval_node(node.left, parameter, value),
+                    self._eval_node(node.right, parameter, value),
+                )
+            )
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _PROPERTY_OPS:
+            op = _PROPERTY_OPS[type(node.op)]
+            return self._ensure_bounded_number(
+                op(self._eval_node(node.operand, parameter, value))
+            )
+        raise ArithmeticParseError(
+            f"unsupported arithmetic syntax: {node.__class__.__name__}"
+        )
+
+    def _ensure_bounded_number(self, value: int | float) -> int | float:
+        if abs(value) > _MAX_CODE_PROPERTY_ABS_VALUE:
+            raise ArithmeticParseError("code/property numeric value is out of bounds")
+        return value
 
 
 class BOGVMExecutionVerifier:

@@ -1,0 +1,8 @@
+{
+  "id": "seed_004_arithmetic_property",
+  "title": "Allowlisted deterministic arithmetic verifier",
+  "input": "Verify that (12 + 6) / 3 = 6.",
+  "expected_decision": "commit",
+  "expected_contains": ["arithmetic verifier", "pass"],
+  "notes": "Uses the existing allowlisted arithmetic AST verifier. No raw eval or language confidence is involved."
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 
 import pytest
 
@@ -22,7 +23,16 @@ from BoggersTheAI.core.kernel.transaction import graph_state_hash
 from BoggersTheAI.core.trace_processor import TraceProcessor, TraceProcessorConfig
 from BoggersTheAI.core.ts_engine import TSEngine
 from BoggersTheAI.core.verifier.verifier_os import VerifierOS
+from BoggersTheAI.experiments.frontier.run_seed_tasks import (
+    _receipt_filename,
+    load_seed_tasks,
+)
+from BoggersTheAI.experiments.frontier.run_seed_tasks import main as seed_runner_main
+from BoggersTheAI.experiments.frontier.run_seed_tasks import (
+    run_seed_suite,
+)
 from BoggersTheAI.interface.api import handle_query
+from BoggersTheAI.interface.chat import run_chat
 from BoggersTheAI.interface.runtime import BoggersRuntime, RuntimeConfig
 
 VALID = """All mammals are warm-blooded.
@@ -53,6 +63,10 @@ CHAIN_PROPERTY_TERMINAL = """All whales are mammals.
 All mammals are warm-blooded.
 Moby is a whale.
 Prove that Moby is warm-blooded."""
+
+CODE_PROPERTY = (
+    "Verify code property double(x) = x * 2 " "for examples 0 -> 0, 3 -> 6, 5 -> 10."
+)
 
 
 def test_valid_syllogism_commits_receipt_and_replays():
@@ -400,6 +414,63 @@ def test_class_to_property_terminal_chain_proof_works():
     assert result.decision.value == "commit"
     assert "warm blooded" in result.rendered
     assert len(result.receipt.proof_artifacts[0]["payload"]["steps"]) == 2
+
+
+def test_bounded_code_property_examples_can_commit():
+    result = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        CODE_PROPERTY
+    )
+
+    assert result.decision.value == "commit"
+    assert "code/property verifier passed" in result.rendered
+    code_results = [
+        item
+        for item in result.receipt.verification_results
+        if item["verifier_type"] == "code_property"
+    ]
+    assert code_results[0]["outcome"] == "pass"
+    assert code_results[0]["limitations"] == [
+        "bounded_single_argument_arithmetic_examples_only",
+        "not_general_code_verification",
+    ]
+
+
+def test_unsupported_code_property_channel_rejects_without_mutation():
+    graph = UniversalLivingGraph(auto_load=False)
+    kernel = TSKernel(graph=graph)
+    before = graph_state_hash(graph)
+
+    result = kernel.transact(
+        "Verify code property sorter(xs) returns a sorted list for all lists."
+    )
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    unsupported = [
+        item
+        for item in result.receipt.verification_results
+        if item["verifier_type"] == "code_property"
+    ]
+    assert unsupported[0]["outcome"] == "unsupported"
+
+
+def test_code_property_exponentiation_fails_closed():
+    graph = UniversalLivingGraph(auto_load=False)
+    before = graph_state_hash(graph)
+
+    result = TSKernel(graph=graph).transact(
+        "Verify code property square(x) = x ** 2 for examples 3 -> 9."
+    )
+
+    assert result.decision.value == "reject"
+    assert graph_state_hash(graph) == before
+    code_results = [
+        item
+        for item in result.receipt.verification_results
+        if item["verifier_type"] == "code_property"
+    ]
+    assert code_results[0]["outcome"] == "error"
+    assert "unsupported arithmetic syntax" in code_results[0]["explanation"]
 
 
 def test_missing_bridge_rule_fails():
@@ -864,6 +935,278 @@ def test_missing_provenance_blocks_verified_success():
         processor._is_training_eligible({"receipt": receipt, "replay_verified": True})
         is False
     )
+
+
+def test_missing_bogvm_artifacts_blocks_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    receipt["BOGVM_artifacts"] = []
+    receipt["execution_artifacts"] = []
+    receipt["receipt_hash"] = _receipt_hash_for_payload(receipt)
+    processor = TraceProcessor()
+
+    assert validate_receipt_hash(receipt) is True
+    assert (
+        processor._is_training_eligible({"receipt": receipt, "replay_verified": True})
+        is False
+    )
+
+
+def test_arithmetic_receipt_without_bogvm_can_be_training_eligible():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact("Verify that 2 + 2 = 4.")
+        .receipt.to_dict()
+    )
+    processor = TraceProcessor()
+
+    assert receipt["commit_decision"] == "commit"
+    assert receipt["BOGVM_artifacts"] == []
+    assert processor._is_training_eligible(
+        {"receipt": receipt, "replay_verified": True}
+    )
+
+
+def test_replay_failure_blocks_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    processor = TraceProcessor()
+
+    assert (
+        processor._is_training_eligible({"receipt": receipt, "replay_verified": False})
+        is False
+    )
+
+
+def test_failed_mandatory_obligation_blocks_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    for result in receipt["verification_results"]:
+        if result["verifier_type"] == "syllogism":
+            result["outcome"] = "fail"
+            result["explanation"] = "forced failure"
+            break
+    receipt["receipt_hash"] = _receipt_hash_for_payload(receipt)
+    processor = TraceProcessor()
+
+    assert validate_receipt_hash(receipt) is True
+    assert (
+        processor._is_training_eligible({"receipt": receipt, "replay_verified": True})
+        is False
+    )
+
+
+def test_unsupported_verifier_result_blocks_verified_success():
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    receipt["verifier_obligations"].append(
+        {
+            "id": "external:unsupported",
+            "verifier_type": "unsupported_required_verifier",
+            "target_claim": "claim:unsupported",
+            "premises": [],
+            "expected_property": {},
+            "required": True,
+        }
+    )
+    receipt["verification_results"].append(
+        {
+            "obligation_id": "external:unsupported",
+            "verifier_type": "unsupported_required_verifier",
+            "outcome": "unsupported",
+            "explanation": "unsupported channel",
+            "consumed_premises": [],
+            "produced_claims": [],
+            "evidence": [],
+            "artifact_hashes": [],
+            "deterministic": True,
+            "limitations": [],
+        }
+    )
+    receipt["receipt_hash"] = _receipt_hash_for_payload(receipt)
+    processor = TraceProcessor()
+
+    assert validate_receipt_hash(receipt) is True
+    assert (
+        processor._is_training_eligible({"receipt": receipt, "replay_verified": True})
+        is False
+    )
+
+
+def test_seed_tasks_match_expected_kernel_decisions():
+    for task in load_seed_tasks():
+        result = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+            task.input
+        )
+        assert result.decision.value == task.expected_decision, task.id
+
+
+def test_seed_tasks_exercise_intended_verifier_paths():
+    tasks = {task.id: task for task in load_seed_tasks()}
+
+    chained = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        tasks["seed_001_chained_syllogism"].input
+    )
+    assert len(chained.receipt.proof_artifacts[0]["payload"]["steps"]) >= 3
+
+    converse = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        tasks["seed_002_invalid_converse_reject"].input
+    )
+    assert any(
+        item["verifier_type"] == "structural" and item["outcome"] == "pass"
+        for item in converse.receipt.verification_results
+    )
+    assert any(
+        item["verifier_type"] == "syllogism"
+        and item["outcome"] == "fail"
+        and "no licensed syllogistic inference" in item["explanation"]
+        for item in converse.receipt.verification_results
+    )
+
+    contradiction = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        tasks["seed_003_contradiction_quarantine"].input
+    )
+    assert (
+        contradiction.receipt.tension_reports[-1]["by_type"]["contradiction_tension"]
+        > 0
+    )
+    assert contradiction.receipt.derived_claims
+
+    arithmetic = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        tasks["seed_004_arithmetic_property"].input
+    )
+    assert any(
+        item["verifier_type"] == "arithmetic" and item["outcome"] == "pass"
+        for item in arithmetic.receipt.verification_results
+    )
+
+    branch = TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(
+        tasks["seed_005_branch_representation"].input
+    )
+    assert any(
+        item["operation_type"] == "BRANCH_REPRESENTATION"
+        for item in branch.receipt.proposed_operations
+    )
+
+
+def test_seed_runner_writes_receipts_and_replays(tmp_path):
+    results = run_seed_suite(receipt_dir=tmp_path / "seed_receipts")
+
+    assert results
+    assert all(result.passed for result in results)
+    assert all(result.receipt_path.exists() for result in results)
+
+
+def test_seed_runner_exits_nonzero_on_expected_decision_mismatch(tmp_path):
+    seed_dir = tmp_path / "seeds"
+    seed_dir.mkdir()
+    (seed_dir / "seed_bad_expectation.json").write_text(
+        json.dumps(
+            {
+                "id": "seed_bad_expectation",
+                "title": "Bad expectation",
+                "input": "Verify that 2 + 2 = 4.",
+                "expected_decision": "reject",
+                "expected_contains": [],
+                "notes": "Used only to prove runner exit failure behavior.",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert (
+        seed_runner_main(
+            [
+                "--seed-dir",
+                str(seed_dir),
+                "--output-dir",
+                str(tmp_path / "receipts"),
+            ]
+        )
+        == 1
+    )
+
+
+def test_seed_runner_rejects_unsafe_task_ids():
+    with pytest.raises(ValueError, match="unsafe seed task id"):
+        _receipt_filename("../bad")
+
+
+def test_kernel_cli_replay_and_audit_report_authority_facts(
+    monkeypatch, capsys, tmp_path
+):
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False)).transact(VALID).receipt
+    )
+    receipt_path = tmp_path / "receipt.json"
+    receipt_path.write_text(receipt.to_json(), encoding="utf-8")
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["boggers", "kernel", "replay", str(receipt_path)],
+    )
+    with pytest.raises(SystemExit) as replay_exit:
+        run_chat()
+    replay_output = capsys.readouterr().out
+
+    assert replay_exit.value.code == 0
+    assert "REPLAY_VERIFIED: true" in replay_output
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["boggers", "kernel", "audit", str(receipt_path)],
+    )
+    with pytest.raises(SystemExit) as audit_exit:
+        run_chat()
+    audit_output = capsys.readouterr().out
+
+    assert audit_exit.value.code == 0
+    assert "DECISION: commit" in audit_output
+    assert "HASH_VALID: true" in audit_output
+    assert "REPLAY_VERIFIED: true" in audit_output
+    assert "FAILED_MANDATORY_OBLIGATIONS: none" in audit_output
+    assert "BOGVM_ARTIFACTS: 1" in audit_output
+    assert "TRAINING_ELIGIBLE: true" in audit_output
+
+
+def test_kernel_cli_audit_exits_nonzero_for_tampered_receipt(
+    monkeypatch, capsys, tmp_path
+):
+    receipt = (
+        TSKernel(graph=UniversalLivingGraph(auto_load=False))
+        .transact(VALID)
+        .receipt.to_dict()
+    )
+    receipt["commit_decision"] = "commit-tampered"
+    receipt_path = tmp_path / "tampered.json"
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["boggers", "kernel", "audit", str(receipt_path)],
+    )
+    with pytest.raises(SystemExit) as audit_exit:
+        run_chat()
+    audit_output = capsys.readouterr().out
+
+    assert audit_exit.value.code == 1
+    assert "HASH_VALID: false" in audit_output
+    assert "REPLAY_VERIFIED: false" in audit_output
 
 
 def test_runtime_and_api_route_formal_query_through_kernel(tmp_path):

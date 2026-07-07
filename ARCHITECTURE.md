@@ -2,9 +2,14 @@
 
 > **Version**: TS Engine foundation (2026-06, post Wave 0 / early self-data)
 > **Canonical source**: `BoggersTheAI/ARCHITECTURE.md`
-> **Focus**: Verifiable reasoning engine (graph + waves + verifier + BOGVM) + TensionLM synthesis from verified state. Not full traditional LLM.
+> **Focus**: Verifiable reasoning engine (graph + waves + verifier +
+> proof-artifact-linked BOGVM execution for supported formal proofs) + TensionLM
+> synthesis from verified state. Not full traditional LLM.
 
-See README.md and experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md for status. Current: light factual paths, full formal pipeline producing BOGVM traces, self-data generation + injection, proof prompts, math boosts. Graph ~35 nodes. Factual fast (2 waves, 0 BOGVM). Formal generates real self-data. Loop closing.
+See README.md and experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md for status.
+Current: Kernel v0.2 authority boundary, light factual paths, narrow formal
+seed receipts, proof prompts, math boosts and proof-object-linked BOGVM
+artifacts where supported. BOGVM as a normal wave payload remains Wave 1 work.
 
 ---
 
@@ -73,10 +78,62 @@ mandatory verifier obligations and commit policy pass. `unknown`,
 
 The initial semantic domain is intentionally small: universal syllogistic
 reasoning over `All X are Y`, `A is an X`, `A is not Y`,
-`Prove that A is Y`, and status queries. BOGVM artifacts are compiled from the
-actual proof object and remain separate from semantic proof acceptance:
-`execution_completed`, `proof_obligation_satisfied`, and
-`state_commit_authorized` are independently recorded.
+`Prove that A is Y`, status queries, allowlisted arithmetic propositions and a
+tiny bounded code/property example checker. For supported syllogism proofs,
+BOGVM artifacts are compiled from the actual proof object and remain separate
+from semantic proof acceptance: `execution_completed`,
+`proof_obligation_satisfied`, and `state_commit_authorized` are independently
+recorded.
+
+### Kernel v0.2 Authority Boundary
+
+Kernel v0.1 established the canonical transaction path from input through
+deterministic TSIR parsing, transaction workspace, structural verification,
+typed obligations, verifier results, optional BOGVM execution artifacts, tension
+reporting, commit policy, receipt creation and deterministic replay.
+
+Kernel v0.2 keeps that path narrow and hardens the authority boundary:
+
+- General language output remains non-authoritative. It may propose surface
+  text, but rendered language is not proof.
+- Confidence is not proof.
+- Evidence is not proof authority unless a typed verifier commits it through a
+  required obligation.
+- BOGVM execution completion is not semantic proof by itself. A BOGVM artifact
+  must match the semantic proof-object hash produced by the syllogism verifier,
+  and execution pass, semantic proof satisfaction and state commit authorization
+  are separate receipt fields.
+- Only verifier-backed committed receipts can authorize canonical TS state.
+- Only committed receipts with a valid hash, replay verification, passing
+  mandatory verifier obligations and explicit provenance are eligible for
+  verified self-improvement data.
+
+Kernel v0.2 also adds bounded deterministic chained syllogism proofs. The
+syllogism verifier can prove only the requested target across a fixed-depth
+class chain, including class-to-class membership chains and class-to-property
+terminal chains. Proof objects record each actual proof step and have stable
+hashes across repeated runs. The kernel still does not perform unbounded graph
+closure, broad retrieval, general chat reasoning or general predicate logic.
+
+The current non-toy gate demo is the seed receipt runner:
+
+```bash
+python -m experiments.frontier.run_seed_tasks
+boggers kernel run-seeds
+```
+
+It loads the hard seed JSON tasks, runs each one through `TSKernel.transact()`,
+writes receipts to `artifacts/seed_receipts/`, replays each receipt, and exits
+nonzero on any decision or replay mismatch. The suite currently covers a
+multi-step syllogism commit, invalid converse rejection, contradiction
+quarantine, allowlisted arithmetic commit, representation branching, and one
+narrow bounded code/property example checker.
+
+The code/property verifier is intentionally small: it checks deterministic
+single-argument arithmetic examples only. Unsupported verifier domains,
+malformed code/property requests, failed verifier results, required-but-missing
+BOGVM artifacts and replay failures do not authorize canonical state or
+training eligibility.
 
 ### Kernel v0.2 Authority Boundary
 
@@ -116,6 +173,10 @@ Compatibility status:
 - `TSEngine.process()` is a compatibility wrapper around `TSKernel.transact()`.
 - The older `QueryProcessor` path remains available for general retrieval and
   synthesis, but confidence-only output is not authority for accepted TS state.
+
+Next Wave 1 work is deeper verifier power, BOGVM as a normal wave payload, and
+graph scale after seed receipts remain stable. The current formal reasoning
+surface is useful as a verifier gate demo, not a GPT-level general reasoner.
 
 BoggersTheAI is a **graph-native cognitive engine** that implements the TS-OS (Thinking System Operating System) loop. All knowledge lives in a living graph of interconnected nodes. A continuous background wave cycle propagates activation, relaxes tension, prunes weak connections, detects contradictions, and spawns emergent nodes — all autonomously.
 

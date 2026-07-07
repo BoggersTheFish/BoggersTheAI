@@ -179,15 +179,25 @@ class TraceProcessor:
         if not validate_receipt_hash(receipt):
             return False
         renderer_metadata = receipt.get("renderer_metadata", {})
-        replay_verified = bool(raw.get("replay_verified", False)) or bool(
-            renderer_metadata.get("replay_verified", False)
-            if isinstance(renderer_metadata, dict)
-            else False
-        )
+        if "replay_verified" in raw:
+            replay_verified = bool(raw.get("replay_verified", False))
+        else:
+            replay_verified = bool(
+                renderer_metadata.get("replay_verified", False)
+                if isinstance(renderer_metadata, dict)
+                else False
+            )
         if not replay_verified:
             return False
         obligations = receipt.get("verifier_obligations", [])
         results = receipt.get("verification_results", [])
+        bogvm_required = any(
+            obligation.get("required", True)
+            and obligation.get("verifier_type") == "bogvm_execution"
+            for obligation in obligations
+        )
+        if bogvm_required and not receipt.get("BOGVM_artifacts"):
+            return False
         results_by_obligation: dict[str, list[dict[str, Any]]] = {}
         for result in results:
             results_by_obligation.setdefault(

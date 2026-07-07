@@ -1,0 +1,8 @@
+{
+  "id": "seed_006_code_property_examples",
+  "title": "Bounded code/property verifier spike",
+  "input": "Verify code property double(x) = x * 2 for examples 0 -> 0, 3 -> 6, 5 -> 10.",
+  "expected_decision": "commit",
+  "expected_contains": ["code/property", "bounded"],
+  "notes": "First narrow code/property channel: deterministic single-argument arithmetic examples only, not general code verification."
+}

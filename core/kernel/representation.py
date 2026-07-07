@@ -66,6 +66,10 @@ def _label_from_id(entity_id: str) -> str:
     return entity_id.split(":", 2)[-1].replace("_", " ")
 
 
+def _parse_number(text: str) -> int | float:
+    return float(text) if "." in text else int(text)
+
+
 class DeterministicTSParser:
     """Small explicit grammar for TSIR v0.1."""
 
@@ -351,6 +355,71 @@ class DeterministicTSParser:
             return lower
         return None
 
+    def _add_code_property_obligation(
+        self,
+        document: TSIRDocument,
+        sentence: str,
+        provenance: Provenance,
+    ) -> bool:
+        if not sentence.lower().startswith("verify code property "):
+            return False
+
+        match = re.fullmatch(
+            (
+                r"verify code property\s+([A-Za-z_]\w*)\(([A-Za-z_]\w*)\)"
+                r"\s*=\s*(.+?)\s+for examples\s+(.+)"
+            ),
+            sentence,
+            flags=re.I,
+        )
+        expected_property: dict[str, Any]
+        if match is None:
+            expected_property = {"unsupported_input": sentence}
+        else:
+            examples = []
+            for raw_example in re.split(r"\s*,\s*", match.group(4).strip()):
+                example_match = re.fullmatch(
+                    r"(-?\d+(?:\.\d+)?)\s*(?:->|=>|=)\s*(-?\d+(?:\.\d+)?)",
+                    raw_example,
+                )
+                if example_match is None:
+                    expected_property = {"unsupported_input": sentence}
+                    break
+                examples.append(
+                    {
+                        "input": _parse_number(example_match.group(1)),
+                        "expected": _parse_number(example_match.group(2)),
+                    }
+                )
+            else:
+                expected_property = {
+                    "function": match.group(1),
+                    "parameter": match.group(2),
+                    "body": match.group(3).strip(),
+                    "examples": examples,
+                }
+
+        obligation = VerifierObligation(
+            id="obl:codeprop:" + stable_hash(expected_property)[:16],
+            verifier_type="code_property",
+            target_claim=sentence,
+            expected_property=expected_property,
+            required=True,
+        )
+        document.obligations.append(obligation)
+        document.operations.append(
+            TSOperation(
+                operation_type="REQUEST_VERIFICATION",
+                target=obligation.id,
+                payload={
+                    "target_claim": sentence,
+                    "verifier_type": "code_property",
+                },
+                provenance=provenance,
+            )
+        )
+        return True
+
     def _add_representation_challenge(
         self,
         document: TSIRDocument,
@@ -505,6 +574,10 @@ class DeterministicTSParser:
                 if lower.startswith(("all ", "prove ", "determine ", "step ")):
                     continue
                 if self._add_arithmetic_obligation(
+                    document, sentence, representation_provenance
+                ):
+                    continue
+                if self._add_code_property_obligation(
                     document, sentence, representation_provenance
                 ):
                     continue

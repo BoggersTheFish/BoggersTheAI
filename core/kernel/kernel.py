@@ -11,6 +11,7 @@ from .ir import ClaimNode, Provenance, TSOperation, VerifierObligation, stable_h
 from .obligations import (
     ArithmeticVerifier,
     BOGVMExecutionVerifier,
+    CodePropertyVerifier,
     CommitPolicyVerifier,
     StructuralVerifier,
     SyllogismVerifier,
@@ -47,6 +48,7 @@ class TSKernel:
         self.structural_verifier = StructuralVerifier()
         self.syllogism_verifier = SyllogismVerifier()
         self.arithmetic_verifier = ArithmeticVerifier()
+        self.code_property_verifier = CodePropertyVerifier()
         self.bogvm_verifier = BOGVMExecutionVerifier()
         self.commit_policy = CommitPolicyVerifier()
         self.parent_receipt_hash = parent_receipt_hash
@@ -102,6 +104,11 @@ class TSKernel:
                     self._append_result(
                         workspace,
                         self.arithmetic_verifier.verify(obligation, workspace),
+                    )
+                elif obligation.verifier_type == "code_property":
+                    self._append_result(
+                        workspace,
+                        self.code_property_verifier.verify(obligation, workspace),
                     )
                 else:
                     self._append_result(
@@ -424,6 +431,13 @@ class TSKernel:
             if parsed_kind == "truthy_expression":
                 return f"{expression} = {computed}. The arithmetic verifier passed."
             return "The arithmetic verifier passed."
+        code_property = [
+            result
+            for result in workspace.verification_results
+            if result.verifier_type == "code_property" and result.outcome == "pass"
+        ]
+        if code_property and decision == CommitDecision.COMMIT:
+            return "The bounded code/property verifier passed."
         if decision == CommitDecision.QUARANTINE:
             return "The claim is under contradiction tension; no clean certainty was committed."
         if decision == CommitDecision.BRANCH:
