@@ -10,7 +10,8 @@ See README.md and experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md for status.
 Current: Kernel v0.2 authority boundary, light factual paths, narrow formal
 seed receipts, proof prompts, math boosts and proof-object-linked BOGVM
 artifacts where supported. The first BOGVM-as-wave-payload spike records
-bounded wave-cycle execution observations; those observations are not proof.
+bounded wave-cycle execution observations, and a narrow verifier can consume
+exact observation artifact facts. Those observations are not proof.
 
 ---
 
@@ -163,10 +164,14 @@ changing kernel authority:
 - Unsupported, blocked or failed VM execution fails closed as a recorded failed
   observation or no runnable job.
 
-Receipt linkage between these graph observations and kernel transactions is not
-yet the normal path. Next Wave 1 work is verifier integration for observations,
-richer scheduling, receipt linkage, and graph scale only after seed receipts
-remain stable. The current formal reasoning surface is useful as a verifier
+The `bogvm_observation` verifier is the first kernel-side consumer for these
+artifacts. It checks exact artifact facts only: artifact hash, program hash, VM
+receipt hash, execution status, exit code, receipt presence and
+`state_commit_authorized: false`. It does not infer semantic truth, accepted
+claims, or general code correctness from execution.
+
+Next Wave 1 work is richer verifier domains and receipt linkage polish, not
+graph scale yet. The current formal reasoning surface is useful as a verifier
 gate demo, not a GPT-level general reasoner.
 
 BoggersTheAI is a **graph-native cognitive engine** that implements the TS-OS (Thinking System Operating System) loop. All knowledge lives in a living graph of interconnected nodes. A continuous background wave cycle propagates activation, relaxes tension, prunes weak connections, detects contradictions, and spawns emergent nodes — all autonomously.

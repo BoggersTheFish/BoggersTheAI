@@ -65,7 +65,8 @@ Goal: Turn the scattered excellent components into one coherent, usable "TS Engi
 
 Key work:
 - Unify a clean public surface: graph + waves + tension + BOGVM + verifier stack + deterministic language.
-- Make BOGVM programs first-class payloads that waves can spawn and monitor (deep simulation prototype).
+- Make BOGVM programs first-class payloads that waves can spawn and monitor
+  as bounded observations, not yet deep simulation.
 - Package a "Verifier OS" v0.1 (wrap existing ts_reasoner pieces + add one serious new domain verifier, e.g., arithmetic + basic code property checking via BOGVM).
 - Production receipts + replay that actually work end-to-end across language → waves → verifier → execution.
 - Generate the first serious self-data: run the system on curated hard synthetic + small real formal problems. Ruthlessly filter by verifier success. Use to train a first improved Tension proposer.
@@ -209,6 +210,9 @@ This is the serious plan.
   BOGVM payload node, runs one wave cycle, executes the payload, and records a
   `bogvm_execution_observation` with source node, program hash, VM receipt hash,
   execution status and `state_commit_authorized: false`.
+- `python -m experiments.frontier.bogvm_observation_verifier_demo` now shows the
+  first observation-consuming verifier. It checks exact artifact facts only and
+  records typed verifier evidence in a replayable kernel receipt.
 - The seed suite now covers bounded chained syllogism commit, invalid converse
   rejection, contradiction quarantine, allowlisted arithmetic commit,
   representation branching, and one narrow bounded code/property example
@@ -231,13 +235,15 @@ This is the serious plan.
 - A wave cycle can discover a small number of runnable payloads, execute them
   outside the graph lock, and record execution observations back into graph
   state.
+- A narrow `bogvm_observation` verifier can consume one of those observations
+  and check exact artifact facts only.
 - Execution observations are not semantic proof and do not authorize canonical
   TS state.
 - Kernel v0.2 remains the authority boundary: only verifier-backed committed
   receipts authorize accepted TS state.
-- This is not full deep simulation yet. Next work is verifier integration for
-  observations, richer scheduling, and receipt linkage after the observation
-  path stays stable.
+- This is not full deep simulation or general code verification. Next work is
+  richer verifier domains and receipt linkage polish after the observation path
+  stays stable.
 - Light factual: fast path in answer() for known (capital, 2+2 etc.) — direct graph fact, 2 waves, 0 BOGVM, no model. Clean + light receipt.
 - Formal kernel path: supported `prove` tasks route through
   `TSKernel.transact()`, typed verifier obligations and proof-object-linked
@@ -248,9 +254,9 @@ This is the serious plan.
 - Graph: ~33-35 nodes (preload expanded + self-data inject). Waves/tension/verifier/BOGVM receipts full.
 - Other: BOGVM gating (only explicit execute); receipt samples (used_facts, high_act); TSLC claim cleaning; generator lazy + setter; more preload facts; demo cleanups/fixes.
 - Status: Wave 0 has a verifier-gated Kernel v0.2 seed demo. Early Wave 1 now
-  has the first BOGVM wave-payload observation path. Remaining work is verifier
-  integration, richer scheduling, receipt linkage, deeper verifier power and
-  graph scale after receipt stability.
+  has the first BOGVM wave-payload observation path and exact-fact observation
+  verifier. Remaining work is richer verifier domains, scheduling, receipt
+  linkage polish, deeper verifier power and graph scale after receipt stability.
 
 **Not frontier/full LLM yet**: graph modest; 117M model small (synthesis context-driven, not deep novel); no 50k+ scale/hierarchy yet; emergence limited; no long-horizon agency or meta-evolution of dynamics. Heavy on full path (CPU model + BOGVM CLI). But foundation solid, loop turning, verifiable formal + fast factual.
 
@@ -258,7 +264,8 @@ This is the serious plan.
 - Auto richer injection (full traces → more nodes + examples in context).
 - Deeper verifier power (symbolic math, richer proof objects, stronger
   code/property verification).
-- BOGVM payload observations linked into verifier decisions and master receipts.
+- Richer verifier domains that consume BOGVM observations as evidence without
+  treating execution as proof.
 - Scale graph (more preload/synthetic from traces; clusters/summaries) after
   receipt stability remains boring.
 - Iterative reasoning (build verified chains step-by-step before synth).

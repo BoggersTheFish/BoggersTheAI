@@ -20,11 +20,16 @@ Implemented path:
 - BOGVM execution artifacts expose program hash, VM receipt hash, execution
   status, exit code and artifact hash.
 - Every observation records `state_commit_authorized: false`.
+- The first `bogvm_observation` verifier can consume an observation artifact and
+  check exact facts only: artifact hash, program hash, VM receipt hash,
+  execution status, exit code, receipt presence and non-authorizing observation
+  state.
 
 Demo:
 
 ```bash
 python -m experiments.frontier.bogvm_wave_payload_demo
+python -m experiments.frontier.bogvm_observation_verifier_demo
 ```
 
 ## Authority Boundary
@@ -41,21 +46,24 @@ Kernel v0.2 remains the authority boundary:
 Unsupported, failed, blocked or unknown VM execution must not authorize truth
 state. It may produce a failed observation for audit.
 
+The observation verifier does not make BOGVM execution proof. It records a typed
+verifier result saying exact artifact facts matched. Any future semantic claim
+still needs its own verifier obligation and commit policy decision.
+
 ## Not Yet
 
 This spike does not implement:
 
 - deep simulation
 - rich scheduling
-- verifier acceptance of graph observations
 - normal master receipt linkage for graph observations
 - broad code/property verification
 - graph scale work
 
 ## Next Work
 
-1. Link selected graph BOGVM observations into kernel transaction receipts.
-2. Add verifier obligations that can consume an observation artifact without
+1. Add richer verifier domains that use observations as evidence without
    treating execution completion as proof by itself.
+2. Polish receipt linkage for observation-consuming transactions.
 3. Improve payload scheduling and retry policy.
 4. Scale only after seed receipts and wave observations stay deterministic.

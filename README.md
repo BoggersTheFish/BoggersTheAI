@@ -23,8 +23,9 @@ Current: Kernel v0.2 is the authority boundary. Wave 0 foundation has a
 receipt-first seed runner, narrow verifier-backed formal traces, light factual
 paths, and proof synthesis. BOGVM is currently linked as proof/execution
 artifacts in the supported formal path. The first BOGVM-as-wave-payload spike
-can run bounded graph payloads as wave observations, but those observations are
-evidence only, not proof authority.
+can run bounded graph payloads as wave observations, and a narrow observation
+verifier can consume exact artifact facts. Those observations remain evidence
+only, not proof authority.
 
 See [COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -199,8 +200,16 @@ Unsupported, failed or blocked VM execution records a failed observation; it
 does not authorize canonical TS state.
 
 Kernel receipts remain the authority boundary for accepted TS state. Receipt
-linkage between graph-level BOGVM observations and kernel transactions is still
-future work.
+linkage is currently limited to a narrow `bogvm_observation` verifier that
+checks exact artifact facts: artifact hash, program hash, VM receipt hash,
+execution status, exit code and non-authorizing observation state. It does not
+infer semantic truth from execution.
+
+Run the verifier demo:
+
+```bash
+python -m experiments.frontier.bogvm_observation_verifier_demo
+```
 
 **Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:
 
@@ -208,8 +217,9 @@ future work.
 - **Waves**: Dynamics for focus/tension propagation (run_wave_cycle).
 - **Verifier**: VerifierOS wrapping VerifierFirstRuntimeKernel + arithmetic checks. Authority, not confidence. Receipts.
 - **BOGVM**: Proof-artifact-linked execution for supported formal syllogism
-  proofs, plus the first bounded graph payload observation spike. Execution is
-  evidence; verifier-backed receipts remain the authority boundary.
+  proofs, plus bounded graph payload observations and a narrow exact-fact
+  observation verifier. Execution is evidence; verifier-backed receipts remain
+  the authority boundary.
 - **Language**: TSLCCompiler — deterministic text → graph_deltas + obligations + plan_skeleton.
 - **Synthesis**: TensionGenerator (117M TensionLM from bozo) only for generation from verified TS context. Proof prompts for reasoning.
 
