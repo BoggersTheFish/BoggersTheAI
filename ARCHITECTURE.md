@@ -170,6 +170,12 @@ receipt hash, execution status, exit code, receipt presence and
 `state_commit_authorized: false`. It does not infer semantic truth, accepted
 claims, or general code correctness from execution.
 
+The `bogvm_arithmetic_program` verifier adds one tiny semantic bridge: a bounded
+BOGVM observation may expose a strict `result:<integer>` output artifact, and a
+typed verifier can check exact output equality before a semantic claim commits.
+This is not general program verification, arbitrary code proof or deep
+simulation.
+
 Next Wave 1 work is richer verifier domains and receipt linkage polish, not
 graph scale yet. The current formal reasoning surface is useful as a verifier
 gate demo, not a GPT-level general reasoner.

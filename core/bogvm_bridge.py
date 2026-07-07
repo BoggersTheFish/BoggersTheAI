@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -11,6 +12,8 @@ from typing import Any
 
 DEFAULT_BOGVM_MAX_STEPS = 128
 MAX_BOGVM_MAX_STEPS = 1_000
+MIN_RESULT_VALUE = 0
+MAX_RESULT_VALUE = 255
 
 
 def canonical_json(payload: Any) -> str:
@@ -74,6 +77,114 @@ def _base_error_artifact(
         }
     )
     return artifact
+
+
+def _extract_program_output(vm_receipt: dict[str, Any]) -> dict[str, Any] | None:
+    """Extract the one supported BOGVM program-output convention.
+
+    This is intentionally tiny: one accepted data block named ``result:<int>``
+    or ``result_<int>`` whose one synthesized byte and verified hash match the
+    integer in the name. The VM execution remains evidence only; verifiers must
+    decide whether a semantic claim can commit.
+    """
+
+    names = vm_receipt.get("accepted_data_block_names")
+    if not isinstance(names, list):
+        return None
+    matches: list[tuple[str, int]] = []
+    for item in names:
+        if not isinstance(item, str):
+            continue
+        match = re.fullmatch(r"result[:_](\d+)", item)
+        if match is None:
+            continue
+        value = int(match.group(1))
+        if not MIN_RESULT_VALUE <= value <= MAX_RESULT_VALUE:
+            return None
+        matches.append((item, value))
+    if len(matches) != 1:
+        return None
+    data_block_name, value = matches[0]
+    byte_sha256 = hashlib.sha256(bytes([value])).hexdigest()
+    if not _result_events_match(
+        vm_receipt=vm_receipt,
+        data_block_name=data_block_name,
+        value=value,
+        byte_sha256=byte_sha256,
+    ):
+        return None
+    return {
+        "schema": "bogvm_result_i64_v1",
+        "value": value,
+        "source": "accepted_data_block_name",
+        "data_block_name": data_block_name,
+        "byte_length": 1,
+        "byte_sha256": byte_sha256,
+    }
+
+
+def _result_events_match(
+    *,
+    vm_receipt: dict[str, Any],
+    data_block_name: str,
+    value: int,
+    byte_sha256: str,
+) -> bool:
+    events = vm_receipt.get("events")
+    if not isinstance(events, list):
+        return False
+
+    load_seen = False
+    synth_seen = False
+    verify_seen = False
+    accept_seen = False
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        details = event.get("details")
+        if not isinstance(details, dict):
+            continue
+        if details.get("data_block") != data_block_name:
+            continue
+        opcode = event.get("opcode")
+        if opcode == "LOAD_COEFFICIENTS":
+            load_seen = (
+                details.get("byte") == value
+                and details.get("length") == 1
+                and details.get("delta") == 0
+            )
+        elif opcode == "SYNTHESIZE":
+            synth_seen = details.get("byte_length") == 1
+        elif opcode == "VERIFY_HASH":
+            verify_seen = (
+                details.get("result") == "verified"
+                and details.get("actual_hash") == byte_sha256
+                and details.get("expected_hash") == byte_sha256
+            )
+        elif opcode == "ACCEPT_DATA":
+            accept_seen = details.get("result") == "accepted"
+    return load_seen and synth_seen and verify_seen and accept_seen
+
+
+def _artifact_hash_payload(artifact: dict[str, Any]) -> dict[str, Any]:
+    payload = {
+        "artifact_type": artifact["artifact_type"],
+        "program_hash": artifact["program_hash"],
+        "max_steps": artifact["max_steps"],
+        "execution_status": artifact["execution_status"],
+        "execution_completed": artifact["execution_completed"],
+        "exit_code": artifact["exit_code"],
+        "vm_receipt_hash": artifact["vm_receipt_hash"],
+        "error": artifact["error"],
+        "state_commit_authorized": artifact["state_commit_authorized"],
+    }
+    if "vm_program_hash" in artifact:
+        payload["vm_program_hash"] = artifact.get("vm_program_hash")
+    if "program_output" in artifact:
+        payload["program_output"] = artifact.get("program_output")
+    if "details" in artifact or "vm_program_hash" not in artifact:
+        payload["details"] = artifact.get("details")
+    return payload
 
 
 def execute_bogvm_assembly(
@@ -158,6 +269,7 @@ def execute_bogvm_assembly(
 
     execution_status = str(vm_receipt.get("execution_status", "unknown"))
     execution_completed = exit_code == 0 and execution_status == "completed"
+    program_output = _extract_program_output(vm_receipt)
     artifact = {
         "artifact_type": "bogvm_execution",
         "assembly": normalized,
@@ -172,18 +284,7 @@ def execute_bogvm_assembly(
         "error": vm_receipt.get("block_reason") if exit_code != 0 else None,
         "state_commit_authorized": False,
     }
-    artifact["artifact_hash"] = stable_hash(
-        {
-            "artifact_type": artifact["artifact_type"],
-            "program_hash": artifact["program_hash"],
-            "vm_program_hash": artifact["vm_program_hash"],
-            "max_steps": artifact["max_steps"],
-            "execution_status": artifact["execution_status"],
-            "execution_completed": artifact["execution_completed"],
-            "exit_code": artifact["exit_code"],
-            "vm_receipt_hash": artifact["vm_receipt_hash"],
-            "error": artifact["error"],
-            "state_commit_authorized": artifact["state_commit_authorized"],
-        }
-    )
+    if program_output is not None:
+        artifact["program_output"] = program_output
+    artifact["artifact_hash"] = stable_hash(_artifact_hash_payload(artifact))
     return artifact

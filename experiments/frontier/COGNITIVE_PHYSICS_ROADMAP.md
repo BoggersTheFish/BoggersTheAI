@@ -213,6 +213,9 @@ This is the serious plan.
 - `python -m experiments.frontier.bogvm_observation_verifier_demo` now shows the
   first observation-consuming verifier. It checks exact artifact facts only and
   records typed verifier evidence in a replayable kernel receipt.
+- `python -m experiments.frontier.bogvm_arithmetic_program_verifier_demo` now
+  shows one narrow arithmetic/program-property verifier consuming BOGVM
+  observation evidence. It checks exact integer output equality only.
 - The seed suite now covers bounded chained syllogism commit, invalid converse
   rejection, contradiction quarantine, allowlisted arithmetic commit,
   representation branching, and one narrow bounded code/property example
@@ -237,13 +240,15 @@ This is the serious plan.
   state.
 - A narrow `bogvm_observation` verifier can consume one of those observations
   and check exact artifact facts only.
+- A tiny `bogvm_arithmetic_program` verifier can check one strict output
+  property from a bounded observation before a semantic claim commits.
 - Execution observations are not semantic proof and do not authorize canonical
   TS state.
 - Kernel v0.2 remains the authority boundary: only verifier-backed committed
   receipts authorize accepted TS state.
-- This is not full deep simulation or general code verification. Next work is
-  richer verifier domains and receipt linkage polish after the observation path
-  stays stable.
+- This is not full deep simulation, arbitrary code proof or general code
+  verification. Next work is richer verifier domains and receipt linkage polish
+  after the observation path stays stable.
 - Light factual: fast path in answer() for known (capital, 2+2 etc.) — direct graph fact, 2 waves, 0 BOGVM, no model. Clean + light receipt.
 - Formal kernel path: supported `prove` tasks route through
   `TSKernel.transact()`, typed verifier obligations and proof-object-linked
@@ -255,8 +260,9 @@ This is the serious plan.
 - Other: BOGVM gating (only explicit execute); receipt samples (used_facts, high_act); TSLC claim cleaning; generator lazy + setter; more preload facts; demo cleanups/fixes.
 - Status: Wave 0 has a verifier-gated Kernel v0.2 seed demo. Early Wave 1 now
   has the first BOGVM wave-payload observation path and exact-fact observation
-  verifier. Remaining work is richer verifier domains, scheduling, receipt
-  linkage polish, deeper verifier power and graph scale after receipt stability.
+  verifier plus a tiny exact-output arithmetic/program verifier. Remaining work
+  is richer verifier domains, scheduling, receipt linkage polish, deeper
+  verifier power and graph scale after receipt stability.
 
 **Not frontier/full LLM yet**: graph modest; 117M model small (synthesis context-driven, not deep novel); no 50k+ scale/hierarchy yet; emergence limited; no long-horizon agency or meta-evolution of dynamics. Heavy on full path (CPU model + BOGVM CLI). But foundation solid, loop turning, verifiable formal + fast factual.
 
