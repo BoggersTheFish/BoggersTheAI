@@ -24,12 +24,16 @@ Implemented path:
   check exact facts only: artifact hash, program hash, VM receipt hash,
   execution status, exit code, receipt presence and non-authorizing observation
   state.
+- The first `bogvm_arithmetic_program` verifier can consume that observation
+  evidence and check one strict property: exact integer output equality from a
+  bounded `result:<integer>` BOGVM data-block convention.
 
 Demo:
 
 ```bash
 python -m experiments.frontier.bogvm_wave_payload_demo
 python -m experiments.frontier.bogvm_observation_verifier_demo
+python -m experiments.frontier.bogvm_arithmetic_program_verifier_demo
 ```
 
 ## Authority Boundary
@@ -50,6 +54,11 @@ The observation verifier does not make BOGVM execution proof. It records a typed
 verifier result saying exact artifact facts matched. Any future semantic claim
 still needs its own verifier obligation and commit policy decision.
 
+The arithmetic/program verifier is also intentionally tiny. It does not prove
+that BOGVM understands programs. It checks a bounded observation artifact,
+strict output schema and exact expected integer, then lets the existing kernel
+commit policy decide.
+
 ## Not Yet
 
 This spike does not implement:
@@ -58,6 +67,7 @@ This spike does not implement:
 - rich scheduling
 - normal master receipt linkage for graph observations
 - broad code/property verification
+- arbitrary program semantics
 - graph scale work
 
 ## Next Work

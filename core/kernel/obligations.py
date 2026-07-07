@@ -662,6 +662,8 @@ class BOGVMObservationVerifier:
         }
         if "vm_program_hash" in artifact:
             payload["vm_program_hash"] = artifact.get("vm_program_hash")
+        if "program_output" in artifact:
+            payload["program_output"] = artifact.get("program_output")
         if "details" in artifact or "vm_program_hash" not in artifact:
             payload["details"] = artifact.get("details")
         return stable_hash(payload)
@@ -676,6 +678,7 @@ class BOGVMObservationVerifier:
             "execution_status": artifact.get("execution_status"),
             "execution_completed": artifact.get("execution_completed"),
             "exit_code": artifact.get("exit_code"),
+            "program_output": artifact.get("program_output"),
             "state_commit_authorized": artifact.get("state_commit_authorized"),
             "emitted_receipt_exists": bool(
                 artifact.get("vm_receipt") and artifact.get("vm_receipt_hash")
@@ -695,6 +698,186 @@ class BOGVMObservationVerifier:
             limitations=[
                 "checks_exact_bogvm_observation_facts_only",
                 "execution_is_not_semantic_proof",
+            ],
+        )
+
+
+class BOGVMArithmeticProgramVerifier:
+    verifier_type = "bogvm_arithmetic_program"
+
+    def verify(
+        self,
+        obligation: VerifierObligation,
+        workspace: Any,
+    ) -> VerificationResult:
+        spec = obligation.expected_property
+        artifact_hash = str(spec.get("artifact_hash", "")).strip()
+        if not artifact_hash:
+            return self._fail(obligation, "missing required observation artifact_hash")
+
+        artifact, source, lookup_error = BOGVMObservationVerifier()._find_artifact(
+            spec,
+            workspace,
+        )
+        if lookup_error:
+            return self._fail(obligation, lookup_error)
+        if artifact is None:
+            return self._fail(
+                obligation,
+                "no BOGVM observation artifact matched artifact_hash",
+            )
+
+        mismatches: list[str] = []
+        observation = BOGVMObservationVerifier()
+        if artifact.get("artifact_type") != "bogvm_execution":
+            mismatches.append("artifact_type is not bogvm_execution")
+        if str(artifact.get("artifact_hash", "")) != artifact_hash:
+            mismatches.append("artifact_hash mismatch")
+        if observation._computed_artifact_hash(artifact) != artifact_hash:
+            mismatches.append("artifact_hash content mismatch")
+        if artifact.get("state_commit_authorized") is not False:
+            mismatches.append("raw observation must keep state_commit_authorized false")
+        if artifact.get("execution_status") != "completed":
+            mismatches.append("execution_status mismatch")
+        if artifact.get("execution_completed") is not True:
+            mismatches.append("execution_completed mismatch")
+        if artifact.get("exit_code") != 0:
+            mismatches.append("exit_code mismatch")
+        if "program_hash" in spec and artifact.get("program_hash") != spec.get(
+            "program_hash"
+        ):
+            mismatches.append("program_hash mismatch")
+
+        property_spec = spec.get("property")
+        expected_value: int | None = None
+        if not isinstance(property_spec, dict):
+            mismatches.append("missing checked property")
+        elif property_spec.get("type") != "exact_output_i64":
+            mismatches.append("unsupported checked property")
+        else:
+            raw_expected = property_spec.get("expected")
+            if isinstance(raw_expected, bool) or not isinstance(raw_expected, int):
+                mismatches.append("expected output must be an integer")
+            else:
+                expected_value = raw_expected
+
+        output = artifact.get("program_output")
+        observed_value: int | None = None
+        if not isinstance(output, dict):
+            mismatches.append("missing strict program output")
+        elif output.get("schema") != "bogvm_result_i64_v1":
+            mismatches.append("unsupported program output schema")
+        else:
+            raw_value = output.get("value")
+            if isinstance(raw_value, bool) or not isinstance(raw_value, int):
+                mismatches.append("observed output must be an integer")
+            else:
+                observed_value = raw_value
+
+        passed = (
+            not mismatches
+            and expected_value is not None
+            and observed_value is not None
+            and observed_value == expected_value
+        )
+        if (
+            not passed
+            and expected_value is not None
+            and observed_value is not None
+            and observed_value != expected_value
+        ):
+            mismatches.append("observed output does not equal expected output")
+
+        evidence = self._evidence(
+            artifact=artifact,
+            source=source,
+            obligation=obligation,
+            expected_value=expected_value,
+            observed_value=observed_value,
+            passed=passed,
+        )
+        if not passed:
+            return VerificationResult(
+                obligation.id,
+                self.verifier_type,
+                "fail",
+                "; ".join(sorted(mismatches)) or "BOGVM arithmetic property failed",
+                evidence=[evidence],
+                artifact_hashes=[artifact_hash, evidence["evidence_hash"]],
+                limitations=[
+                    "exact_integer_output_only",
+                    "bogvm_execution_is_evidence_not_proof",
+                    "not_general_program_verification",
+                ],
+            )
+
+        return VerificationResult(
+            obligation.id,
+            self.verifier_type,
+            "pass",
+            "BOGVM arithmetic program output matched the exact expected integer",
+            produced_claims=[obligation.target_claim],
+            evidence=[evidence],
+            artifact_hashes=[artifact_hash, evidence["evidence_hash"]],
+            limitations=[
+                "exact_integer_output_only",
+                "bogvm_execution_is_evidence_not_proof",
+                "not_general_program_verification",
+            ],
+        )
+
+    def _evidence(
+        self,
+        *,
+        artifact: dict[str, Any],
+        source: str,
+        obligation: VerifierObligation,
+        expected_value: int | None,
+        observed_value: int | None,
+        passed: bool,
+    ) -> dict[str, Any]:
+        property_payload = {
+            "type": "exact_output_i64",
+            "expected": expected_value,
+            "observed": observed_value,
+        }
+        evidence = {
+            "source": source,
+            "verifier_type": self.verifier_type,
+            "target_claim": obligation.target_claim,
+            "target_observation_artifact_hash": artifact.get("artifact_hash"),
+            "target_program_hash": artifact.get("program_hash"),
+            "expected_program_hash": obligation.expected_property.get("program_hash"),
+            "observed_program_hash": artifact.get("program_hash"),
+            "program_hash_checked": "program_hash" in obligation.expected_property,
+            "checked_property": property_payload,
+            "normalized_expected_value": expected_value,
+            "observed_value": observed_value,
+            "program_output": artifact.get("program_output"),
+            "execution_status": artifact.get("execution_status"),
+            "exit_code": artifact.get("exit_code"),
+            "raw_observation_state_commit_authorized": artifact.get(
+                "state_commit_authorized"
+            ),
+            "semantic_claim_authorized_by_verifier": passed,
+        }
+        evidence["evidence_hash"] = stable_hash(evidence)
+        return evidence
+
+    def _fail(
+        self,
+        obligation: VerifierObligation,
+        explanation: str,
+    ) -> VerificationResult:
+        return VerificationResult(
+            obligation.id,
+            self.verifier_type,
+            "fail",
+            explanation,
+            limitations=[
+                "exact_integer_output_only",
+                "bogvm_execution_is_evidence_not_proof",
+                "not_general_program_verification",
             ],
         )
 

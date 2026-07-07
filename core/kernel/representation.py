@@ -479,6 +479,99 @@ class DeterministicTSParser:
         )
         return True
 
+    def _add_bogvm_arithmetic_program_obligation(
+        self,
+        document: TSIRDocument,
+        sentence: str,
+        provenance: Provenance,
+    ) -> bool:
+        if not sentence.lower().startswith("verify bogvm arithmetic observation "):
+            return False
+
+        match = re.fullmatch(
+            (
+                r"verify bogvm arithmetic observation artifact\s+([A-Fa-f0-9]{16,64})"
+                r"(?:\s+program\s+([A-Fa-f0-9]{16,64}))?"
+                r"\s+output\s+equals\s+(-?\d+)"
+            ),
+            sentence.strip(),
+            flags=re.I,
+        )
+        if match is None:
+            expected_property: dict[str, Any] = {
+                "artifact_hash": "",
+                "unsupported_input": sentence,
+            }
+            target_claim = sentence
+        else:
+            artifact_hash = match.group(1).lower()
+            expected_value = int(match.group(3))
+            observation_entity = f"entity:bogvm_observation:{artifact_hash[:20]}"
+            value_entity = f"entity:integer:{expected_value}"
+            self._add_entity(
+                document,
+                observation_entity,
+                "bogvm_observation",
+                provenance,
+                attributes={"artifact_hash": artifact_hash},
+            )
+            self._add_entity(
+                document,
+                value_entity,
+                "integer",
+                provenance,
+                attributes={"value": expected_value},
+            )
+            claim = ClaimNode(
+                id=_claim_id(
+                    {
+                        "subject": observation_entity,
+                        "predicate": "bogvm_output_equals",
+                        "object": value_entity,
+                        "artifact_hash": artifact_hash,
+                        "expected": expected_value,
+                    }
+                ),
+                subject=observation_entity,
+                predicate="bogvm_output_equals",
+                object=value_entity,
+                modality="asserted",
+                status="under_verification",
+                provenance=provenance,
+            )
+            self._add_claim(document, claim, "CREATE_CLAIM", provenance)
+            expected_property = {
+                "artifact_hash": artifact_hash,
+                "property": {
+                    "type": "exact_output_i64",
+                    "expected": expected_value,
+                },
+            }
+            if match.group(2):
+                expected_property["program_hash"] = match.group(2).lower()
+            target_claim = claim.id
+
+        obligation = VerifierObligation(
+            id="obl:bogvmarith:" + stable_hash(expected_property)[:16],
+            verifier_type="bogvm_arithmetic_program",
+            target_claim=target_claim,
+            expected_property=expected_property,
+            required=True,
+        )
+        document.obligations.append(obligation)
+        document.operations.append(
+            TSOperation(
+                operation_type="REQUEST_VERIFICATION",
+                target=obligation.id,
+                payload={
+                    "target_claim": obligation.target_claim,
+                    "verifier_type": "bogvm_arithmetic_program",
+                },
+                provenance=provenance,
+            )
+        )
+        return True
+
     def _add_representation_challenge(
         self,
         document: TSIRDocument,
@@ -631,6 +724,10 @@ class DeterministicTSParser:
             for sentence in sentences:
                 lower = sentence.lower()
                 if lower.startswith(("all ", "prove ", "determine ", "step ")):
+                    continue
+                if self._add_bogvm_arithmetic_program_obligation(
+                    document, sentence, representation_provenance
+                ):
                     continue
                 if self._add_bogvm_observation_obligation(
                     document, sentence, representation_provenance

@@ -26,8 +26,10 @@ receipt-first seed runner, narrow verifier-backed formal traces, light factual
 paths, and proof synthesis. BOGVM is currently linked as proof/execution
 artifacts in the supported formal path. The first BOGVM-as-wave-payload spike
 can run bounded graph payloads as wave observations, and a narrow observation
-verifier can consume exact artifact facts. Those observations remain evidence
-only, not proof authority.
+verifier can consume exact artifact facts. A tiny BOGVM-backed arithmetic/
+program-property verifier can also check one exact integer output convention
+from an observation. Those observations remain evidence only, not proof
+authority.
 
 Status: alpha, local-first solo research infrastructure; not a frontier LLM,
 general verifier, or general code-proof system.
@@ -226,10 +228,16 @@ checks exact artifact facts: artifact hash, program hash, VM receipt hash,
 execution status, exit code and non-authorizing observation state. It does not
 infer semantic truth from execution.
 
+The `bogvm_arithmetic_program` verifier is one step deeper but still narrow: it
+checks only a strict `result:<integer>` BOGVM output convention from a bounded
+observation. It is not general program verification, arbitrary code proof or
+deep simulation.
+
 Run the verifier demo:
 
 ```bash
 python -m experiments.frontier.bogvm_observation_verifier_demo
+python -m experiments.frontier.bogvm_arithmetic_program_verifier_demo
 ```
 
 **Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:

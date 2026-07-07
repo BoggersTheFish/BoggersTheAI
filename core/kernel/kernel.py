@@ -10,6 +10,7 @@ from .commit import commit_document, render_claim
 from .ir import ClaimNode, Provenance, TSOperation, VerifierObligation, stable_hash
 from .obligations import (
     ArithmeticVerifier,
+    BOGVMArithmeticProgramVerifier,
     BOGVMExecutionVerifier,
     BOGVMObservationVerifier,
     CodePropertyVerifier,
@@ -52,6 +53,7 @@ class TSKernel:
         self.code_property_verifier = CodePropertyVerifier()
         self.bogvm_verifier = BOGVMExecutionVerifier()
         self.bogvm_observation_verifier = BOGVMObservationVerifier()
+        self.bogvm_arithmetic_program_verifier = BOGVMArithmeticProgramVerifier()
         self.commit_policy = CommitPolicyVerifier()
         self.parent_receipt_hash = parent_receipt_hash
         self.receipts: list[TSReceipt] = []
@@ -116,6 +118,14 @@ class TSKernel:
                     self._append_result(
                         workspace,
                         self.bogvm_observation_verifier.verify(
+                            obligation,
+                            workspace,
+                        ),
+                    )
+                elif obligation.verifier_type == "bogvm_arithmetic_program":
+                    self._append_result(
+                        workspace,
+                        self.bogvm_arithmetic_program_verifier.verify(
                             obligation,
                             workspace,
                         ),
@@ -457,6 +467,18 @@ class TSKernel:
             return (
                 "The BOGVM observation verifier checked exact artifact facts. "
                 "Execution remains evidence, not proof."
+            )
+        bogvm_arithmetic_program = [
+            result
+            for result in workspace.verification_results
+            if result.verifier_type == "bogvm_arithmetic_program"
+            and result.outcome == "pass"
+        ]
+        if bogvm_arithmetic_program and decision == CommitDecision.COMMIT:
+            return (
+                "The BOGVM arithmetic/program verifier checked a narrow exact "
+                "output property from an observation. Execution remains evidence, "
+                "not proof by itself."
             )
         if decision == CommitDecision.QUARANTINE:
             return "The claim is under contradiction tension; no clean certainty was committed."
