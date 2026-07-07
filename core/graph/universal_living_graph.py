@@ -9,7 +9,7 @@ import threading
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 try:
     import numpy as np
@@ -111,6 +111,8 @@ class UniversalLivingGraph:
             "activation_cap": 1.0,
             "semantic_weight": 0.3,
             "incremental_save_interval": 5,
+            "bogvm_payloads_enabled": True,
+            "bogvm_payloads_per_cycle": 1,
         }
         if config is None:
             return defaults
@@ -552,6 +554,152 @@ class UniversalLivingGraph:
                 pass
             return result
 
+    def add_bogvm_payload_node(
+        self,
+        *,
+        program_id: str,
+        assembly: str,
+        max_steps: int = 128,
+        created_by: str = "system",
+        provenance: dict[str, Any] | None = None,
+        target_claim: str | None = None,
+        verifier_obligation_id: str | None = None,
+        node_id: str | None = None,
+    ) -> Node:
+        """Add a typed BOGVM program payload as a runnable graph node."""
+
+        from .bogvm_payload import create_bogvm_program_payload
+
+        payload = create_bogvm_program_payload(
+            program_id=program_id,
+            assembly=assembly,
+            max_steps=max_steps,
+            created_by=created_by,
+            provenance=provenance or {"source": created_by},
+            target_claim=target_claim,
+            verifier_obligation_id=verifier_obligation_id,
+        )
+        nid = node_id or f"bogvm_payload:{stable_hash(payload.to_dict())}"
+        return self.add_node(
+            nid,
+            f"BOGVM payload: {payload.program_id}",
+            topics=["bogvm_payload", "bogvm_program", "runnable"],
+            activation=0.35,
+            stability=0.75,
+            base_strength=0.25,
+            attributes={
+                "bogvm_payload": payload.to_dict(),
+                "bogvm_execution_status": "pending",
+            },
+        )
+
+    def iter_runnable_bogvm_payloads(self, *, limit: int = 1) -> list[dict[str, Any]]:
+        """Return serializable BOGVM payload jobs without mutating graph."""
+
+        from .bogvm_payload import validate_bogvm_payload
+
+        jobs: list[dict[str, Any]] = []
+        with self._lock:
+            for node in sorted(self.nodes.values(), key=lambda item: item.id):
+                if len(jobs) >= max(0, limit):
+                    break
+                if node.collapsed:
+                    continue
+                if node.attributes.get("bogvm_execution_status") not in {
+                    None,
+                    "pending",
+                }:
+                    continue
+                raw_payload = node.attributes.get("bogvm_payload")
+                if not isinstance(raw_payload, dict):
+                    continue
+                try:
+                    payload = validate_bogvm_payload(raw_payload)
+                except ValueError as exc:
+                    jobs.append(
+                        {
+                            "source_node_id": node.id,
+                            "payload": dict(raw_payload),
+                            "validation_error": str(exc),
+                        }
+                    )
+                    continue
+                jobs.append(
+                    {
+                        "source_node_id": node.id,
+                        "payload": payload.to_dict(),
+                    }
+                )
+        return jobs
+
+    def record_bogvm_observation(
+        self,
+        *,
+        source_node_id: str,
+        artifact: dict[str, Any],
+    ) -> Node:
+        """Record BOGVM execution as observation, never as accepted truth."""
+
+        observation_artifact = dict(artifact)
+        observation_artifact["state_commit_authorized"] = False
+        observation_artifact.setdefault("source_graph_node", source_node_id)
+        artifact_hash = str(
+            observation_artifact.get("artifact_hash")
+            or stable_hash(observation_artifact)
+        )
+        observation_artifact["artifact_hash"] = artifact_hash
+        observation_id = (
+            "bogvm_observation:"
+            + stable_hash(
+                {"source_node_id": source_node_id, "artifact_hash": artifact_hash}
+            )[:20]
+        )
+        execution_status = str(observation_artifact.get("execution_status", "unknown"))
+        with self._lock:
+            node = self.add_node(
+                observation_id,
+                f"BOGVM execution observation: {source_node_id}",
+                topics=["bogvm_execution_observation", "bogvm_observation"],
+                activation=0.1,
+                stability=0.85,
+                base_strength=0.1,
+                attributes={
+                    "observation_type": "bogvm_execution_observation",
+                    "source_program_node": source_node_id,
+                    "source_program_id": observation_artifact.get("program_id"),
+                    "program_hash": observation_artifact.get("program_hash"),
+                    "vm_receipt_hash": observation_artifact.get("vm_receipt_hash"),
+                    "execution_status": execution_status,
+                    "exit_code": observation_artifact.get("exit_code"),
+                    "artifact_hash": artifact_hash,
+                    "state_commit_authorized": False,
+                    "artifact": observation_artifact,
+                },
+            )
+            if source_node_id in self.nodes:
+                source = self.nodes[source_node_id]
+                source.attributes["bogvm_execution_status"] = execution_status
+                source.attributes["last_bogvm_observation_id"] = observation_id
+                source.attributes["last_vm_receipt_hash"] = observation_artifact.get(
+                    "vm_receipt_hash"
+                )
+                source.attributes["state_commit_authorized"] = False
+                source.topics = [
+                    topic for topic in source.topics if topic != "runnable"
+                ]
+                self._rebuild_topic_index()
+                self._dirty_nodes.add(source_node_id)
+                try:
+                    self.add_edge(
+                        source_node_id,
+                        observation_id,
+                        weight=0.5,
+                        relation="bogvm_observed",
+                    )
+                except KeyError:
+                    pass
+            return node
+
     # Wave 0: BOGVM + Graph Unification - make BOGVM programs first-class
     def attach_bogvm_program(self, node_id: str, bogbin_path: str):
         """Attach a BOGVM program to a node as payload for simulation/execution."""
@@ -856,6 +1004,12 @@ class UniversalLivingGraph:
             auto_save=bool(self._wave_settings.get("auto_save", True)),
             incremental_save_interval=int(
                 self._wave_settings.get("incremental_save_interval", 5)
+            ),
+            bogvm_payloads_enabled=bool(
+                self._wave_settings.get("bogvm_payloads_enabled", True)
+            ),
+            bogvm_payloads_per_cycle=int(
+                self._wave_settings.get("bogvm_payloads_per_cycle", 1)
             ),
         )
         self._wave_runner = WaveCycleRunner(self, config)

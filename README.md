@@ -22,8 +22,9 @@ Follows COGNITIVE_PHYSICS_ROADMAP toward GPT-5.5+ level via verifiable long-hori
 Current: Kernel v0.2 is the authority boundary. Wave 0 foundation has a
 receipt-first seed runner, narrow verifier-backed formal traces, light factual
 paths, and proof synthesis. BOGVM is currently linked as proof/execution
-artifacts in the supported formal path; making BOGVM a normal wave payload is
-Wave 1 work.
+artifacts in the supported formal path. The first BOGVM-as-wave-payload spike
+can run bounded graph payloads as wave observations, but those observations are
+evidence only, not proof authority.
 
 See [COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -177,40 +178,38 @@ Authority boundary:
   passing mandatory obligations and explicit provenance are eligible for
   verified self-improvement data.
 
-### Kernel v0.2 Boundary
+### BOGVM Wave Payload Spike
 
-Kernel v0.1 established the canonical transaction path: deterministic TSIR
-parsing, transaction workspace, typed verifier obligations, BOGVM execution
-artifacts where applicable, commit policy, receipt creation and deterministic
-replay. Kernel v0.2 hardens the authority checks on that path and adds bounded
-deterministic chained syllogism proofs.
+The current Wave 1 spike adds a narrow graph observation path:
 
-The proof expansion remains deliberately small. The syllogism verifier can
-prove a requested target across a bounded class chain, such as class-to-class
-membership and a terminal class-to-property rule. It records the actual proof
-steps and stable proof hash, but it does not compute unbounded graph closure or
-general predicate logic.
+```bash
+python -m experiments.frontier.bogvm_wave_payload_demo
+```
 
-Authority boundary:
+A graph node can carry a typed `bogvm_program` payload with deterministic source
+hash, provenance and bounded `max_steps`. `WaveCycleRunner.run_single_cycle()`
+can discover at most the configured number of runnable payloads, release the
+graph lock, execute them through BOGVM, then reacquire the lock to record a
+`bogvm_execution_observation` node.
 
-- General language output may propose, but it is not proof.
-- Confidence may suggest, but confidence is not proof.
-- Rendered explanations are not proof authority.
-- Evidence and BOGVM execution completion are not semantic proof by themselves.
-- BOGVM artifacts are anchored to the semantic proof-object hash produced by the
-  verifier; `execution_completed`, `proof_obligation_satisfied`, and
-  `state_commit_authorized` are recorded separately.
-- Only verifier-backed committed receipts with valid hash, replay verification,
-  passing mandatory obligations and explicit provenance are eligible for
-  verified self-improvement data.
+These observations include the source graph node, program hash, VM receipt hash,
+execution status, exit code, artifact hash and
+`state_commit_authorized: false`. They do not mutate accepted truth directly.
+Unsupported, failed or blocked VM execution records a failed observation; it
+does not authorize canonical TS state.
+
+Kernel receipts remain the authority boundary for accepted TS state. Receipt
+linkage between graph-level BOGVM observations and kernel transactions is still
+future work.
 
 **Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:
 
 - **Graph**: UniversalLivingGraph with nodes (facts, conclusions) carrying activation, stability, topics.
 - **Waves**: Dynamics for focus/tension propagation (run_wave_cycle).
 - **Verifier**: VerifierOS wrapping VerifierFirstRuntimeKernel + arithmetic checks. Authority, not confidence. Receipts.
-- **BOGVM**: Currently proof-artifact-linked execution for supported formal
-  syllogism proofs; normal wave payload integration is Wave 1 work.
+- **BOGVM**: Proof-artifact-linked execution for supported formal syllogism
+  proofs, plus the first bounded graph payload observation spike. Execution is
+  evidence; verifier-backed receipts remain the authority boundary.
 - **Language**: TSLCCompiler — deterministic text → graph_deltas + obligations + plan_skeleton.
 - **Synthesis**: TensionGenerator (117M TensionLM from bozo) only for generation from verified TS context. Proof prompts for reasoning.
 

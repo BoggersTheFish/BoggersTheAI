@@ -9,7 +9,8 @@
 See README.md and experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md for status.
 Current: Kernel v0.2 authority boundary, light factual paths, narrow formal
 seed receipts, proof prompts, math boosts and proof-object-linked BOGVM
-artifacts where supported. BOGVM as a normal wave payload remains Wave 1 work.
+artifacts where supported. The first BOGVM-as-wave-payload spike records
+bounded wave-cycle execution observations; those observations are not proof.
 
 ---
 
@@ -135,36 +136,6 @@ malformed code/property requests, failed verifier results, required-but-missing
 BOGVM artifacts and replay failures do not authorize canonical state or
 training eligibility.
 
-### Kernel v0.2 Authority Boundary
-
-Kernel v0.1 established the canonical transaction path from input through
-deterministic TSIR parsing, transaction workspace, structural verification,
-typed obligations, verifier results, optional BOGVM execution artifacts, tension
-reporting, commit policy, receipt creation and deterministic replay.
-
-Kernel v0.2 keeps that path narrow and hardens the authority boundary:
-
-- General language output remains non-authoritative. It may propose surface
-  text, but rendered language is not proof.
-- Confidence is not proof.
-- Evidence is not proof authority unless a typed verifier commits it through a
-  required obligation.
-- BOGVM execution completion is not semantic proof by itself. A BOGVM artifact
-  must match the semantic proof-object hash produced by the syllogism verifier,
-  and execution pass, semantic proof satisfaction and state commit authorization
-  are separate receipt fields.
-- Only verifier-backed committed receipts can authorize canonical TS state.
-- Only committed receipts with a valid hash, replay verification, passing
-  mandatory verifier obligations and explicit provenance are eligible for
-  verified self-improvement data.
-
-Kernel v0.2 also adds bounded deterministic chained syllogism proofs. The
-syllogism verifier can prove only the requested target across a fixed-depth
-class chain, including class-to-class membership chains and class-to-property
-terminal chains. Proof objects record each actual proof step and have stable
-hashes across repeated runs. The kernel still does not perform unbounded graph
-closure, broad retrieval, general chat reasoning or general predicate logic.
-
 Compatibility status:
 
 - `BoggersRuntime` is the application shell for config, persistence, adapters,
@@ -174,9 +145,29 @@ Compatibility status:
 - The older `QueryProcessor` path remains available for general retrieval and
   synthesis, but confidence-only output is not authority for accepted TS state.
 
-Next Wave 1 work is deeper verifier power, BOGVM as a normal wave payload, and
-graph scale after seed receipts remain stable. The current formal reasoning
-surface is useful as a verifier gate demo, not a GPT-level general reasoner.
+### BOGVM Wave Payload Observation
+
+The current Wave 1 spike adds a narrow graph-level BOGVM payload path without
+changing kernel authority:
+
+- Payload nodes carry typed `bogvm_program` data: program id, assembly source,
+  deterministic program hash, bounded `max_steps`, creator and provenance.
+- `WaveCycleRunner.run_single_cycle()` can discover a small bounded number of
+  runnable payloads, defaulting to one per cycle, execute them outside the graph
+  lock, then record `bogvm_execution_observation` nodes under the lock.
+- Observation artifacts include source graph node, program hash, VM receipt
+  hash, execution status, exit code, artifact hash and
+  `state_commit_authorized: false`.
+- Successful BOGVM execution is evidence only. It is not semantic proof and does
+  not mutate accepted truth state.
+- Unsupported, blocked or failed VM execution fails closed as a recorded failed
+  observation or no runnable job.
+
+Receipt linkage between these graph observations and kernel transactions is not
+yet the normal path. Next Wave 1 work is verifier integration for observations,
+richer scheduling, receipt linkage, and graph scale only after seed receipts
+remain stable. The current formal reasoning surface is useful as a verifier
+gate demo, not a GPT-level general reasoner.
 
 BoggersTheAI is a **graph-native cognitive engine** that implements the TS-OS (Thinking System Operating System) loop. All knowledge lives in a living graph of interconnected nodes. A continuous background wave cycle propagates activation, relaxes tension, prunes weak connections, detects contradictions, and spawns emergent nodes — all autonomously.
 
