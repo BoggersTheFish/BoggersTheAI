@@ -71,7 +71,13 @@ Key work:
 - Generate the first serious self-data: run the system on curated hard synthetic + small real formal problems. Ruthlessly filter by verifier success. Use to train a first improved Tension proposer.
 - Stress graph to at least 10k–20k coherent nodes with hierarchical structure.
 
-**Gate / Demo**: A single runnable system that can be given a non-trivial multi-step formal task (real math proof sketch or small algorithm with full spec), parse it deterministically, explore with waves + simulation, propose via intuition layer, verify with the stack, produce an executable BOGVM plan, execute it, and return a complete, replayable receipt bundle that proves the result. This should feel qualitatively different from current toy demos.
+**Gate / Demo**: A single runnable system that can be given non-trivial small
+formal tasks, parse them deterministically, verify them through the kernel,
+produce replayable receipts, and clearly separate committed, rejected,
+quarantined, branched and abstained outcomes. Current Kernel v0.2 satisfies
+this as a narrow seed-suite gate via `python -m
+experiments.frontier.run_seed_tasks`; it is not yet a general math/code
+reasoner.
 
 ### Wave 1 – 2–5 months: Powerful Verifiers + Real Simulation Depth
 Goal: Verifiers become the thing that actually solves hard problems. Simulation becomes deep.
@@ -194,27 +200,49 @@ This is the serious plan.
 - Raw arithmetic `eval()` has been removed from verifier arithmetic and replaced
   with an allowlisted AST grammar for arithmetic equality, parity and
   divisibility.
+- The current non-toy gate demo is `experiments/frontier/run_seed_tasks.py`.
+  It runs the hard seed JSON suite through `TSKernel.transact()`, writes one
+  receipt per task under `artifacts/seed_receipts/`, replays each receipt, and
+  fails closed on decision or replay mismatches.
+- The seed suite now covers bounded chained syllogism commit, invalid converse
+  rejection, contradiction quarantine, allowlisted arithmetic commit,
+  representation branching, and one narrow bounded code/property example
+  verifier.
+- The code/property verifier is deliberately scoped to deterministic
+  single-argument arithmetic examples. Unsupported verifier domains are
+  receipt-visible `unsupported`, `reject`, `abstain`, `quarantine`, or `branch`;
+  they must not pass silently.
 - Self-improvement dataset eligibility is receipt-gated: committed transaction,
-  mandatory verifier passes, valid receipt hash, replay evidence and explicit
-  provenance. Confidence-only traces are kept out of training data.
+  mandatory verifier passes, valid receipt hash, replay evidence,
+  required BOGVM artifacts where a required BOGVM obligation exists, and
+  explicit provenance.
+  Confidence-only traces are kept out of training data.
 - Legacy Wave 0 components remain: graph/waves/verifier/BOGVM/language/intuition
   scaffolding, BOGVM bridge, VerifierOS compatibility, TSLC compatibility, hard
   tasks and scale support.
 - Light factual: fast path in answer() for known (capital, 2+2 etc.) — direct graph fact, 2 waves, 0 BOGVM, no model. Clean + light receipt.
-- Full formal: process for "prove + execute" → TSLC → graph/waves → verifier (OS + kernel/arith) → real BOGVM (traces, 1-2+ execs) → synthesis.
+- Formal kernel path: supported `prove` tasks route through
+  `TSKernel.transact()`, typed verifier obligations and proof-object-linked
+  BOGVM artifacts where required. Unsupported verifier domains fail closed.
 - Self-data (w0-4): generate_synthetic/collect_self_data on hard tasks using unified engine. Traces capture BOGVM/verif/synth. High-quality filter. Injection: conclusions as high-stability nodes (math/even/selfdata, high act/stability).
 - Reasoning synthesis: is_mathy boost + keywords/topics prioritize self-data/math facts. For prove+is_mathy: proof prompt ("Prove the claim step by step using only these verified facts...") + prioritized list. Generator on proof context. Synthesized references self-data (verified in probes).
 - Demos/probes: gpt55_progress_demo (lightened: timings, fewer loops, flush). Multiple probes confirm: factual fast/light; formal produces real BOGVM traces; injection + retrieval works (self-data top in facts for prove); proof prompt active.
 - Graph: ~33-35 nodes (preload expanded + self-data inject). Waves/tension/verifier/BOGVM receipts full.
 - Other: BOGVM gating (only explicit execute); receipt samples (used_facts, high_act); TSLC claim cleaning; generator lazy + setter; more preload facts; demo cleanups/fixes.
-- Status: Wave 0 complete (unified, BOGVM, VerifierOS, language, self-data skeleton, hard tasks, gate demos). Early Wave 1 (proof prompts, injection/feedback, deep sim hooks). Factual practical. Formal verifiable + self-data loop active (traces → inject → prioritize → proof synth). 
+- Status: Wave 0 has a verifier-gated Kernel v0.2 seed demo. Early Wave 1 work
+  remains proof prompts, injection/feedback, BOGVM as wave payload, deeper
+  verifier power and graph scale after receipt stability.
 
 **Not frontier/full LLM yet**: graph modest; 117M model small (synthesis context-driven, not deep novel); no 50k+ scale/hierarchy yet; emergence limited; no long-horizon agency or meta-evolution of dynamics. Heavy on full path (CPU model + BOGVM CLI). But foundation solid, loop turning, verifiable formal + fast factual.
 
-**Next (to frontier per plan)**: 
+**Next (Wave 1, after seed receipts stay stable)**:
 - Auto richer injection (full traces → more nodes + examples in context).
-- Scale graph (more preload/synthetic from traces; clusters/summaries).
-- Deeper verifiers (symbolic in BOGVM/waves; property checking).
+- Deeper verifier power (symbolic math, richer proof objects, stronger
+  code/property verification).
+- BOGVM as a normal wave payload rather than only proof-linked execution
+  artifacts.
+- Scale graph (more preload/synthetic from traces; clusters/summaries) after
+  receipt stability remains boring.
 - Iterative reasoning (build verified chains step-by-step before synth).
 - Better emergence/self-improve (use traces for dynamics or proposer bias).
 - Run full (light) progress demo + more traces.

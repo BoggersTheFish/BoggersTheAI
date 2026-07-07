@@ -1,0 +1,8 @@
+{
+  "id": "seed_001_chained_syllogism",
+  "title": "Bounded chained syllogism to a terminal property",
+  "input": "All axioms are premises.\nAll premises are proof inputs.\nAll proof inputs are verifier supported.\nAlpha is an axiom.\nProve that Alpha is verifier supported.",
+  "expected_decision": "commit",
+  "expected_contains": ["bounded syllogistic proof", "verifier supported"],
+  "notes": "Supported by the current bounded syllogism verifier: class chain plus terminal property rule."
+}

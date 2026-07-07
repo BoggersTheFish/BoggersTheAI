@@ -3,8 +3,12 @@
 Goal (per COGNITIVE_PHYSICS_ROADMAP): Turn excellent scattered components into one coherent, usable TS Engine that can do *real* (small but non-toy) frontier-style tasks with full receipts.
 
 **Definition of "non-toy" for this sprint gate**:
-- Multi-step formal task that requires language parsing → graph state → wave exploration + tension → verifier gate → BOGVM execution of a plan → receipt that proves the result.
-- Example class: "Given these axioms and a goal, produce a verified plan, execute it in BOGVM, and prove the final claim with full chain."
+- Multiple deterministic formal seed tasks that require language parsing,
+  verifier gates, explicit commit/reject/quarantine/branch decisions and
+  replayable receipts.
+- Example class: "Given these axioms and a goal, produce a bounded proof object,
+  link any required BOGVM proof artifact, and prove or reject the final claim
+  with a receipt."
 - Must work end-to-end without falling back to pure stubs for the core path.
 - Full glass-box receipt that a third party could replay.
 
@@ -62,14 +66,38 @@ Goal (per COGNITIVE_PHYSICS_ROADMAP): Turn excellent scattered components into o
 
 **Gate Demo (the one runnable thing at end of sprint)**:
 - Single command/script that:
-  1. Takes one of the hard seed tasks as text.
-  2. Runs the full pipeline (language → graph + waves + BOGVM simulation + verifier gates + proposer where useful).
-  3. Produces a correct, checkable artifact (proof or passing execution) + complete tamper-evident receipt bundle.
-  4. Receipt is rich enough that you can see tension driving focus, which verifier steps passed/failed, BOGVM execution trace, etc.
+  1. Loads the hard seed tasks as deterministic JSON.
+  2. Runs each task through `TSKernel.transact()`.
+  3. Produces one receipt per task and replays it.
+  4. Shows verifier outcomes, BOGVM proof artifacts where required, replay
+     status and commit decision.
 - Must run on this device without external LLM in the core path.
 - Should feel like "this could actually do useful formal work if we scale it."
 
-**Status (2026-06)**: Mostly complete. Unified engine + BOGVM + VerifierOS + TSLC + self-data skeleton + hard tasks + scale probe + demos (gpt55_progress etc.) running. Factual light/fast (2 waves/0 BOGVM); formal produces real BOGVM traces; self-data injection + math boosts + proof prompts live. Graph ~35 nodes. See COGNITIVE_PHYSICS_ROADMAP.md for details/progress. Probes confirm loop starting.
+**Status (2026-06)**: Kernel v0.2 is the current authority boundary. Unified
+engine pieces, BOGVM-linked proof artifacts for supported formal proofs,
+VerifierOS compatibility, TSLC compatibility, self-data skeleton, hard seeds
+and scale probes exist. Factual paths remain light/fast. Current formal
+reasoning is narrow and receipt-gated, not general intelligence.
+
+**Kernel v0.2 update**: The authority boundary is now the canonical kernel:
+language may propose, confidence may suggest, and BOGVM may execute, but only
+verifier-backed committed receipts authorize canonical TS state. The current
+non-toy gate command is:
+
+```bash
+python -m experiments.frontier.run_seed_tasks
+boggers kernel run-seeds
+```
+
+This runner loads `experiments/frontier/seed_tasks/*.json`, runs every task
+through `TSKernel.transact()`, saves receipts under `artifacts/seed_receipts/`,
+replays each receipt, and exits nonzero on any expected-decision or replay
+failure. The seed suite demonstrates commit, reject, quarantine and branch
+decisions, plus allowlisted arithmetic and one tiny bounded code/property
+example verifier. Current formal reasoning is still narrow; unsupported
+verifier domains must be receipt-visible and must reject, abstain, quarantine or
+branch rather than silently passing.
 
 ## Risks for this sprint
 - Import hell in the monorepo will slow unification — use adapters and thin wrappers aggressively.
@@ -77,10 +105,12 @@ Goal (per COGNITIVE_PHYSICS_ROADMAP): Turn excellent scattered components into o
 - Verifier power still limited — start narrow and deep rather than broad and shallow.
 
 ## Success criteria (not vibes)
-- At least 5 of the hard seed tasks run end-to-end and produce correct receipts.
-- Measurable improvement from the new Tension proposer on a held-out set.
+- At least 5 hard seed tasks run end-to-end and produce replayable receipts.
+- The seed runner clearly shows commit, reject, quarantine, branch or abstain.
 - Receipt format is stable enough that we can start versioning it.
-- No external LLM used for core reasoning, proposals, or verification in the gate demo.
+- No external LLM is used for core reasoning, proposals, or verification in the gate demo.
+- Next Wave 1 work deepens verifier power, moves BOGVM toward normal wave
+  payloads, and scales the graph after seed receipts remain stable.
 
 ---
 

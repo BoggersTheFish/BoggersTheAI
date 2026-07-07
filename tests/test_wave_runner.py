@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import sys
+import threading
 import time
 from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = PROJECT_ROOT.parent
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
 
+from BoggersTheAI.core.graph.universal_living_graph import (  # noqa: E402
+    UniversalLivingGraph,
+)
 from BoggersTheAI.core.graph.wave_runner import (  # noqa: E402
     WaveConfig,
     WaveCycleRunner,
@@ -38,6 +44,7 @@ def test_wave_config_custom():
 
 def _make_mock_graph():
     graph = MagicMock()
+    graph._lock = threading.RLock()
     graph.nodes = {}
     graph.edges = []
     graph._last_tension = 0.0
@@ -83,3 +90,54 @@ def test_run_single_cycle_skipped_on_guardrail():
     runner = WaveCycleRunner(graph, cfg)
     result = runner.run_single_cycle()
     assert "skipped" in result
+
+
+class _SlowValuesDict(dict):
+    def __init__(self, *args, entered: threading.Event, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._entered = entered
+
+    def values(self):
+        for value in super().values():
+            self._entered.set()
+            time.sleep(0.001)
+            yield value
+
+
+def test_run_single_cycle_blocks_concurrent_mutation_during_node_iteration():
+    graph = UniversalLivingGraph(auto_load=False)
+    for idx in range(80):
+        graph.add_node(
+            f"node:{idx}",
+            f"node {idx}",
+            topics=["race"],
+            activation=0.2,
+            base_strength=0.1,
+        )
+    graph.nodes = _SlowValuesDict(graph.nodes, entered=threading.Event())
+    graph._check_guardrails = lambda: None
+    runner = WaveCycleRunner(
+        graph,
+        WaveConfig(auto_save=False, log_each_cycle=False),
+    )
+    errors: list[BaseException] = []
+
+    def mutate_concurrently() -> None:
+        assert graph.nodes._entered.wait(timeout=2.0)
+        try:
+            graph.add_node("node:concurrent", "concurrent mutation")
+        except BaseException as exc:  # pragma: no cover - assertion reports details
+            errors.append(exc)
+
+    thread = threading.Thread(target=mutate_concurrently)
+    thread.start()
+    try:
+        result = runner.run_single_cycle()
+    except RuntimeError as exc:
+        pytest.fail(f"run_single_cycle raised during concurrent mutation: {exc}")
+    thread.join(timeout=2.0)
+
+    assert not thread.is_alive()
+    assert errors == []
+    assert result["cycle"] == 1
+    assert graph.get_node("node:concurrent") is not None

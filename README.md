@@ -2,17 +2,28 @@
 
 **BoggersTheAI** is a **TS (Thinking System) Engine** — a deterministic, glass-box, verifier-first reasoning system for building a non-traditional "LLM". 
 
-Core: Living graph + wave dynamics + tension for focus + Typed Verifier (kernel + arithmetic) + BOGVM for execution/simulation + TSLC language compiler. 
+Core: Living graph + wave dynamics + tension for focus + Typed Verifier
+(kernel + arithmetic) + proof-artifact-linked BOGVM execution for the supported
+formal path + TSLC language compiler.
 
-Synthesis only from verified TS state via TensionLM (117M). Fast light paths for factual (direct graph fact + 2 waves, 0 BOGVM). Full pipeline for formal "prove + execute" producing real BOGVM traces.
+Synthesis only from verified TS state via TensionLM (117M). Fast light paths for
+factual queries use direct graph facts + light waves with 0 BOGVM. The current
+formal kernel path can produce BOGVM-linked proof artifacts for supported
+syllogism proofs.
 
 Self-data loop: generate traces from formal tasks → inject verified conclusions as high-stability nodes → math/prove queries prioritize them via boosts + proof prompts.
 
-Not a traditional transformer LLM. The intelligence is the TS mechanisms (graph as knowledge, waves for reasoning, verifier for authority, BOGVM for execution). Generator only for fluent output from verified context.
+Not a traditional transformer LLM. The authority boundary is the TS kernel and
+typed verifiers; generator output is only fluent surface text over verified
+context.
 
 Follows COGNITIVE_PHYSICS_ROADMAP toward GPT-5.5+ level via verifiable long-horizon agency and frontier formal work with receipts. 
 
-Current: Wave 0 foundation complete (unified engine, BOGVM first-class, self-data from real runs, light factual, proof synthesis). Self-data flywheel starting to turn. Factual fast/light; formal produces verifiable traces. 
+Current: Kernel v0.2 is the authority boundary. Wave 0 foundation has a
+receipt-first seed runner, narrow verifier-backed formal traces, light factual
+paths, and proof synthesis. BOGVM is currently linked as proof/execution
+artifacts in the supported formal path; making BOGVM a normal wave payload is
+Wave 1 work.
 
 See [COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -66,9 +77,12 @@ Full documentation: [`docs/`](docs/)
 
 ## Current Architecture (TS Engine for Verifiable Reasoning + Synthesis)
 
-### Canonical TS Kernel v0.1
+### Canonical TS Kernel v0.2
 
-BoggersTheAI now has one canonical verifier-gated transaction boundary:
+BoggersTheAI now has one canonical verifier-gated transaction boundary. The
+kernel is the authority boundary: language may propose, confidence may suggest,
+and BOGVM may execute, but only verifier-backed committed receipts authorize
+canonical TS state.
 
 ```
 Input
@@ -101,13 +115,15 @@ compatibility wrapper around the same transaction path. The older query stack
 still provides retrieval, tools, sessions, adapters, dashboards and multimodal
 I/O, but accepted TS reasoning state is committed only by the kernel.
 
-The first vertical slice is deliberately narrow: typed syllogistic reasoning of
+The current formal slice is deliberately narrow: typed syllogistic reasoning of
 the form `All X are Y`, `A is an X`, `A is not Y`, and
-`Prove/Determine whether A is Y`. It demonstrates proposal/state separation,
-sandboxed graph mutation,
-typed tensions, verifier obligations, semantic BOGVM-linked execution artifacts,
-atomic commit/reject/quarantine/branch decisions, hash-linked `TSReceipt-0.1`,
-and deterministic replay. It does not claim universal semantic understanding.
+`Prove/Determine whether A is Y`; allowlisted arithmetic propositions; and a
+tiny bounded code/property checker for single-argument arithmetic examples. It
+demonstrates proposal/state separation, sandboxed graph mutation, typed
+tensions, verifier obligations, semantic BOGVM-linked execution artifacts where
+available, atomic commit/reject/quarantine/branch/abstain decisions,
+hash-linked `TSReceipt-0.1`, and deterministic replay. It does not claim
+universal semantic understanding or general code verification.
 
 Run it without Ollama, a GPU, or network access:
 
@@ -115,13 +131,24 @@ Run it without Ollama, a GPU, or network access:
 python -m core.kernel.demo
 python -m core.kernel.demo --json
 boggers kernel demo
+python -m experiments.frontier.run_seed_tasks
+boggers kernel run-seeds
 ```
+
+The seed runner is the current non-toy gate demo. It loads
+`experiments/frontier/seed_tasks/*.json`, runs each task through
+`TSKernel.transact()`, writes one receipt per task under
+`artifacts/seed_receipts/`, replays each receipt, and exits nonzero if any
+expected decision or replay check fails. The summary table reports
+`commit`, `reject`, `quarantine`, `branch`, or `abstain`; unsupported verifier
+domains must reject, abstain, quarantine, or branch rather than silently pass.
 
 Correct claim boundary:
 
 > BoggersTheAI now has a canonical verifier-gated transaction kernel that can
-> perform and replay a narrow class of typed reasoning tasks without treating
-> generated language or confidence as authority.
+> perform and replay a narrow class of typed reasoning, arithmetic, and bounded
+> property-checking tasks without treating generated language or confidence as
+> authority.
 
 ### Kernel v0.2 Boundary
 
@@ -155,13 +182,16 @@ Authority boundary:
 - **Graph**: UniversalLivingGraph with nodes (facts, conclusions) carrying activation, stability, topics.
 - **Waves**: Dynamics for focus/tension propagation (run_wave_cycle).
 - **Verifier**: VerifierOS wrapping VerifierFirstRuntimeKernel + arithmetic checks. Authority, not confidence. Receipts.
-- **BOGVM**: First-class for execution/simulation inside formal paths (attach/spawn, real CLI with receipts).
+- **BOGVM**: Currently proof-artifact-linked execution for supported formal
+  syllogism proofs; normal wave payload integration is Wave 1 work.
 - **Language**: TSLCCompiler — deterministic text → graph_deltas + obligations + plan_skeleton.
 - **Synthesis**: TensionGenerator (117M TensionLM from bozo) only for generation from verified TS context. Proof prompts for reasoning.
 
 **Fast factual path**: Known facts (preload + injected self-data) returned direct from graph + light process (2 waves, 0 BOGVM, no model). E.g. capital of France, 2+2.
 
-**Full formal path**: "Prove X and execute" → full process → BOGVM traces (real execution) + verifier + synthesis. Produces self-data.
+**Formal kernel path**: supported "prove" tasks route through
+`TSKernel.transact()` and may produce proof-object-linked BOGVM artifacts.
+Unsupported verifier domains fail closed.
 
 **Self-data loop**: collect_self_data on hard tasks → high-quality traces with BOGVM/verifier/synth → inject conclusions as high-stability nodes → math/prove retrieval boosts them (is_mathy, topics, keywords) → proof prompt ("Prove the claim step by step using only these verified facts") + prioritized facts → synthesis references self-data.
 
@@ -174,7 +204,13 @@ Confidence-only traces are retained separately for repair/adversarial analysis.
 
 See core/ts_engine.py, core/verifier/, core/language/tslc.py, core/intuition/tension_generator.py, experiments/frontier/ for traces and demos.
 
-**Progress**: Wave 0 foundation (unified engine, BOGVM, VerifierOS, TSLC, self-data, scale, hard tasks). Light factual. Self-data flywheel starting. Proof synthesis. See COGNITIVE_PHYSICS_ROADMAP.md for full multi-wave plan to GPT-5.5+ (scale, deeper verifiers, agency, self-improvement). 
+**Progress**: Wave 0 foundation plus Kernel v0.2 authority hardening
+(unified engine, BOGVM-linked proof artifacts, VerifierOS compatibility, TSLC
+compatibility, receipt replay, seed tasks). Light factual remains practical.
+The self-data flywheel is gated by committed, replay-verified receipts with
+passing mandatory obligations and explicit provenance. See
+COGNITIVE_PHYSICS_ROADMAP.md for the multi-wave plan: deeper verifiers, BOGVM
+as wave payload, graph scale, agency, and self-improvement.
 
 Not frontier yet — graph modest (~35 nodes), model 117M, synthesis context-driven. But verifiable formal + feedback loop active. Factual practical. Formal produces real traces. 
 
@@ -1299,7 +1335,9 @@ GitHub Actions runs on every push and PR:
 - **Matrix:** Python 3.10, 3.11, 3.12
 - **Caching:** pip dependencies cached via `actions/cache`
 - **Linting:** `ruff check`, `black --check`, `isort --check`
-- **Type checking:** `mypy` (blocking — must pass)
+- **Type checking:** full-package mypy still has historical optional-dependency
+  and typing debt. For this Kernel v0.2 demo branch, the stable narrow target is:
+  `mypy --follow-imports=skip --ignore-missing-imports core/kernel/obligations.py core/kernel/representation.py core/kernel/kernel.py core/trace_processor.py experiments/frontier/run_seed_tasks.py interface/chat.py`
 - **Tests:** `pytest --cov=BoggersTheAI --cov-fail-under=60`
 
 ---
