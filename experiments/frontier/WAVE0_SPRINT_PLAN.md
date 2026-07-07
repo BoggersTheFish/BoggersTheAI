@@ -21,7 +21,12 @@ Goal (per COGNITIVE_PHYSICS_ROADMAP): Turn excellent scattered components into o
    - Allow waves to spawn and monitor sub-BOGVM executions as "thought steps" (with their own tension/verifier accounting that feeds back to the parent graph).
    - Link graph deltas to BOGVM receipt ledgers in the master TurnReceipt / artifact receipt.
    - Files to touch: core/graph/universal_living_graph.py (new methods), core-vm integration points, receipts.py, wave_runner.py.
-   - Success: A wave cycle can contain BOGVM steps and the receipt shows the mapping.
+   - Current spike success: a wave cycle can discover one bounded graph BOGVM
+     payload, execute it outside the graph lock, and record a
+     `bogvm_execution_observation` with VM receipt hash and
+     `state_commit_authorized: false`.
+   - Still future work: verifier integration for observations and master
+     receipt linkage. Execution observation is evidence, not semantic proof.
 
 2. **Verifier OS v0.1**
    - Create `core/verifier/` (or reasoner/verifier_os) that wraps the best existing pieces:
@@ -99,6 +104,20 @@ example verifier. Current formal reasoning is still narrow; unsupported
 verifier domains must be receipt-visible and must reject, abstain, quarantine or
 branch rather than silently passing.
 
+**BOGVM wave-payload spike**: A graph node can now carry a typed bounded
+`bogvm_program` payload, and `WaveCycleRunner.run_single_cycle()` can execute a
+small configured number of runnable payloads as wave observations, defaulting
+to one payload per cycle:
+
+```bash
+python -m experiments.frontier.bogvm_wave_payload_demo
+```
+
+The recorded observation includes source graph node, program hash, VM receipt
+hash, execution status, exit code, artifact hash and
+`state_commit_authorized: false`. This is not full deep simulation and does not
+change the Kernel v0.2 authority boundary.
+
 ## Risks for this sprint
 - Import hell in the monorepo will slow unification — use adapters and thin wrappers aggressively.
 - BOGVM spawn overhead — profile early, keep simulations short at first.
@@ -109,8 +128,9 @@ branch rather than silently passing.
 - The seed runner clearly shows commit, reject, quarantine, branch or abstain.
 - Receipt format is stable enough that we can start versioning it.
 - No external LLM is used for core reasoning, proposals, or verification in the gate demo.
-- Next Wave 1 work deepens verifier power, moves BOGVM toward normal wave
-  payloads, and scales the graph after seed receipts remain stable.
+- Next Wave 1 work deepens verifier power, integrates BOGVM observations with
+  verifier decisions and master receipts, improves scheduling, and scales the
+  graph after seed receipts remain stable.
 
 ---
 

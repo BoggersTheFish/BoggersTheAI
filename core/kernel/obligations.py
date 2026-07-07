@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import ast
 import operator
-import sys
-import tempfile
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
 from typing import Any, Protocol
 
+from ..bogvm_bridge import execute_bogvm_assembly
 from .arithmetic import ArithmeticParseError, SafeArithmeticEvaluator
 from .ir import (
     ClaimNode,
@@ -647,43 +645,41 @@ def compile_proof_to_bogvm_artifact(proof: ProofObject, document: TSIRDocument) 
         ]
     )
 
-    core_vm = Path(__file__).resolve().parents[2] / "core-vm"
-    if str(core_vm) not in sys.path:
-        sys.path.insert(0, str(core_vm))
-
-    try:
-        from bogvm.assembler import Assembler
-        from bogvm.vm import run_file_with_block_receipt
-
-        assembler = Assembler()
-        program_bytes = assembler.assemble_text(assembly)
-        with tempfile.NamedTemporaryFile(suffix=".bogbin", delete=True) as temp:
-            temp.write(program_bytes)
-            temp.flush()
-            vm_receipt, exit_code = run_file_with_block_receipt(temp.name)
-    except Exception as exc:
+    vm_artifact = execute_bogvm_assembly(assembly, max_steps=128)
+    if not vm_artifact.get("vm_receipt"):
         return {
             "artifact_type": "bogvm_execution",
+            "assembly": assembly,
+            "program_hash": vm_artifact.get("program_hash"),
             "execution_completed": False,
             "proof_obligation_satisfied": False,
             "state_commit_authorized": False,
-            "error": str(exc),
-            "assembly": assembly,
+            "error": vm_artifact.get("error", "BOGVM execution failed closed"),
             "proof_object_hash": proof.hash(),
-            "artifact_hash": stable_hash({"assembly": assembly, "error": str(exc)}),
+            "vm_receipt_hash": vm_artifact.get("vm_receipt_hash"),
+            "vm_receipt": vm_artifact.get("vm_receipt"),
+            "artifact_hash": stable_hash(
+                {
+                    "assembly": assembly,
+                    "error": vm_artifact.get("error"),
+                    "proof_object_hash": proof.hash(),
+                }
+            ),
         }
 
     artifact = {
         "artifact_type": "bogvm_execution",
-        "assembly": assembly,
-        "program_hash": stable_hash({"assembly": assembly}),
+        "assembly": vm_artifact.get("assembly", assembly),
+        "program_hash": vm_artifact.get("program_hash"),
+        "vm_program_hash": vm_artifact.get("vm_program_hash"),
         "proof_object_hash": proof.hash(),
-        "execution_completed": exit_code == 0
-        and vm_receipt.get("execution_status") == "completed",
+        "execution_status": vm_artifact.get("execution_status"),
+        "execution_completed": bool(vm_artifact.get("execution_completed")),
+        "exit_code": vm_artifact.get("exit_code"),
         "proof_obligation_satisfied": False,
         "state_commit_authorized": False,
-        "vm_receipt_hash": vm_receipt.get("receipt_hash"),
-        "vm_receipt": vm_receipt,
+        "vm_receipt_hash": vm_artifact.get("vm_receipt_hash"),
+        "vm_receipt": vm_artifact.get("vm_receipt"),
     }
     artifact["artifact_hash"] = stable_hash(
         {

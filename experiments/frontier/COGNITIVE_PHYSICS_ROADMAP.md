@@ -204,6 +204,11 @@ This is the serious plan.
   It runs the hard seed JSON suite through `TSKernel.transact()`, writes one
   receipt per task under `artifacts/seed_receipts/`, replays each receipt, and
   fails closed on decision or replay mismatches.
+- The first BOGVM-as-wave-payload spike is now graph-observation-level:
+  `python -m experiments.frontier.bogvm_wave_payload_demo` adds a bounded
+  BOGVM payload node, runs one wave cycle, executes the payload, and records a
+  `bogvm_execution_observation` with source node, program hash, VM receipt hash,
+  execution status and `state_commit_authorized: false`.
 - The seed suite now covers bounded chained syllogism commit, invalid converse
   rejection, contradiction quarantine, allowlisted arithmetic commit,
   representation branching, and one narrow bounded code/property example
@@ -220,6 +225,19 @@ This is the serious plan.
 - Legacy Wave 0 components remain: graph/waves/verifier/BOGVM/language/intuition
   scaffolding, BOGVM bridge, VerifierOS compatibility, TSLC compatibility, hard
   tasks and scale support.
+
+**Current BOGVM wave-payload status (2026-07):**
+- A graph node can carry a typed bounded `bogvm_program` payload.
+- A wave cycle can discover a small number of runnable payloads, execute them
+  outside the graph lock, and record execution observations back into graph
+  state.
+- Execution observations are not semantic proof and do not authorize canonical
+  TS state.
+- Kernel v0.2 remains the authority boundary: only verifier-backed committed
+  receipts authorize accepted TS state.
+- This is not full deep simulation yet. Next work is verifier integration for
+  observations, richer scheduling, and receipt linkage after the observation
+  path stays stable.
 - Light factual: fast path in answer() for known (capital, 2+2 etc.) — direct graph fact, 2 waves, 0 BOGVM, no model. Clean + light receipt.
 - Formal kernel path: supported `prove` tasks route through
   `TSKernel.transact()`, typed verifier obligations and proof-object-linked
@@ -229,9 +247,10 @@ This is the serious plan.
 - Demos/probes: gpt55_progress_demo (lightened: timings, fewer loops, flush). Multiple probes confirm: factual fast/light; formal produces real BOGVM traces; injection + retrieval works (self-data top in facts for prove); proof prompt active.
 - Graph: ~33-35 nodes (preload expanded + self-data inject). Waves/tension/verifier/BOGVM receipts full.
 - Other: BOGVM gating (only explicit execute); receipt samples (used_facts, high_act); TSLC claim cleaning; generator lazy + setter; more preload facts; demo cleanups/fixes.
-- Status: Wave 0 has a verifier-gated Kernel v0.2 seed demo. Early Wave 1 work
-  remains proof prompts, injection/feedback, BOGVM as wave payload, deeper
-  verifier power and graph scale after receipt stability.
+- Status: Wave 0 has a verifier-gated Kernel v0.2 seed demo. Early Wave 1 now
+  has the first BOGVM wave-payload observation path. Remaining work is verifier
+  integration, richer scheduling, receipt linkage, deeper verifier power and
+  graph scale after receipt stability.
 
 **Not frontier/full LLM yet**: graph modest; 117M model small (synthesis context-driven, not deep novel); no 50k+ scale/hierarchy yet; emergence limited; no long-horizon agency or meta-evolution of dynamics. Heavy on full path (CPU model + BOGVM CLI). But foundation solid, loop turning, verifiable formal + fast factual.
 
@@ -239,8 +258,7 @@ This is the serious plan.
 - Auto richer injection (full traces → more nodes + examples in context).
 - Deeper verifier power (symbolic math, richer proof objects, stronger
   code/property verification).
-- BOGVM as a normal wave payload rather than only proof-linked execution
-  artifacts.
+- BOGVM payload observations linked into verifier decisions and master receipts.
 - Scale graph (more preload/synthetic from traces; clusters/summaries) after
   receipt stability remains boring.
 - Iterative reasoning (build verified chains step-by-step before synth).

@@ -6,6 +6,7 @@ from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable
 
+from ..bogvm_bridge import execute_bogvm_assembly
 from ..events import bus
 from .rules_engine import detect_tension, spawn_emergence
 
@@ -28,6 +29,8 @@ class WaveConfig:
     log_each_cycle: bool = True
     auto_save: bool = True
     incremental_save_interval: int = 5
+    bogvm_payloads_enabled: bool = True
+    bogvm_payloads_per_cycle: int = 1
 
 
 class WaveCycleRunner:
@@ -90,6 +93,7 @@ class WaveCycleRunner:
     def run_single_cycle(self) -> dict:
         graph = self._graph
         graph_lock = getattr(graph, "_lock", nullcontext())
+        bogvm_jobs: list[dict[str, Any]] = []
 
         with graph_lock:
             guardrail = graph._check_guardrails()
@@ -137,21 +141,111 @@ class WaveCycleRunner:
                 "nodes": node_count,
                 "pruned": pruned_count,
                 "emergent": len(emergent_ids),
+                "bogvm_payloads_executed": 0,
+                "bogvm_payloads_failed": 0,
             }
             result = dict(event_payload)
+            if self._config.bogvm_payloads_enabled:
+                iter_payloads = getattr(graph, "iter_runnable_bogvm_payloads", None)
+                if callable(iter_payloads):
+                    payloads = iter_payloads(
+                        limit=max(0, int(self._config.bogvm_payloads_per_cycle))
+                    )
+                    if isinstance(payloads, list):
+                        bogvm_jobs = payloads
+
+        observation_artifacts: list[tuple[str, dict[str, Any]]] = []
+        for job in bogvm_jobs:
+            source_node_id = str(job.get("source_node_id", ""))
+            payload = job.get("payload", {})
+            artifact: dict[str, Any]
+            try:
+                if not isinstance(payload, dict):
+                    raise ValueError("BOGVM payload job is malformed")
+                if job.get("validation_error"):
+                    artifact = {
+                        "artifact_type": "bogvm_execution",
+                        "program_id": payload.get("program_id"),
+                        "program_hash": payload.get("program_hash"),
+                        "source_graph_node": source_node_id,
+                        "execution_status": "unsupported",
+                        "execution_completed": False,
+                        "exit_code": 1,
+                        "vm_receipt_hash": None,
+                        "vm_receipt": None,
+                        "error": str(job["validation_error"]),
+                        "state_commit_authorized": False,
+                    }
+                else:
+                    artifact = execute_bogvm_assembly(
+                        str(payload.get("assembly", "")),
+                        program_hash=str(payload.get("program_hash", "")) or None,
+                        max_steps=int(payload.get("max_steps", 0)),
+                    )
+                artifact["program_id"] = payload.get("program_id")
+                artifact["source_graph_node"] = source_node_id
+                artifact["target_claim"] = payload.get("target_claim")
+                artifact["verifier_obligation_id"] = payload.get(
+                    "verifier_obligation_id"
+                )
+                artifact["created_by"] = payload.get("created_by")
+                artifact["provenance"] = payload.get("provenance")
+            except Exception as exc:
+                artifact = {
+                    "artifact_type": "bogvm_execution",
+                    "program_id": (
+                        payload.get("program_id") if isinstance(payload, dict) else None
+                    ),
+                    "program_hash": (
+                        payload.get("program_hash")
+                        if isinstance(payload, dict)
+                        else None
+                    ),
+                    "source_graph_node": source_node_id,
+                    "execution_status": "error",
+                    "execution_completed": False,
+                    "exit_code": 1,
+                    "vm_receipt_hash": None,
+                    "error": str(exc),
+                    "state_commit_authorized": False,
+                }
+            observation_artifacts.append((source_node_id, artifact))
+
+        if observation_artifacts:
+            record_observation = getattr(graph, "record_bogvm_observation", None)
+            with graph_lock:
+                for source_node_id, artifact in observation_artifacts:
+                    if callable(record_observation):
+                        record_observation(
+                            source_node_id=source_node_id,
+                            artifact=artifact,
+                        )
+                    if artifact.get("execution_completed"):
+                        result["bogvm_payloads_executed"] += 1
+                    else:
+                        result["bogvm_payloads_failed"] += 1
+                event_payload["bogvm_payloads_executed"] = result[
+                    "bogvm_payloads_executed"
+                ]
+                event_payload["bogvm_payloads_failed"] = result["bogvm_payloads_failed"]
+                event_payload["nodes"] = len(getattr(graph, "nodes", {}))
+                result["nodes"] = event_payload["nodes"]
 
         if self._config.log_each_cycle:
             logger.info(
                 (
                     "Wave cycle #%d | Tension: %.2f | Nodes: %d | "
-                    "Strongest: %s | Pruned: %d | Emergence: %d"
+                    "Strongest: %s | Pruned: %d | Emergence: %d | "
+                    "BOGVM: %d ok / %d failed"
                 ),
                 cycle,
                 tension_score,
-                node_count,
+                result["nodes"],
                 strongest_label,
                 pruned_count,
                 len(emergent_ids),
+                result["bogvm_payloads_executed"],
+                result["bogvm_payloads_failed"],
             )
 
         bus.emit("wave_cycle", **event_payload)
