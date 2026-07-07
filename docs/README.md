@@ -2,7 +2,9 @@
 
 **Current focus (2026-06)**: TS Engine (core/ts_engine.py + verifier/language/intuition) for verifiable reasoning. Graph + waves + tension + VerifierOS + BOGVM + TSLC. TensionLM *only* for synthesis from verified state. 
 
-Fast factual paths (light: 2 waves, 0 BOGVM, direct graph). Full formal pipeline produces BOGVM traces for self-data. Self-data injection + math/proof boosts + proof prompts so self-data surfaces in reasoning. 
+Fast factual paths (light: 2 waves, 0 BOGVM, direct graph). The supported
+formal path produces BOGVM traces for self-data. Self-data injection +
+math/proof boosts + proof prompts let verified self-data surface in reasoning.
 
 See root README.md, COGNITIVE_PHYSICS_ROADMAP.md (progress), ARCHITECTURE.md, CHANGELOG.md.
 
@@ -19,6 +21,9 @@ See root README.md, COGNITIVE_PHYSICS_ROADMAP.md (progress), ARCHITECTURE.md, CH
 - [MANIFESTO.md](MANIFESTO.md) (ideology)
 - [truth-graph.md](truth-graph.md)
 - [directory-structure.md](directory-structure.md)
+- [configuration.md](configuration.md)
+- [cli.md](cli.md)
+- [personal-workflows.md](personal-workflows.md)
 
 Full monorepo history in other .md; focus here on TS engine + self-data. 
 

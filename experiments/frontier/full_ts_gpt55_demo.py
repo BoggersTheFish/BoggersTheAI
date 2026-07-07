@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-FULL TS GPT-5.5 Level Demo - Implementing the entire COGNITIVE_PHYSICS_ROADMAP
+TS roadmap progress demo - historical frontier experiment
 
-This demonstrates the complete TS Engine:
+This demonstrates an older integrated TS Engine path:
 - Wave 0: Unified surface, BOGVM in graph, Verifier OS, Language, Self-data, Scale, Receipts
 - Wave 1: Deep simulation (BOGVM inside waves), powerful verifiers
 - Wave 2: Scaled graph, intuition layer
@@ -14,7 +14,7 @@ Uses real components from BoggersTheAI (graph, BOGVM, ts_reasoner, etc.)
 Run:
   PYTHONPATH=. python3 experiments/frontier/full_ts_gpt55_demo.py
 
-This is the culmination - a deterministic, glass-box, verifiable "LLM" at advanced capability using TS theory.
+This is a historical experiment, not a current frontier-capability claim.
 """
 
 import sys
@@ -29,9 +29,9 @@ from core.ts_engine import TSEngine
 
 def main():
     print("=" * 80)
-    print("FULL TS GPT-5.5 LEVEL DEMO")
+    print("TS ROADMAP PROGRESS DEMO")
     print("Deterministic | Glass-box | Verifier-first | Wave Physics | BOGVM Execution")
-    print("Following COGNITIVE_PHYSICS_ROADMAP to completion")
+    print("Historical integrated demo; current authority boundary is Kernel v0.2")
     print("=" * 80)
 
     engine = TSEngine(auto_load=False)
@@ -71,7 +71,7 @@ def main():
 
     # Demonstrate skill: the system handled language, graph, waves, verifier, BOGVM execution, proposals
     print("\n" + "=" * 80)
-    print("DEMONSTRATED CAPABILITY (Wave 0-4 complete in this demo):")
+    print("DEMONSTRATED EXPERIMENTAL PATH:")
     print("- Deterministic TSLC language compilation to graph + obligations + plan")
     print("- Real graph + adaptive waves with tension focus (10k+ scale possible)")
     print("- BOGVM programs as first-class, spawned in simulation with receipts")
@@ -83,10 +83,10 @@ def main():
     print("- Glass-box: inspect any tension, decision, execution")
     print("- On-device, deterministic, TS-native (no transformers)")
     print(
-        "\nThis is the TS alternative at advanced level: reliable, verifiable, self-contained."
+        "\nThis is a TS experiment path, not a general intelligence or frontier LLM release."
     )
     print(
-        "For true GPT-5.5+: scale self-data to train larger Tension models, deeper BOGVM sim, meta-evolution."
+        "Next hard work: stronger verifiers, stable receipt linkage, deeper BOGVM observation use."
     )
     print("=" * 80)
 

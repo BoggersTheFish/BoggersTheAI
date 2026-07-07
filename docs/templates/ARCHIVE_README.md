@@ -5,7 +5,7 @@
 ║                                                                              ║
 ║   THIS REPOSITORY IS FROZEN IN READ-ONLY ARCHIVE MODE.                       ║
 ║                                                                              ║
-║   All active development continues in the unified TS-OS monorepo:            ║
+║   Canonical TS-OS development continues in the unified monorepo:             ║
 ║                                                                              ║
 ║   ►  https://github.com/BoggersTheFish/BoggersTheAI                          ║
 ║                                                                              ║
@@ -22,9 +22,10 @@ only. **Do not open issues or pull requests here.**
 |------------------|----------------------|
 | **BoggersTheMind** | `interface/`, `mind/`, `entities/` |
 | **BoggersTheLLM** | `inference/` (language substrate) |
-| **bozo (TensionLM)** | `inference/tension_lm/` |
+| **bozo / TensionLM** | `inference/tension_lm/` |
+| **TensionLM** | `inference/tension_lm/` and `reasoner/ts_reasoner/*tensionlm*` adapters |
 | **TS-Reasoner-v0** | `reasoner/` (GOAT-TS, Verse Engine) |
-| **bogbin (BOGVM-0)** | `core-vm/` |
+| **bogbin / BOGVM-0** | `core-vm/` |
 
 ## For Researchers
 

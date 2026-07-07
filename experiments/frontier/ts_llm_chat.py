@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TS LLM Chat - The full TS-based LLM interface.
+TS LLM Chat - historical TS-based chat interface.
 
 This is the 'LLM' : use the TS engine for reasoning/verification, TensionLM for generation.
 
@@ -21,7 +21,7 @@ from core.ts_engine import TSEngine
 
 
 def main():
-    print("TS LLM Chat (Wave 0-4 complete)")
+    print("TS LLM Chat (experimental)")
     print("Reason with TS (graph/waves/verifiers/BOGVM), generate with real TensionLM.")
     print("Every answer comes with full receipt. Type 'quit' to exit.\n")
 
