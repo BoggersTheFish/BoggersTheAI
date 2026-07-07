@@ -528,6 +528,177 @@ class BOGVMExecutionVerifier:
         )
 
 
+class BOGVMObservationVerifier:
+    verifier_type = "bogvm_observation"
+
+    def verify(
+        self,
+        obligation: VerifierObligation,
+        workspace: Any,
+    ) -> VerificationResult:
+        spec = obligation.expected_property
+        artifact_hash = str(spec.get("artifact_hash", "")).strip()
+        if not artifact_hash:
+            return self._fail(obligation, "missing required observation artifact_hash")
+
+        artifact, source, lookup_error = self._find_artifact(spec, workspace)
+        if lookup_error:
+            return self._fail(obligation, lookup_error)
+        if artifact is None:
+            return self._fail(
+                obligation,
+                "no BOGVM observation artifact matched artifact_hash",
+            )
+
+        mismatches: list[str] = []
+        if artifact.get("artifact_type") != "bogvm_execution":
+            mismatches.append("artifact_type is not bogvm_execution")
+        if str(artifact.get("artifact_hash", "")) != artifact_hash:
+            mismatches.append("artifact_hash mismatch")
+        computed_artifact_hash = self._computed_artifact_hash(artifact)
+        if computed_artifact_hash != artifact_hash:
+            mismatches.append("artifact_hash content mismatch")
+        if artifact.get("state_commit_authorized") is not False:
+            mismatches.append("raw observation must keep state_commit_authorized false")
+
+        checks = [
+            "program_hash",
+            "vm_receipt_hash",
+            "execution_status",
+            "execution_completed",
+            "exit_code",
+            "state_commit_authorized",
+        ]
+        for key in checks:
+            if key in spec and artifact.get(key) != spec.get(key):
+                mismatches.append(f"{key} mismatch")
+
+        if spec.get("emitted_receipt_exists") is True:
+            receipt = artifact.get("vm_receipt")
+            receipt_hash = artifact.get("vm_receipt_hash")
+            if not isinstance(receipt, dict) or not receipt_hash:
+                mismatches.append("VM receipt is missing")
+            elif receipt.get("receipt_hash") != receipt_hash:
+                mismatches.append("VM receipt hash mismatch")
+        elif "emitted_receipt_exists" in spec and spec.get("emitted_receipt_exists"):
+            mismatches.append("unsupported emitted_receipt_exists expectation")
+
+        evidence = self._evidence(artifact, source)
+        if mismatches:
+            return VerificationResult(
+                obligation.id,
+                self.verifier_type,
+                "fail",
+                "; ".join(sorted(mismatches)),
+                evidence=[evidence],
+                artifact_hashes=[artifact_hash],
+                limitations=[
+                    "checks_exact_bogvm_observation_facts_only",
+                    "execution_is_not_semantic_proof",
+                ],
+            )
+
+        return VerificationResult(
+            obligation.id,
+            self.verifier_type,
+            "pass",
+            "BOGVM observation artifact facts match the verifier expectation",
+            evidence=[evidence],
+            artifact_hashes=[artifact_hash],
+            limitations=[
+                "checks_exact_bogvm_observation_facts_only",
+                "execution_is_not_semantic_proof",
+            ],
+        )
+
+    def _find_artifact(
+        self,
+        spec: dict[str, Any],
+        workspace: Any,
+    ) -> tuple[dict[str, Any] | None, str, str]:
+        artifact_hash = str(spec.get("artifact_hash", "")).strip()
+        embedded = spec.get("artifact")
+        if isinstance(embedded, dict):
+            return dict(embedded), "expected_property.artifact", ""
+
+        base_nodes = getattr(workspace, "base_nodes", {})
+        if not isinstance(base_nodes, dict):
+            return None, "", ""
+        matches: list[tuple[dict[str, Any], str]] = []
+        for node in sorted(
+            base_nodes.values(), key=lambda item: getattr(item, "id", "")
+        ):
+            attributes = getattr(node, "attributes", {})
+            if not isinstance(attributes, dict):
+                continue
+            if attributes.get("observation_type") != "bogvm_execution_observation":
+                continue
+            artifact = attributes.get("artifact")
+            if not isinstance(artifact, dict):
+                continue
+            if str(artifact.get("artifact_hash", "")) == artifact_hash:
+                matches.append((dict(artifact), str(getattr(node, "id", ""))))
+        if len(matches) > 1:
+            return (
+                None,
+                "",
+                "multiple BOGVM observation artifacts matched artifact_hash",
+            )
+        if matches:
+            return matches[0][0], matches[0][1], ""
+        return None, "", ""
+
+    def _computed_artifact_hash(self, artifact: dict[str, Any]) -> str:
+        payload = {
+            "artifact_type": artifact.get("artifact_type"),
+            "program_hash": artifact.get("program_hash"),
+            "max_steps": artifact.get("max_steps"),
+            "execution_status": artifact.get("execution_status"),
+            "execution_completed": artifact.get("execution_completed"),
+            "exit_code": artifact.get("exit_code"),
+            "vm_receipt_hash": artifact.get("vm_receipt_hash"),
+            "error": artifact.get("error"),
+            "state_commit_authorized": artifact.get("state_commit_authorized"),
+        }
+        if "vm_program_hash" in artifact:
+            payload["vm_program_hash"] = artifact.get("vm_program_hash")
+        if "details" in artifact or "vm_program_hash" not in artifact:
+            payload["details"] = artifact.get("details")
+        return stable_hash(payload)
+
+    def _evidence(self, artifact: dict[str, Any], source: str) -> dict[str, Any]:
+        return {
+            "source": source,
+            "artifact_type": artifact.get("artifact_type"),
+            "artifact_hash": artifact.get("artifact_hash"),
+            "program_hash": artifact.get("program_hash"),
+            "vm_receipt_hash": artifact.get("vm_receipt_hash"),
+            "execution_status": artifact.get("execution_status"),
+            "execution_completed": artifact.get("execution_completed"),
+            "exit_code": artifact.get("exit_code"),
+            "state_commit_authorized": artifact.get("state_commit_authorized"),
+            "emitted_receipt_exists": bool(
+                artifact.get("vm_receipt") and artifact.get("vm_receipt_hash")
+            ),
+        }
+
+    def _fail(
+        self,
+        obligation: VerifierObligation,
+        explanation: str,
+    ) -> VerificationResult:
+        return VerificationResult(
+            obligation.id,
+            self.verifier_type,
+            "fail",
+            explanation,
+            limitations=[
+                "checks_exact_bogvm_observation_facts_only",
+                "execution_is_not_semantic_proof",
+            ],
+        )
+
+
 class CommitPolicyVerifier:
     verifier_type = "commit_policy"
 

@@ -11,6 +11,7 @@ from .ir import ClaimNode, Provenance, TSOperation, VerifierObligation, stable_h
 from .obligations import (
     ArithmeticVerifier,
     BOGVMExecutionVerifier,
+    BOGVMObservationVerifier,
     CodePropertyVerifier,
     CommitPolicyVerifier,
     StructuralVerifier,
@@ -50,6 +51,7 @@ class TSKernel:
         self.arithmetic_verifier = ArithmeticVerifier()
         self.code_property_verifier = CodePropertyVerifier()
         self.bogvm_verifier = BOGVMExecutionVerifier()
+        self.bogvm_observation_verifier = BOGVMObservationVerifier()
         self.commit_policy = CommitPolicyVerifier()
         self.parent_receipt_hash = parent_receipt_hash
         self.receipts: list[TSReceipt] = []
@@ -109,6 +111,14 @@ class TSKernel:
                     self._append_result(
                         workspace,
                         self.code_property_verifier.verify(obligation, workspace),
+                    )
+                elif obligation.verifier_type == "bogvm_observation":
+                    self._append_result(
+                        workspace,
+                        self.bogvm_observation_verifier.verify(
+                            obligation,
+                            workspace,
+                        ),
                     )
                 else:
                     self._append_result(
@@ -438,6 +448,16 @@ class TSKernel:
         ]
         if code_property and decision == CommitDecision.COMMIT:
             return "The bounded code/property verifier passed."
+        bogvm_observation = [
+            result
+            for result in workspace.verification_results
+            if result.verifier_type == "bogvm_observation" and result.outcome == "pass"
+        ]
+        if bogvm_observation and decision == CommitDecision.COMMIT:
+            return (
+                "The BOGVM observation verifier checked exact artifact facts. "
+                "Execution remains evidence, not proof."
+            )
         if decision == CommitDecision.QUARANTINE:
             return "The claim is under contradiction tension; no clean certainty was committed."
         if decision == CommitDecision.BRANCH:

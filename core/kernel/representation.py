@@ -420,6 +420,65 @@ class DeterministicTSParser:
         )
         return True
 
+    def _add_bogvm_observation_obligation(
+        self,
+        document: TSIRDocument,
+        sentence: str,
+        provenance: Provenance,
+    ) -> bool:
+        if not sentence.lower().startswith("verify bogvm observation "):
+            return False
+
+        match = re.fullmatch(
+            (
+                r"verify bogvm observation artifact\s+([A-Fa-f0-9]{16,64})"
+                r"(?:\s+program\s+([A-Fa-f0-9]{16,64}))?"
+                r"(?:\s+receipt\s+([A-Fa-f0-9]{16,64}))?"
+                r"\s+completed\s+with\s+exit\s+code\s+(-?\d+)"
+            ),
+            sentence.strip(),
+            flags=re.I,
+        )
+        if match is None:
+            expected_property: dict[str, Any] = {
+                "artifact_hash": "",
+                "unsupported_input": sentence,
+            }
+        else:
+            expected_property = {
+                "artifact_hash": match.group(1).lower(),
+                "execution_status": "completed",
+                "execution_completed": True,
+                "exit_code": int(match.group(4)),
+                "state_commit_authorized": False,
+                "emitted_receipt_exists": True,
+            }
+            if match.group(2):
+                expected_property["program_hash"] = match.group(2).lower()
+            if match.group(3):
+                expected_property["vm_receipt_hash"] = match.group(3).lower()
+
+        obligation = VerifierObligation(
+            id="obl:bogvmobs:" + stable_hash(expected_property)[:16],
+            verifier_type="bogvm_observation",
+            target_claim=str(expected_property.get("artifact_hash", sentence)),
+            expected_property=expected_property,
+            required=True,
+        )
+        document.obligations.append(obligation)
+        document.operations.append(
+            TSOperation(
+                operation_type="REQUEST_VERIFICATION",
+                target=obligation.id,
+                payload={
+                    "target_claim": obligation.target_claim,
+                    "verifier_type": "bogvm_observation",
+                },
+                provenance=provenance,
+            )
+        )
+        return True
+
     def _add_representation_challenge(
         self,
         document: TSIRDocument,
@@ -572,6 +631,10 @@ class DeterministicTSParser:
             for sentence in sentences:
                 lower = sentence.lower()
                 if lower.startswith(("all ", "prove ", "determine ", "step ")):
+                    continue
+                if self._add_bogvm_observation_obligation(
+                    document, sentence, representation_provenance
+                ):
                     continue
                 if self._add_arithmetic_obligation(
                     document, sentence, representation_provenance
