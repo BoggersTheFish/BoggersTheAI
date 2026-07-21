@@ -1,5 +1,7 @@
 # Thinking System Claim Ledger
 
+**Canonical repository:** `BoggersTheFish/thinking-system` (formerly `BoggersTheFish/BoggersTheAI`).
+
 Public claims, status, evidence pointers, and limitations. Package paths below are **actual** tree locations, not empty `packages/` placeholders.
 
 ---

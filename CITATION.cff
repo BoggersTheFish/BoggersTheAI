@@ -7,8 +7,8 @@ authors:
 title: "Thinking System: A Verifier-First Research Architecture for Structured Reasoning Under Residual Accounting"
 version: 0.5.0-alpha.1
 date-released: 2026-07-21
-url: "https://github.com/BoggersTheFish/BoggersTheAI"
-repository-code: "https://github.com/BoggersTheFish/BoggersTheAI"
+url: "https://github.com/BoggersTheFish/thinking-system"
+repository-code: "https://github.com/BoggersTheFish/thinking-system"
 keywords:
   - verifier-first
   - structured-reasoning

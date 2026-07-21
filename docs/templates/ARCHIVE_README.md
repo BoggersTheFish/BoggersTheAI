@@ -7,7 +7,7 @@
 ║                                                                              ║
 ║   Canonical TS-OS development continues in the unified monorepo:             ║
 ║                                                                              ║
-║   ►  https://github.com/BoggersTheFish/BoggersTheAI                          ║
+║   ►  https://github.com/BoggersTheFish/thinking-system                          ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
@@ -29,10 +29,10 @@ only. **Do not open issues or pull requests here.**
 
 ## For Researchers
 
-1. Clone the monorepo: `git clone https://github.com/BoggersTheFish/BoggersTheAI.git`
-2. Read the unified manifesto: [`docs/MANIFESTO.md`](https://github.com/BoggersTheFish/BoggersTheAI/blob/main/docs/MANIFESTO.md)
-3. Review the Truth Graph mechanics: [`docs/truth-graph.md`](https://github.com/BoggersTheFish/BoggersTheAI/blob/main/docs/truth-graph.md)
-4. Understand artifact serialization: [`docs/bogpk-pipeline.md`](https://github.com/BoggersTheFish/BoggersTheAI/blob/main/docs/bogpk-pipeline.md)
+1. Clone the monorepo: `git clone https://github.com/BoggersTheFish/thinking-system.git`
+2. Read the unified manifesto: [`docs/MANIFESTO.md`](https://github.com/BoggersTheFish/thinking-system/blob/main/docs/MANIFESTO.md)
+3. Review the Truth Graph mechanics: [`docs/truth-graph.md`](https://github.com/BoggersTheFish/thinking-system/blob/main/docs/truth-graph.md)
+4. Understand artifact serialization: [`docs/bogpk-pipeline.md`](https://github.com/BoggersTheFish/thinking-system/blob/main/docs/bogpk-pipeline.md)
 
 ## Epistemological Notice
 

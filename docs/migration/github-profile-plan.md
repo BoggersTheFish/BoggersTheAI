@@ -2,19 +2,17 @@
 
 Planning document for `@BoggersTheFish` presentation. **This is not a completion certificate.**
 
-**Current flagship remote:** `BoggersTheFish/BoggersTheAI`
-**Planned rename:** `BoggersTheFish/thinking-system` (not done)
+**Canonical flagship remote:** `BoggersTheFish/thinking-system`
+**Former remote:** `BoggersTheFish/BoggersTheAI` (renamed after merge `9786e098…`)
 
 ---
 
 ## 1. Recommended pinned repositories (when ready)
 
-1. **`BoggersTheAI`** (until rename) / **`thinking-system`** (after rename) — flagship monorepo
+1. **`thinking-system`** — flagship monorepo (formerly `BoggersTheAI`)
 2. **`bogbin`** — independent verified storage substrate
 3. **`ts-spear`** — independent applied project
 4. Other pins as the maintainer chooses
-
-Do **not** pin a non-existent `thinking-system` remote before rename.
 
 ---
 
@@ -22,7 +20,7 @@ Do **not** pin a non-existent `thinking-system` remote before rename.
 
 | Repository | Action now | Reason |
 | :--- | :--- | :--- |
-| `BoggersTheAI` | Keep active | Canonical migration in progress |
+| `thinking-system` (formerly `BoggersTheAI`) | Keep active | Canonical monorepo (alpha) |
 | `TS-Core`, `cig-ts-engine`, `TS-LAB`, `TS-OS`, `ts-chat-language`, `TensionForge`, `Ten-SON-LM`, `tsq`, `ts-exodus`, `ts-lm-genesis`, `TS-Benchmarks` | **Do not archive** | Destinations empty or partial; not CONSOLIDATED in import-ledger |
 | `TensionLM`, `TS-Reasoner-v0` | Historical reference OK if already archived | Not proof of monorepo port |
 | `bogbin`, `ts-spear` | Keep active | Independent products |
@@ -35,6 +33,6 @@ Archive only after:
 
 ---
 
-## 3. After monorepo is genuinely complete
+## 3. After monorepo package migration is genuinely complete
 
-Then (and only then): rename remote, update badges/URLs, and reconsider satellite archival.
+Repository rename is **done**. Remaining work: physical package moves, satellite imports with verified SHAs, and only then reconsider satellite archival.

@@ -1,9 +1,10 @@
 # Thinking System Monorepo Migration Status Report
 
-**Date:** 2026-07-21 (updated during interrupted-migration recovery)
-**Branch:** `refactor/thinking-system-monorepo`
-**Current remote:** `BoggersTheFish/BoggersTheAI`
-**Planned remote:** `BoggersTheFish/thinking-system` (rename **not** performed)
+**Date:** 2026-07-21 (updated during interrupted-migration recovery; rename recorded 2026-07-21)
+**Former remote:** `BoggersTheFish/BoggersTheAI`
+**Canonical remote:** `BoggersTheFish/thinking-system`
+**Rename:** completed after merge commit `9786e098e0a5c31f8bc3199417e6d47a5cfac2cb` (GitHub in-place rename; old URL 301-redirects)
+**Local origin:** updated to `https://github.com/BoggersTheFish/thinking-system.git`
 **Package version:** `0.5.0-alpha.1` (alpha; **not** 1.0.0)
 
 > **Honest status:** Alpha — canonical monorepo migration **in progress**.
@@ -69,7 +70,7 @@ See [import-ledger.md](import-ledger.md) for the evidence-backed classification.
 1. Physical moves of `core/*` into `src/thinking_system/*` (optional; not required for alpha CLI/kernel).
 2. Populate or delete empty `packages/` / `engines/` placeholders after real imports.
 3. Import-ledger rows with verified external SHAs when satellites are actually pulled.
-4. GitHub rename to `thinking-system` (manual, post-review).
+4. ~~GitHub rename to `thinking-system`~~ **done** after merge `9786e098…`.
 5. Stronger architecture checker (full layer DAG) if package boundaries solidify.
 
 ---
@@ -96,3 +97,17 @@ python -m thinking_system.apps.cli.main demo --json
 ```
 
 Do not describe local results as GitHub-hosted CI results.
+
+---
+
+## 7. Repository rename (completed)
+
+| Item | Evidence |
+|------|----------|
+| Former name | `BoggersTheFish/BoggersTheAI` |
+| Canonical name | `BoggersTheFish/thinking-system` |
+| Post-merge commit before rename | `9786e098e0a5c31f8bc3199417e6d47a5cfac2cb` |
+| Method | `gh repo rename thinking-system` (in-place; history/issues/PRs retained) |
+| Old URL | HTTP 301 → `https://github.com/BoggersTheFish/thinking-system` |
+| Satellite consolidation | **Still incomplete** — see import-ledger |
+
