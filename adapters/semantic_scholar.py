@@ -5,8 +5,12 @@ import logging
 from typing import List
 from urllib.parse import urlencode
 
-from ..core.types import Node
-from ..shared.http import fetch_json
+try:
+    from ..core.types import Node
+    from ..shared.http import fetch_json
+except ImportError:
+    from core.types import Node
+    from shared.http import fetch_json
 
 logger = logging.getLogger("boggers.adapters.semantic_scholar")
 

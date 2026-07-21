@@ -84,3 +84,6 @@ class ContextManager:
             for nid, node in nodes.items()
             if ctx.includes_node(nid, getattr(node, "topics", []))
         }
+
+
+ContextMindManager = ContextManager

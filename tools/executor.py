@@ -3,7 +3,10 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-from ..core.metrics import metrics
+try:
+    from ..core.metrics import metrics
+except ImportError:
+    from core.metrics import metrics
 from .base import ToolRegistry
 from .calc import CalcTool
 from .code_run import CodeRunTool

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ..core.local_llm import LocalLLM
+from core.local_llm import LocalLLM
 
 if TYPE_CHECKING:
     from .runtime import BoggersRuntime

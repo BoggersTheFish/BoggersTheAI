@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ..core.graph.pruning import PruningPolicy, apply_pruning_policy
-from ..core.graph.rules_engine import spawn_emergence
+from core.graph.pruning import PruningPolicy, apply_pruning_policy
+from core.graph.rules_engine import spawn_emergence
 
 if TYPE_CHECKING:
     from .runtime import BoggersRuntime
@@ -275,7 +275,7 @@ class AutonomousLoopManager:
         if bool(
             self.runtime.config.get("os_loop", {}).get("reconciliation_wave", True)
         ):
-            from ..core.graph.source_stability import SourceStabilityTracker
+            from core.graph.source_stability import SourceStabilityTracker
 
             recon = SourceStabilityTracker(self.runtime.graph).reconcile_nightly()
         wave_status = self.runtime.graph.get_wave_status()
