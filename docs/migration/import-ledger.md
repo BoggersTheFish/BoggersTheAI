@@ -51,7 +51,7 @@ Empty placeholder directories (no tracked source): `packages/ts-*`, top-level `e
 
 | Repository | Verified source SHA in this clone? | Destination claimed historically | Status | Notes |
 |------------|-------------------------------------|----------------------------------|--------|-------|
-| TS-Core | Not verified here | `packages/ts-core`, `packages/ts-kernel` | **INSPECTED** / **PLANNED** | Empty `packages/`; kernel is native monorepo `core/kernel` |
+| TS-Core | `3ef48ad00efef8659ad0981d71de509a9827f584` | `src/thinking_system/core/typed_tension/` | **PARTIALLY_IMPORTED** | Domain-neutral typed tension kernel imported with its focused test and example; legacy Python application layers, Rust acceleration, CLI, Z3, Grok, UI, and Kernel Wave 12 surfaces remain unimported |
 | cig-ts-engine | Not verified here | `packages/ts-graph` | **INSPECTED** / **PLANNED** | Graph lives in `core/graph` |
 | TS-Benchmarks | Not verified here | `benchmarks/` | **PLANNED** | `benchmarks/suites` empty |
 | ts-chat-language | Not verified here | `packages/ts-language` | **INSPECTED** / **PLANNED** | TSLC-like code in `core/language/tslc.py` is in-tree monorepo code; full satellite port not evidenced |
