@@ -7,16 +7,16 @@ This folder contains small, runnable programs and a notebook that teach **Bogger
 ## Prerequisites
 
 1. **Python 3.10+**
-2. **Install the package in editable mode** from the **`BoggersTheAI` directory** (where `pyproject.toml` lives):
+2. **Install the package in editable mode** from the **repository root** (where `pyproject.toml` lives; clone directory is typically `thinking-system`):
 
    ```bash
-   cd BoggersTheAI
+   cd thinking-system
    pip install -e .
    ```
 
 3. **Ollama** (for LLM-backed answers): have the daemon running and pull the model named in `config.yaml` (for example `ollama pull llama3.2` if `inference.ollama.model` is `llama3.2`).
 
-4. **Run examples from the `BoggersTheAI` project root** so paths like `config.yaml`, `traces/`, and the default graph locations resolve the same way as the CLI.
+4. **Run examples from the project root** so paths like `config.yaml`, `traces/`, and the default graph locations resolve the same way as the CLI.
 
 ---
 

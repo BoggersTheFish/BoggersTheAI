@@ -44,7 +44,7 @@ TS-OS treats every piece of knowledge as a node in a constraint graph. Change pr
 ```bash
 # 1. Fork via GitHub UI, then clone your fork
 git clone https://github.com/<your-user>/thinking-system.git
-cd BoggersTheAI
+cd thinking-system
 
 # 2. Create and activate a virtual environment
 python -m venv .venv
