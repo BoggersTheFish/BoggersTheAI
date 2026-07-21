@@ -6,7 +6,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Protocol, Tuple
 
-from ..core.types import Node
+try:
+    from ..core.types import Node
+except ImportError:
+    from core.types import Node
 
 logger = logging.getLogger("boggers.adapters")
 

@@ -56,16 +56,8 @@ def run_flat_rag(runtime: BoggersRuntime, query: str, k: int = 5) -> dict:
     context_text = "\n\n".join(
         [f"Source [{node.id}]: {node.content}" for node in context_nodes]
     )
-    prompt = f"Context:\n{context_text}\n\nQuestion: {query}\nAnswer:"
 
     try:
-        # Query local LLM directly without graph propagation
-        answer = runtime.local_llm.embed_text(
-            prompt
-        )  # Just a placeholder or direct call
-        # Since local_llm has synthesize/generation methods:
-        # Let's call runtime.local_llm.summarize_and_hypothesize or similar if available
-        # Wait, local_llm has summarize_and_hypothesize(context, query) -> dict
         res = runtime.local_llm.summarize_and_hypothesize(context_text, query)
         answer = res.get("answer", "")
     except Exception as exc:

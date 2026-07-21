@@ -9,11 +9,11 @@ from .runtime import BoggersRuntime
 
 def run_chat(runtime: BoggersRuntime | None = None) -> None:
     if len(sys.argv) >= 3 and sys.argv[1:3] == ["kernel", "demo"]:
-        from ..core.kernel.demo import main as kernel_demo_main
+        from core.kernel.demo import main as kernel_demo_main
 
         raise SystemExit(kernel_demo_main(sys.argv[3:]))
     if len(sys.argv) >= 3 and sys.argv[1:3] == ["kernel", "run-seeds"]:
-        from ..experiments.frontier.run_seed_tasks import main as run_seeds_main
+        from experiments.frontier.run_seed_tasks import main as run_seeds_main
 
         raise SystemExit(run_seeds_main(sys.argv[3:]))
     if len(sys.argv) >= 3 and sys.argv[1:3] == ["kernel", "replay"]:
@@ -28,8 +28,8 @@ def run_chat(runtime: BoggersRuntime | None = None) -> None:
         print(f"POST_HASH: {post_hash}")
         raise SystemExit(0)
     if len(sys.argv) >= 3 and sys.argv[1:3] == ["kernel", "audit"]:
-        from ..core.kernel.receipts import validate_receipt_hash
-        from ..core.trace_processor import TraceProcessor
+        from core.kernel.receipts import validate_receipt_hash
+        from core.trace_processor import TraceProcessor
 
         if len(sys.argv) < 4:
             raise SystemExit("usage: boggers kernel audit RECEIPT_JSON")
@@ -196,8 +196,8 @@ def _load_receipt(path_arg: str) -> dict:
 
 
 def _replay_receipt_from_empty_graph(receipt: dict) -> tuple[bool, str, str]:
-    from ..core.graph.universal_living_graph import UniversalLivingGraph
-    from ..core.kernel.replay import replay_receipt
+    from core.graph.universal_living_graph import UniversalLivingGraph
+    from core.kernel.replay import replay_receipt
 
     try:
         post_hash = replay_receipt(UniversalLivingGraph(auto_load=False), receipt)

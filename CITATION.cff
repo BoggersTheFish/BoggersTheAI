@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use Thinking System in your research, please cite it as below."
+authors:
+  - family-names: "Michalek"
+    given-names: "Ben"
+    alias: "BoggersTheFish"
+title: "Thinking System: A Verifier-First Research Architecture for Structured Reasoning Under Residual Accounting"
+version: 0.5.0-alpha.1
+date-released: 2026-07-21
+url: "https://github.com/BoggersTheFish/BoggersTheAI"
+repository-code: "https://github.com/BoggersTheFish/BoggersTheAI"
+keywords:
+  - verifier-first
+  - structured-reasoning
+  - residual-accounting
+  - content-addressable-receipts
+  - bogvm
+  - alpha

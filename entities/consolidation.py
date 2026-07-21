@@ -5,8 +5,12 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Iterable, List, Tuple
 
-from ..core.graph.universal_living_graph import UniversalLivingGraph
-from ..core.types import Node
+try:
+    from ..core.graph.universal_living_graph import UniversalLivingGraph
+    from ..core.types import Node
+except ImportError:
+    from core.graph.universal_living_graph import UniversalLivingGraph
+    from core.types import Node
 
 logger = logging.getLogger("boggers.consolidation")
 

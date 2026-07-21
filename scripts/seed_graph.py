@@ -46,6 +46,7 @@ def http_get_json(url: str) -> dict:
             raise
         except Exception:
             raise
+    return {}
 
 
 def fetch_entity(qid: str) -> dict | None:
@@ -72,13 +73,15 @@ def get_entity_claims(entity: dict) -> Dict[str, List[str]]:
     target_properties = ["P279", "P31", "P361", "P1269"]
     for prop in target_properties:
         prop_claims = claims.get(prop, [])
-        qids = []
+        qids: list[str] = []
         for claim in prop_claims:
             mainsnak = claim.get("mainsnak", {})
             datavalue = mainsnak.get("datavalue", {})
             value = datavalue.get("value", {})
             if isinstance(value, dict) and value.get("entity-type") == "item":
-                qids.append(value.get("id"))
+                target_id = value.get("id")
+                if isinstance(target_id, str):
+                    qids.append(target_id)
         if qids:
             claims_dict[prop] = qids
     return claims_dict
@@ -103,7 +106,7 @@ def crawl_wikidata(
         visited.add(qid)
 
         # Sleep 0.5s to prevent immediate rate limit
-        time.sleep(0.5)
+        time.sleep(3)
         entity = fetch_entity(qid)
         if not entity:
             continue

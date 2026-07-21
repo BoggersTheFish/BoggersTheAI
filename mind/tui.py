@@ -13,7 +13,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from ..interface.runtime import BoggersRuntime
+    from interface.runtime import BoggersRuntime
 
 
 @dataclass(slots=True)

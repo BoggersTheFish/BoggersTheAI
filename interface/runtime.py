@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from ..adapters import (
+from adapters import (
     AdapterRegistry,
     ArXivAdapter,
     HackerNewsAdapter,
@@ -22,34 +22,29 @@ from ..adapters import (
     WikipediaAdapter,
     XApiAdapter,
 )
-from ..core import (
-    ModeManager,
-    QueryAdapters,
-    QueryProcessor,
-    QueryResponse,
-    QueryRouter,
-    RegistryIngestAdapter,
-    RouterConfig,
-)
-from ..core.events import bus
-from ..core.fine_tuner import UnslothFineTuner
-from ..core.graph.universal_living_graph import UniversalLivingGraph
-from ..core.health import health_checker
-from ..core.kernel import TransactionRequest, TSKernel
-from ..core.local_llm import LocalLLM
-from ..core.metrics import metrics
-from ..core.plugins import adapter_plugins, tool_plugins
-from ..core.temperament import apply_temperament, get_temperament
-from ..core.trace_processor import TraceProcessor
-from ..entities import (
+from core.events import bus
+from core.fine_tuner import UnslothFineTuner
+from core.graph.universal_living_graph import UniversalLivingGraph
+from core.health import health_checker
+from core.kernel import TransactionRequest, TSKernel
+from core.local_llm import LocalLLM
+from core.metrics import metrics
+from core.mode_manager import ModeManager
+from core.plugins import adapter_plugins, tool_plugins
+from core.query_processor import QueryAdapters, QueryProcessor, QueryResponse
+from core.router import QueryRouter, RegistryIngestAdapter, RouterConfig
+from core.temperament import apply_temperament, get_temperament
+from core.trace_processor import TraceProcessor
+from entities import (
     ConsolidationEngine,
     InferenceRouter,
     InsightEngine,
     MetaCritiqueNode,
     ThrottlePolicy,
 )
-from ..multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
-from ..tools import ToolExecutor, ToolRouter
+from multimodal import ImageInAdapter, VoiceInAdapter, VoiceOutAdapter
+from tools import ToolExecutor, ToolRouter
+
 from .autonomous_loop import AutonomousLoopManager
 from .self_improvement import SelfImprovementManager
 
@@ -165,7 +160,7 @@ class RuntimeConfig:
 class BoggersRuntime:
     def __init__(self, config: RuntimeConfig | None = None) -> None:
         self.config = config or RuntimeConfig()
-        from ..core.config_loader import load_and_apply
+        from core.config_loader import load_and_apply
 
         self.raw_config = load_and_apply(self.config)
 
@@ -495,7 +490,7 @@ class BoggersRuntime:
 
     def run_tui(self) -> None:
         if self.config.get("tui", {}).get("enabled", False):
-            from ..mind.tui import run_tui as mind_run_tui
+            from mind.tui import run_tui as mind_run_tui
 
             mind_run_tui(
                 self,
@@ -677,7 +672,7 @@ class BoggersRuntime:
         if not isinstance(embed_cfg, dict) or not bool(embed_cfg.get("enabled", False)):
             return
         try:
-            from ..core.embeddings import OllamaEmbedder
+            from core.embeddings import OllamaEmbedder
 
             model = str(embed_cfg.get("model", "nomic-embed-text"))
             embedder = OllamaEmbedder(model=model)
