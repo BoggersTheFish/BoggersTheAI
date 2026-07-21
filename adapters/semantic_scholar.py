@@ -43,12 +43,12 @@ class SemanticScholarAdapter:
             abstract = (paper.get("abstract") or "").strip()
             citation_count = paper.get("citationCount", 0)
 
-            authors_list = paper.get("authors", [])
-            authors = [
-                a.get("name")
-                for a in authors_list
-                if isinstance(a, dict) and a.get("name")
-            ]
+            authors: list[str] = []
+            for a in paper.get("authors", []):
+                if isinstance(a, dict):
+                    name = a.get("name")
+                    if name:
+                        authors.append(name.strip())
             authors_str = ", ".join(authors)
 
             content = f"{title}. Authors: {authors_str}. Citations: {citation_count}. Abstract: {abstract}"
