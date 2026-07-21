@@ -117,3 +117,18 @@ def test_legacy_boggerstheai_package_imports():
     assert LegacyTSKernel is not None
     assert CoreTSKernel is not None
     assert LegacyTSKernel is CoreTSKernel or LegacyTSKernel.__name__ == "TSKernel"
+
+
+def test_legacy_boggerstheai_exposes_core_attribute():
+    """Attribute walk used by monkeypatch must work after repo rename."""
+    import BoggersTheAI
+
+    assert hasattr(BoggersTheAI, "core")
+    assert BoggersTheAI.core is not None
+    from BoggersTheAI.core.kernel import TSKernel
+
+    assert TSKernel is not None
+    # Nested attribute path (monkeypatch-style)
+    assert hasattr(BoggersTheAI.core, "bogvm_bridge") or hasattr(
+        BoggersTheAI.core, "kernel"
+    )
