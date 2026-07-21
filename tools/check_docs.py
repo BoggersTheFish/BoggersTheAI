@@ -3,7 +3,6 @@
 Thinking System Documentation Link & Consistency Checker.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -21,6 +20,7 @@ REQUIRED_DOCS = [
     "AGENTS.md",
     "docs/migration/baseline.md",
     "docs/lineage/repository-inventory.md",
+    "docs/migration/import-ledger.md",
     "docs/claims-and-evidence/claim-ledger.md",
 ]
 
