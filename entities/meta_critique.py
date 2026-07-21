@@ -22,7 +22,7 @@ def _default_next_prompt_template() -> str:
         "The graph is the mind; LLM = fallback only.\n\n"
         "Official Links:\n"
         "- https://boggersthefish.com/\n"
-        "- https://github.com/BoggersTheFish/BoggersTheAI\n"
+        "- https://github.com/BoggersTheFish/thinking-system\n"
         "- https://github.com/BoggersTheFish/GOAT-TS\n"
         "- https://github.com/BoggersTheFish/TS-Core\n"
         "- https://github.com/BoggersTheFish/BoggersTheMind\n"

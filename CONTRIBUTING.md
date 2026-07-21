@@ -43,7 +43,7 @@ TS-OS treats every piece of knowledge as a node in a constraint graph. Change pr
 
 ```bash
 # 1. Fork via GitHub UI, then clone your fork
-git clone https://github.com/<your-user>/BoggersTheAI.git
+git clone https://github.com/<your-user>/thinking-system.git
 cd BoggersTheAI
 
 # 2. Create and activate a virtual environment
@@ -405,7 +405,7 @@ If you discover a security vulnerability, please report it privately via the Git
 
 ## Reporting Issues
 
-Use the [GitHub issue templates](https://github.com/BoggersTheFish/BoggersTheAI/issues/new/choose) for:
+Use the [GitHub issue templates](https://github.com/BoggersTheFish/thinking-system/issues/new/choose) for:
 
 - **Bug reports** — include Python version, OS, config.yaml changes, and full traceback.
 - **Feature requests** — describe the use case, not just the solution.

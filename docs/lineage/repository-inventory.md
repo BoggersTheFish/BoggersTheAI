@@ -2,8 +2,8 @@
 
 Inventory of satellite, external, and historical repositories related to the Thinking System stack.
 
-**Current remote:** `BoggersTheFish/BoggersTheAI`
-**Planned remote:** `BoggersTheFish/thinking-system` (rename not performed)
+**Canonical remote:** `BoggersTheFish/thinking-system`
+**Former remote:** `BoggersTheFish/BoggersTheAI` (renamed after merge `9786e098e0a5c31f8bc3199417e6d47a5cfac2cb`; GitHub redirects)
 **Migration branch:** `refactor/thinking-system-monorepo`
 
 For file-level status and verified provenance rules, see [docs/migration/import-ledger.md](../migration/import-ledger.md).
@@ -15,7 +15,7 @@ For file-level status and verified provenance rules, see [docs/migration/import-
 
 | Repository | Status | Purpose | In-tree related paths | Archive? |
 | :--- | :--- | :--- | :--- | :--- |
-| `BoggersTheFish/BoggersTheAI` | **CANONICAL (active)** | Primary monorepo under migration | `core/`, `src/thinking_system/`, `interface/`, … | Keep active; rename later |
+| `BoggersTheFish/thinking-system` (formerly `BoggersTheAI`) | **CANONICAL (active)** | Primary monorepo under migration | `core/`, `src/thinking_system/`, `interface/`, … | Keep active |
 | `TS-Core` | **INSPECTED / PLANNED** | Historical core / memory work | Kernel lives in monorepo `core/kernel/` (not a satellite file import) | Do **not** archive yet |
 | `cig-ts-engine` | **INSPECTED / PLANNED** | Continuous information graph | Related: `core/graph/` | Do **not** archive yet |
 | `TS-Benchmarks` | **PLANNED** | Audit-first benchmarks | `benchmarks/` mostly empty | Keep independent |
@@ -35,7 +35,7 @@ For file-level status and verified provenance rules, see [docs/migration/import-
 
 ## Summary
 
-* **Active monorepo:** `BoggersTheAI` (this repo), alpha migration.
+* **Active monorepo:** `thinking-system` (formerly `BoggersTheAI`), alpha migration.
 * **Real implementation hotspots:** `core/kernel`, `core/graph`, `interface/`, `core-vm/`, `reasoner/`, `inference/`, `src/thinking_system/apps/cli`.
 * **Empty destinations are not consolidations:** `packages/ts-*`, top-level `engines/*`, most of `research/*`, empty `apps/{lab,chat,dashboard}`.
 * **Independent:** `bogbin`, `ts-spear`.

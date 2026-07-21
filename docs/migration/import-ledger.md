@@ -3,8 +3,8 @@
 Evidence-backed ledger of satellite and in-tree components for the monorepo migration
 on branch `refactor/thinking-system-monorepo`.
 
-**Current remote:** `BoggersTheFish/BoggersTheAI`
-**Planned remote:** `BoggersTheFish/thinking-system`
+**Canonical remote:** `BoggersTheFish/thinking-system`
+**Former remote:** `BoggersTheFish/BoggersTheAI` (renamed after merge `9786e098e0a5c31f8bc3199417e6d47a5cfac2cb`)
 **Package version:** `0.5.0-alpha.1`
 
 ## Status vocabulary

@@ -2,7 +2,7 @@
 
 > **A verifier-first research architecture for constructing, measuring, localising, and minimally revising structured reasoning systems under explicit residual accounting.**
 
-[![CI](https://github.com/BoggersTheFish/BoggersTheAI/actions/workflows/ci.yml/badge.svg)](https://github.com/BoggersTheFish/BoggersTheAI/actions/workflows/ci.yml)
+[![CI](https://github.com/BoggersTheFish/thinking-system/actions/workflows/ci.yml/badge.svg)](https://github.com/BoggersTheFish/thinking-system/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
@@ -15,9 +15,8 @@
 | Field | Value |
 |-------|--------|
 | **Version** | `0.5.0-alpha.1` |
-| **Current remote** | [`BoggersTheFish/BoggersTheAI`](https://github.com/BoggersTheFish/BoggersTheAI) |
-| **Planned remote** | `BoggersTheFish/thinking-system` (rename not done) |
-| **Branch** | `refactor/thinking-system-monorepo` |
+| **Current remote** | [`BoggersTheFish/thinking-system`](https://github.com/BoggersTheFish/thinking-system) |
+| **Former remote** | `BoggersTheFish/BoggersTheAI` (renamed; GitHub redirects) |
 | **Primary CLI** | `ts` |
 | **Python package** | `thinking_system` (+ `BoggersTheAI` compatibility package) |
 
@@ -82,10 +81,8 @@ Exact test counts change; derive them from `pytest` output for a given commit â€
 ## 6. Quick start
 
 ```bash
-# Current repository (until rename)
-git clone https://github.com/BoggersTheFish/BoggersTheAI.git
-cd BoggersTheAI
-git checkout refactor/thinking-system-monorepo   # migration branch
+git clone https://github.com/BoggersTheFish/thinking-system.git
+cd thinking-system
 
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
@@ -141,7 +138,7 @@ from BoggersTheAI.core.kernel import TSKernel as LegacyKernel
 
 ## 11. Citation
 
-See [CITATION.cff](CITATION.cff). Until rename, cite the **current** repository URL:
+See [CITATION.cff](CITATION.cff). Cite the **canonical** repository URL:
 
 ```bibtex
 @software{Michalek_Thinking_System_2026,
@@ -149,7 +146,7 @@ See [CITATION.cff](CITATION.cff). Until rename, cite the **current** repository 
   title  = {Thinking System},
   year   = {2026},
   version = {0.5.0-alpha.1},
-  url    = {https://github.com/BoggersTheFish/BoggersTheAI}
+  url    = {https://github.com/BoggersTheFish/thinking-system}
 }
 ```
 
