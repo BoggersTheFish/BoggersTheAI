@@ -4,8 +4,10 @@
 
 | Version | Supported |
 | :--- | :--- |
-| `1.0.x` (Thinking System Monorepo) | :white_check_mark: |
-| `< 1.0.0` (Legacy prototypes) | :x: |
+| `0.5.x-alpha` (Thinking System monorepo migration line) | :white_check_mark: (best-effort research software) |
+| Pre-alpha / ad-hoc local trees without package version | Best-effort only |
+
+There is **no** 1.0.x release. Do not treat this project as production-supported software.
 
 ## Reporting a Vulnerability
 

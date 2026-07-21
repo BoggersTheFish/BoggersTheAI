@@ -6,10 +6,10 @@ This document outlines active development goals and planned research milestones.
 
 ## Phase 1: Canonical Monorepo Stabilization (Current)
 
-* [x] Reconstruct `BoggersTheAI` into canonical `thinking-system` monorepo.
-* [x] Establish unified `TSKernel` transaction authority and `ts` CLI.
-* [x] Consolidate baseline documentation, inventory, and ADR decision records.
-* [x] Enforce automated architecture dependency checks in CI.
+* [ ] Finish physical monorepo layout (`packages/` / full `src/` moves); currently facades + legacy trees.
+* [x] Establish `TSKernel` transaction authority (`core/kernel`) and `ts` CLI (`thinking_system.apps.cli`).
+* [x] Baseline documentation, inventory, ADRs, and evidence-backed import ledger (claims must stay honest).
+* [x] Architecture authority checks in CI (denylist for kernel layers; not a full package DAG yet).
 
 ---
 

@@ -1,32 +1,41 @@
 # Thinking System Claim Ledger
 
-This ledger records all public research and engineering claims, their verified status, empirical evidence, reproduction commands, and explicit operational limitations.
+Public claims, status, evidence pointers, and limitations. Package paths below are **actual** tree locations, not empty `packages/` placeholders.
 
 ---
 
-## Status Classification Definitions
+## Status labels
 
-* `VERIFIED`: Supported by a reproducible passing test or sealed evaluation.
-* `IMPLEMENTED`: Code exists and operates within a clearly stated boundary.
-* `EXPERIMENTAL`: Implemented but not yet sufficiently validated or bounded.
-* `HYPOTHESIS`: A proposed interpretation or theoretical mechanism.
-* `ROADMAP`: Intended future development.
-* `SUPERSEDED`: Replaced by a newer implementation or formulation.
-* `ARCHIVED`: Retained only for historical lineage or reference.
+* `VERIFIED`: Supported by reproducible tests on a stated command.
+* `IMPLEMENTED`: Code exists within a stated boundary.
+* `EXPERIMENTAL`: Code exists; validation incomplete.
+* `HYPOTHESIS`: Theoretical proposal.
+* `ROADMAP`: Future work.
+* `SUPERSEDED` / `ARCHIVED`: Historical only.
+
+Test **counts** must be re-derived with `pytest --collect-only` or a full run for the commit under review. Fixed historical counts in older docs are untrusted.
 
 ---
 
-## Claim Table
+## Claim table
 
-| Claim ID | Claim | Status | Evidence | Reproduction Command | Limitations | Related Package | Last Verified Commit |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `CLAIM-001` | Canonical TS Kernel transaction authorization is verifier-gated; unverified proposals fail closed to quarantine or abstain. | `VERIFIED` | 59 deterministic unit tests in `tests/test_canonical_kernel.py` | `pytest tests/test_canonical_kernel.py` | Authority covers bounded TSIR and BOGVM obligations; open-ended LLM text output is never proof. | `packages/ts-kernel` | `9050c8a` |
-| `CLAIM-002` | Execution receipts are deterministic, content-addressable, and verifiable via SHA-256 replay. | `VERIFIED` | Replay tests in `tests/test_canonical_kernel.py` & `python -m core.kernel.demo --json` | `python -m core.kernel.demo --json` | Replay requires deterministic state snapshots. | `packages/ts-artifacts` | `9050c8a` |
-| `CLAIM-003` | BOGVM arithmetic program execution produces verifiable semantic proof objects. | `VERIFIED` | 18 unit tests in `tests/test_bogvm_arithmetic_program_verifier.py` | `pytest tests/test_bogvm_arithmetic_program_verifier.py` | Covers integer arithmetic operations (ADD, SUB, MUL, DIV, MOD). | `engines/bogvm` | `9050c8a` |
-| `CLAIM-004` | BOGVM observation verifiers enforce invariant boundary checks over state traces. | `VERIFIED` | 15 unit tests in `tests/test_bogvm_observation_verifier.py` | `pytest tests/test_bogvm_observation_verifier.py` | Requires explicit observation predicate definitions. | `packages/ts-verifiers` | `9050c8a` |
-| `CLAIM-005` | Tension-triggered graph wave cycles dynamically localise residual tension across living graph nodes. | `VERIFIED` | Wave runner tests in `tests/test_wave_runner.py` & `tests/test_bogvm_wave_payload.py` | `pytest tests/test_wave_runner.py` | Wave propagation is bounded by max cycle count and tension thresholds. | `packages/ts-graph` | `9050c8a` |
-| `CLAIM-006` | TSLC pattern-backed compiler translates natural language inputs into inspectable TSIR proposals. | `IMPLEMENTED` | TSLC compiler implementation in `packages/ts-language` (ported from `ts-chat-language`) | `pytest tests/test_protocols.py` | Natural language translation is bounded by pattern rules; output must pass verifier obligations. | `packages/ts-language` | `9050c8a` |
-| `CLAIM-007` | OpenCL GPU matmul and linear training runtimes execute on legacy commodity hardware (RX480). | `EXPERIMENTAL` | Benchmark receipts in `engines/tension-forge` (`matmul_receipt.json`) | `python engines/tension-forge/rx480_smoke.py` | Requires Mesa Rusticl OpenCL environment on Linux. | `engines/tension-forge` | `9050c8a` |
-| `CLAIM-008` | Recurrent fixed-size semantic workspace language model reduces parameter footprint for structured tasks. | `EXPERIMENTAL` | Milestone 1 scripts in `engines/tension-lm` | `python engines/tension-lm/baseline.py` | Active research prototype under evaluation. | `engines/tension-lm` | `9050c8a` |
-| `CLAIM-009` | Representation challenges induce typed entity branching rather than arbitrary confidence inflation. | `VERIFIED` | Test case in `core/kernel/demo.py` & `tests/test_canonical_kernel.py` | `python -m core.kernel.demo` | Branching depends on user or verifier provenance score. | `packages/ts-kernel` | `9050c8a` |
-| `CLAIM-010` | Full automated self-improving reasoning loop operates without human intervention across arbitrary domains. | `ROADMAP` | Conceptual specification in `docs/architecture/` | N/A | Roadmap aspiration; current implementation is verifier-bounded to supported task schemas. | `packages/ts-runtime` | N/A |
+| Claim ID | Claim | Status | Evidence | Reproduction | Limitations | Related path |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `CLAIM-001` | Kernel transaction authorization is verifier-gated for the supported domain; required obligations fail closed. | `VERIFIED` | `tests/test_canonical_kernel.py` | `pytest tests/test_canonical_kernel.py` | LLM text is never proof authority. | `core/kernel/` |
+| `CLAIM-002` | Receipts are content-addressable via SHA-256 of canonical fields; hash validation and limited graph-delta replay exist. | `VERIFIED` (scoped) | kernel receipt tests + demo | `python -m core.kernel.demo --json` | Not full-system immutable storage or unrestricted time-travel replay. | `core/kernel/receipts.py` |
+| `CLAIM-003` | BOGVM arithmetic program execution produces verifiable semantic proof objects for supported ops. | `VERIFIED` | `tests/test_bogvm_arithmetic_program_verifier.py` | `pytest tests/test_bogvm_arithmetic_program_verifier.py` | Integer arithmetic subset. | `core/kernel/`, `core-vm/` |
+| `CLAIM-004` | BOGVM observation verifiers enforce invariant checks over state traces. | `VERIFIED` | `tests/test_bogvm_observation_verifier.py` | `pytest tests/test_bogvm_observation_verifier.py` | Requires explicit predicates. | `core/kernel/`, verifiers |
+| `CLAIM-005` | Tension-triggered graph wave cycles localise residual tension within configured bounds. | `VERIFIED` | `tests/test_wave_runner.py`, `tests/test_bogvm_wave_payload.py` | `pytest tests/test_wave_runner.py` | Bounded cycles / thresholds. | `core/graph/` |
+| `CLAIM-006` | Pattern/heuristic TSLC-style compilation exists in-tree. | `IMPLEMENTED` | `core/language/tslc.py`, kernel representation parser | inspect modules; not a full satellite port proof | Not evidenced as complete `ts-chat-language` import. | `core/language/`, `core/kernel/representation.py` |
+| `CLAIM-007` | OpenCL tension-forge training stack exists in-tree. | `EXPERIMENTAL` | `inference/tension_forge/` | project-local scripts under that tree | **Not** under empty `engines/tension-forge/`. Hardware-dependent. | `inference/tension_forge/` |
+| `CLAIM-008` | TensionLM-related scripts exist in-tree. | `EXPERIMENTAL` | `inference/tension_lm/` | project-local scripts | **Not** under empty `engines/tension-lm/`. | `inference/tension_lm/` |
+| `CLAIM-009` | Representation challenges can induce typed entity branching in kernel demo paths. | `VERIFIED` | demo + kernel tests | `python -m core.kernel.demo` | Depends on provenance / verifier scores. | `core/kernel/` |
+| `CLAIM-010` | Fully automated self-improving reasoning loop across arbitrary domains. | `ROADMAP` | architecture docs | N/A | Aspiration only. | runtime / research |
+
+---
+
+## Non-claims
+
+* This repository is **not** a finished production monorepo at v1.0.0.
+* Empty `packages/ts-*` directories are **not** evidence of consolidation.
+* GitHub rename to `thinking-system` is **planned**, not complete.

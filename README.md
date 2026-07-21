@@ -2,7 +2,7 @@
 
 > **A verifier-first research architecture for constructing, measuring, localising, and minimally revising structured reasoning systems under explicit residual accounting.**
 
-[![CI](https://github.com/BoggersTheFish/thinking-system/actions/workflows/ci.yml/badge.svg)](https://github.com/BoggersTheFish/thinking-system/actions/workflows/ci.yml)
+[![CI](https://github.com/BoggersTheFish/BoggersTheAI/actions/workflows/ci.yml/badge.svg)](https://github.com/BoggersTheFish/BoggersTheAI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
@@ -10,147 +10,151 @@
 
 ## 1. Current Status
 
-* **Monorepo Stage:** Production Monorepo (`v1.0.0`)
-* **Canonical Remote:** `BoggersTheFish/thinking-system`
-* **Primary CLI:** `ts`
-* **Python Package:** `thinking_system`
+> **Alpha — canonical monorepo migration in progress.** The verifier-gated kernel is implemented for a narrow supported domain. Several historical and research components remain partially consolidated or planned.
+
+| Field | Value |
+|-------|--------|
+| **Version** | `0.5.0-alpha.1` |
+| **Current remote** | [`BoggersTheFish/BoggersTheAI`](https://github.com/BoggersTheFish/BoggersTheAI) |
+| **Planned remote** | `BoggersTheFish/thinking-system` (rename not done) |
+| **Branch** | `refactor/thinking-system-monorepo` |
+| **Primary CLI** | `ts` |
+| **Python package** | `thinking_system` (+ `BoggersTheAI` compatibility package) |
 
 ---
 
 ## 2. What Thinking System Is
 
-Thinking System is a verifier-first architecture operating under the governing pattern:
+Governing pattern:
 
 $$\text{representation} \rightarrow \text{lawful quotient} \rightarrow \text{relative residual} \rightarrow \text{sufficient observer family} \rightarrow \text{localised obstruction} \rightarrow \text{minimal typed revision} \rightarrow \text{sealed adversarial evaluation}$$
 
-* **Verifier-Gated State Authorization:** No proposal enters canonical graph memory without passing explicit verifier obligations.
-* **Residual & Tension Accounting:** Measures tension vector components across activation, contradiction, provenance, and verification dimensions.
-* **Content-Addressable Receipts:** Every transaction yields an immutable SHA-256 receipt for exact deterministic replay.
+* **Verifier-gated state authorization** for the supported kernel domain.
+* **Residual / tension accounting** across activation, contradiction, provenance, and verification dimensions where implemented.
+* **Content-addressable receipts:** canonical receipt fields are hashed (SHA-256). Replay support is **limited graph-delta re-application** when base state matches — not full system time-travel.
 
 ---
 
 ## 3. What Thinking System Is NOT
 
-> [!IMPORTANT]
-> **Authority Boundary Statement:**
-> * **Generated language is NOT proof authority.**
-> * **Model confidence is NOT proof authority.**
-> * **Execution completion is NOT proof authority by itself.**
-> * **Canonical accepted state is strictly verifier-gated.**
-> * **The current implemented scope is narrower than the research roadmap.**
+> **Authority boundary**
+> * Generated language is **not** proof authority.
+> * Model confidence is **not** proof authority.
+> * Execution completion alone is **not** proof authority.
+> * Canonical accepted state is verifier-gated where the kernel path is used.
+> * Implemented scope is **narrower** than the research roadmap.
 
 ---
 
-## 4. Architecture Diagram
+## 4. Architecture (as implemented today)
 
 ```text
-ts-core (Foundational Types & Memory Specs)
-  ↓
-ts-ir + ts-artifacts (TSIR Proposals & Receipt Replay)
-  ↓
-ts-verifiers (Arithmetic & Observation Checkers)
-  ↓
-ts-kernel (Transaction Authority & Tension Accounting)
-  ↓
-ts-graph + ts-reasoner (Living Graph & Wave Dynamics)
-  ↓
-ts-language + ts-runtime (TSLC Dialogue & Runtime Composition)
-  ↓
-CLI (`ts`) / Lab (`apps/lab`) / Dashboard / Chat
+Legacy implementation (source of truth for most logic)
+  core/kernel, core/graph, core/*, interface/*, reasoner/*, core-vm/, inference/*
+
+Canonical installable namespace (src layout)
+  src/thinking_system/
+    kernel/     → re-exports core.kernel          (COMPATIBILITY_FACADE)
+    apps/cli/   → real CLI (`ts`)                 (IMPLEMENTED)
+    artifacts/, ir/, verifiers/, graph/, …        (COMPATIBILITY_FACADE)
+    engines/tension_*                             (PLANNED stubs)
+
+Empty placeholders (not consolidations)
+  packages/ts-*, engines/* (top-level), research/*, apps/{lab,chat,dashboard}
 ```
 
----
-
-## 5. Verified & Implemented Capabilities
-
-* **`ts-kernel` Transaction Authority:** 59/59 verified tests covering commit, reject, quarantine, branch, and abstain decisions.
-* **BOGVM Verifiers:** Arithmetic program verifier (18 tests) and observation predicate verifiers (15 tests).
-* **Wave Runner Dynamics:** Tension-triggered graph wave cycles and local tension dissipation (5 tests).
-* **Deterministic Replay:** SHA-256 receipt audit and graph snapshot restoration.
+Intended long-term package layers are described in [docs/architecture/](docs/architecture/) and ADRs; treat those as **target** design unless import-ledger says otherwise.
 
 ---
 
-## 6. Five-Minute Quick Start
+## 5. Implemented capabilities (scoped)
+
+* **TSKernel** transaction authority under `core/kernel/` (also `from thinking_system.kernel import TSKernel`).
+* **BOGVM** arithmetic / observation verifiers and bridge tests under `tests/test_bogvm_*.py`.
+* **Wave runner** dynamics under `core/graph/`.
+* **Receipt hash validation** and limited replay helpers.
+* **Offline demo:** `ts demo --json` (no GPU/Ollama required for the kernel demo path).
+
+Exact test counts change; derive them from `pytest` output for a given commit — do not trust fixed historical numbers in older docs.
+
+---
+
+## 6. Quick start
 
 ```bash
-# 1. Clone the canonical monorepo
-git clone https://github.com/BoggersTheFish/thinking-system.git
-cd thinking-system
+# Current repository (until rename)
+git clone https://github.com/BoggersTheFish/BoggersTheAI.git
+cd BoggersTheAI
+git checkout refactor/thinking-system-monorepo   # migration branch
 
-# 2. Install package and dev dependencies
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-# Or using make:
-make install
+# or: make install
 
-# 3. Run unit tests
 make unit-test
+make demo
 ```
 
 ---
 
-## 7. Canonical Runnable Demonstration
-
-Run the deterministic verifier-first transaction demo (**100% offline, no GPU/Ollama required**):
+## 7. Canonical demonstration
 
 ```bash
-# Primary CLI command:
-ts demo
-
-# Or with raw JSON receipt output:
 ts demo --json
+# equivalent:
+python -m thinking_system.apps.cli.main demo --json
 ```
 
 ---
 
-## 8. Repository Map
+## 8. Supported imports
 
-```text
-thinking-system/
-├── packages/       # Core domain packages (ts-core, ts-kernel, ts-verifiers, ts-graph, ts-language)
-├── engines/        # Compute substrates (bogvm, tension-lm, tension-forge)
-├── apps/           # Interfaces (cli, lab, dashboard, chat)
-├── research/       # Active research programmes (exodus, genesis, observer-birth)
-├── benchmarks/     # Falsification harnesses and seed task fixtures
-├── experiments/    # Bounded active, completed, and archived experiments
-└── docs/           # Comprehensive specifications, architecture, claims, and lineage
+```python
+import thinking_system
+from thinking_system.kernel import TSKernel
+from thinking_system.apps.cli.main import main
+
+# Legacy / compatibility
+from core.kernel import TSKernel as CoreKernel
+from BoggersTheAI.core.kernel import TSKernel as LegacyKernel
 ```
 
 ---
 
-## 9. Claim-Boundary Statement
+## 9. Claim boundary & lineage
 
-Every major public claim is formally tracked in the [Claim Ledger](docs/claims-and-evidence/claim-ledger.md). Public claims are classified under strict status labels: `VERIFIED`, `IMPLEMENTED`, `EXPERIMENTAL`, `HYPOTHESIS`, `ROADMAP`, `SUPERSEDED`, or `ARCHIVED`.
+* [Claim ledger](docs/claims-and-evidence/claim-ledger.md)
+* [Import ledger](docs/migration/import-ledger.md)
+* [Repository inventory](docs/lineage/repository-inventory.md)
+* [Migration status report](docs/migration/final-report.md)
 
 ---
 
-## 10. Documentation Links
+## 10. Documentation
 
 * [What is Thinking System?](docs/introduction/what-is-thinking-system.md)
-* [What Thinking System is NOT](docs/introduction/what-thinking-system-is-not.md)
-* [Architecture Overview](docs/architecture/overview.md)
-* [Authority Boundary Specification](docs/architecture/authority-boundary.md)
-* [Dependency Direction Rules](docs/architecture/dependency-rules.md)
-* [Claim Ledger](docs/claims-and-evidence/claim-ledger.md)
-* [Repository Inventory & Lineage](docs/lineage/repository-inventory.md)
-* [Migration Baseline](docs/migration/baseline.md)
+* [Architecture overview](docs/architecture/overview.md)
+* [Authority boundary](docs/architecture/authority-boundary.md)
+* [Dependency rules](docs/architecture/dependency-rules.md)
 
 ---
 
-## 11. Contributing & Citation
+## 11. Citation
 
-* **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and coding standards.
-* **Citation:** See [CITATION.cff](CITATION.cff) or cite as:
-  ```bibtex
-  @software{Michalek_Thinking_System_2026,
-    author = {Michalek, Ben},
-    title = {Thinking System: A Verifier-First Research Architecture for Structured Reasoning Under Residual Accounting},
-    year = {2026},
-    url = {https://github.com/BoggersTheFish/thinking-system}
-  }
-  ```
+See [CITATION.cff](CITATION.cff). Until rename, cite the **current** repository URL:
+
+```bibtex
+@software{Michalek_Thinking_System_2026,
+  author = {Michalek, Ben},
+  title  = {Thinking System},
+  year   = {2026},
+  version = {0.5.0-alpha.1},
+  url    = {https://github.com/BoggersTheFish/BoggersTheAI}
+}
+```
 
 ---
 
 ## 12. License
 
-This project is licensed under the [MIT License](LICENSE).
+[MIT License](LICENSE).
