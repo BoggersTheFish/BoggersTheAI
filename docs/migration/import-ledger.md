@@ -52,7 +52,7 @@ Empty placeholder directories (no tracked source): `packages/ts-*`, top-level `e
 | Repository | Verified source SHA in this clone? | Destination claimed historically | Status | Notes |
 |------------|-------------------------------------|----------------------------------|--------|-------|
 | TS-Core | `3ef48ad00efef8659ad0981d71de509a9827f584` | `src/thinking_system/core/typed_tension/` | **PARTIALLY_IMPORTED** | Domain-neutral typed tension kernel imported with its focused test and example; legacy Python application layers, Rust acceleration, CLI, Z3, Grok, UI, and Kernel Wave 12 surfaces remain unimported |
-| cig-ts-engine | Not verified here | `packages/ts-graph` | **INSPECTED** / **PLANNED** | Graph lives in `core/graph` |
+| cig-ts-engine | `71d91a6a0cdc9e7a5439df972130596f0bae5d2f` | `src/thinking_system/graph/cig/` | **PARTIALLY_IMPORTED** | Core graph models, deterministic propagation, edge tension, derivative observer, representational radius, context-split proposal, YAML IO, seed graph and focused tests imported; CLI, plotting, reports, Obsidian export and generated artifacts remain outside |
 | TS-Benchmarks | Not verified here | `benchmarks/` | **PLANNED** | `benchmarks/suites` empty |
 | ts-chat-language | Not verified here | `packages/ts-language` | **INSPECTED** / **PLANNED** | TSLC-like code in `core/language/tslc.py` is in-tree monorepo code; full satellite port not evidenced |
 | TensionForge | Not verified here | `engines/tension-forge` | **PLANNED** (satellite); in-tree `inference/tension_forge/` is separate | Empty `engines/tension-forge/` |
