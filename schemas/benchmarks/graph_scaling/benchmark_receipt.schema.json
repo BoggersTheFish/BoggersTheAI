@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://boggersthefish.com/schemas/benchmark_receipt.schema.json",
+  "title": "TS Benchmark Receipt",
+  "type": "object",
+  "required": [
+    "receipt_id",
+    "timestamp_utc",
+    "repo",
+    "repo_url",
+    "branch",
+    "commit",
+    "commit_sha",
+    "dirty_tree",
+    "machine",
+    "dependencies",
+    "dataset",
+    "system",
+    "model",
+    "seed",
+    "graph_family",
+    "config",
+    "command",
+    "metrics",
+    "known_caveats",
+    "failure_cases",
+    "logs_path",
+    "artifacts"
+  ],
+  "properties": {
+    "receipt_id": {"type": "string"},
+    "timestamp_utc": {"type": "string"},
+    "repo": {"type": "string"},
+    "repo_url": {"type": ["string", "null"]},
+    "branch": {"type": "string"},
+    "commit": {"type": "string"},
+    "commit_sha": {"type": "string"},
+    "dirty_tree": {
+      "type": "object",
+      "required": ["available", "is_dirty", "status", "files"],
+      "properties": {
+        "available": {"type": "boolean"},
+        "is_dirty": {"type": ["boolean", "null"]},
+        "status": {"type": "string"},
+        "files": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "machine": {
+      "type": "object",
+      "required": ["hostname_hash", "cpu", "platform", "python_version"],
+      "properties": {
+        "hostname_hash": {"type": "string"},
+        "cpu": {"type": "string"},
+        "platform": {"type": "string"},
+        "ram_gb": {"type": ["number", "null"]},
+        "gpu": {"type": ["string", "null"]},
+        "cuda_version": {"type": ["string", "null"]},
+        "python_version": {"type": "string"}
+      }
+    },
+    "dependencies": {"type": "object"},
+    "dataset": {
+      "type": "object",
+      "required": ["name", "version", "hash"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "hash": {"type": "string"}
+      }
+    },
+    "system": {
+      "type": "object",
+      "required": ["name", "variant"],
+      "properties": {
+        "name": {"type": "string"},
+        "variant": {"type": "string"}
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["name", "hash"],
+      "properties": {
+        "name": {"type": "string"},
+        "hash": {"type": ["string", "null"]}
+      }
+    },
+    "seed": {"type": "integer"},
+    "graph_family": {"type": "string"},
+    "config": {"type": "object"},
+    "command": {"type": "string"},
+    "metrics": {"type": "object"},
+    "known_caveats": {"type": "array", "items": {"type": "string"}},
+    "failure_cases": {"type": "array"},
+    "logs_path": {"type": "string"},
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {"type": "string"},
+          "sha256": {"type": "string"}
+        }
+      }
+    }
+  }
+}
