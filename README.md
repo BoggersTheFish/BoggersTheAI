@@ -1,1217 +1,156 @@
-# BoggersTheAI
+# Thinking System
 
-**BoggersTheAI** is a **TS (Thinking System) Engine** — a deterministic, glass-box, verifier-first reasoning system for building a non-traditional "LLM". 
+> **A verifier-first research architecture for constructing, measuring, localising, and minimally revising structured reasoning systems under explicit residual accounting.**
 
-Core: Living graph + wave dynamics + tension for focus + Typed Verifier
-(kernel + arithmetic) + proof-artifact-linked BOGVM execution for the supported
-formal path + TSLC language compiler.
-
-Synthesis only from verified TS state via TensionLM (117M). Fast light paths for
-factual queries use direct graph facts + light waves with 0 BOGVM. The current
-formal kernel path can produce BOGVM-linked proof artifacts for supported
-syllogism proofs.
-
-Self-data loop: generate traces from formal tasks → inject verified conclusions as high-stability nodes → math/prove queries prioritize them via boosts + proof prompts.
-
-Not a traditional transformer LLM. The authority boundary is the TS kernel and
-typed verifiers; generator output is only fluent surface text over verified
-context.
-
-The long-range research plan is in
-[COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md);
-the current implementation is much narrower than that roadmap.
-
-Current: Kernel v0.2 is the authority boundary. Wave 0 foundation has a
-receipt-first seed runner, narrow verifier-backed formal traces, light factual
-paths, and proof synthesis. BOGVM is currently linked as proof/execution
-artifacts in the supported formal path. The first BOGVM-as-wave-payload spike
-can run bounded graph payloads as wave observations, and a narrow observation
-verifier can consume exact artifact facts. A tiny BOGVM-backed arithmetic/
-program-property verifier can also check one exact integer output convention
-from an observation. Those observations remain evidence only, not proof
-authority.
-
-Status: alpha, local-first solo research infrastructure; not a frontier LLM,
-general verifier, or general code-proof system.
-
-Version map: `v0.5.0` is the package/release line for the whole repo;
-`Kernel v0.2` tracks the verifier-gated transaction authority boundary;
-`Wave 0 / Wave 1` are roadmap and spike phases, not package versions.
-
-See [COGNITIVE_PHYSICS_ROADMAP.md](experiments/frontier/COGNITIVE_PHYSICS_ROADMAP.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
-
-**Website:** [boggersthefish.com](https://www.boggersthefish.com/)
-**GitHub:** [BoggersTheFish/BoggersTheAI](https://github.com/BoggersTheFish/BoggersTheAI)
-
-> **Claim Boundary:** This monorepo unifies the current TS-OS authority surface
-> from 52 historic repositories. Canonical TS-OS development now happens here;
-> satellite repos are preserved for history/citation unless explicitly stated
-> otherwise. Read [`docs/MANIFESTO.md`](docs/MANIFESTO.md) first.
-
-| Historical satellite | Monorepo home |
-|----------------------|---------------|
-| `BoggersTheMind` | `interface/`, `mind/`, `entities/`, parts of `core/` |
-| `BoggersTheLLM` | `inference/` language and synthesis patterns |
-| `bozo / TensionLM` | `inference/tension_lm/` |
-| `TensionLM` | `inference/tension_lm/` and `reasoner/ts_reasoner/*tensionlm*` adapters |
-| `TS-Reasoner-v0` | `reasoner/ts_reasoner/` |
-| `bogbin / BOGVM-0` | `core-vm/bogvm/` |
-
-### TS-OS Logic Map
-
-| Layer | Path | Role |
-|-------|------|------|
-| **Bedrock** | `core-vm/` | BOGVM-0 — 16-opcode deterministic wave-state VM |
-| **Inference** | `inference/` | TensionLM + TensionForge OpenCL runtime |
-| **Reasoner** | `reasoner/` | GOAT-TS constraint resolution, Verse Engine, graph hooks |
-| **Artifacts** | `shared/artifacts/` | Unified `.bogpk` binary container pipeline |
-
-Full documentation: [`docs/`](docs/)
+[![CI](https://github.com/BoggersTheFish/thinking-system/actions/workflows/ci.yml/badge.svg)](https://github.com/BoggersTheFish/thinking-system/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
 ---
 
-## Table of Contents
+## 1. Current Status
 
-1. [Philosophy — What Is TS-OS?](#philosophy--what-is-ts-os)
-2. [How It Differs from Standard AI](#how-it-differs-from-standard-ai)
-3. [Capability Map](#capability-map)
-4. [Prerequisites](#prerequisites)
-5. [Installation](#installation)
-6. [First Run](#first-run)
-7. [Configuration](#configuration)
-8. [CLI](#cli)
-9. [Python API](#python-api)
-10. [HTTP API & Dashboard](#http-api--dashboard)
-11. [Data Flow — Query Lifecycle](#data-flow--query-lifecycle)
-12. [Wave Cycle — What Happens Each Tick](#wave-cycle--what-happens-each-tick)
-13. [Thread Model](#thread-model)
-14. [Self-Improvement Pipeline](#self-improvement-pipeline)
-15. [Multimodal Capabilities](#multimodal-capabilities)
-16. [Security Model](#security-model)
-17. [Repository Layout](#repository-layout)
-18. [Testing](#testing)
-19. [Limitations](#limitations)
-20. [Contributing](#contributing)
-21. [License](#license)
-
-**Package/release line:** **v0.5.0** — modular runtime (wave runner + mixins),
-shared HTTP client with retries, path sandboxing, graph operation helpers,
-extended tools, stricter config validation, and expanded test/CI.
+* **Monorepo Stage:** Production Monorepo (`v1.0.0`)
+* **Canonical Remote:** `BoggersTheFish/thinking-system`
+* **Primary CLI:** `ts`
+* **Python Package:** `thinking_system`
 
 ---
 
-## Current Architecture (TS Engine for Verifiable Reasoning + Synthesis)
+## 2. What Thinking System Is
 
-### Canonical TS Kernel v0.2
+Thinking System is a verifier-first architecture operating under the governing pattern:
 
-BoggersTheAI now has one canonical verifier-gated transaction boundary. The
-kernel is the authority boundary: language may propose, confidence may suggest,
-and BOGVM may execute, but only verifier-backed committed receipts authorize
-canonical TS state.
+$$\text{representation} \rightarrow \text{lawful quotient} \rightarrow \text{relative residual} \rightarrow \text{sufficient observer family} \rightarrow \text{localised obstruction} \rightarrow \text{minimal typed revision} \rightarrow \text{sealed adversarial evaluation}$$
 
-```
-Input
-  ↓
-Representation proposal
-  ↓
-TSIR validation
-  ↓
-Transaction sandbox
-  ↓
-Waves + typed tensions
-  ↓
-Verifier obligations
-  ↓
-Semantic execution
-  ↓
-Commit policy
-  ├── Commit
-  ├── Reject
-  ├── Quarantine
-  ├── Repair
-  └── Abstain
-  ↓
-Receipt + optional rendering
-```
-
-The public API is `TSKernel.transact(request)`. `BoggersRuntime.ask()` routes the
-supported formal grammar through this kernel, and `TSEngine.process()` is now a
-compatibility wrapper around the same transaction path. The older query stack
-still provides retrieval, tools, sessions, adapters, dashboards and multimodal
-I/O, but accepted TS reasoning state is committed only by the kernel.
-
-The current formal slice is deliberately narrow: typed syllogistic reasoning of
-the form `All X are Y`, `A is an X`, `A is not Y`, and
-`Prove/Determine whether A is Y`; allowlisted arithmetic propositions; and a
-tiny bounded code/property checker for single-argument arithmetic examples. It
-demonstrates proposal/state separation, sandboxed graph mutation, typed
-tensions, verifier obligations, semantic BOGVM-linked execution artifacts where
-available, atomic commit/reject/quarantine/branch/abstain decisions,
-hash-linked `TSReceipt-0.1`, and deterministic replay. It does not claim
-universal semantic understanding or general code verification.
-
-Run it without Ollama, a GPU, or network access:
-
-```bash
-python -m core.kernel.demo
-python -m core.kernel.demo --json
-boggers kernel demo
-python -m experiments.frontier.run_seed_tasks
-boggers kernel run-seeds
-```
-
-The seed runner is the current non-toy gate demo. It loads
-`experiments/frontier/seed_tasks/*.json`, runs each task through
-`TSKernel.transact()`, writes one receipt per task under
-`artifacts/seed_receipts/`, replays each receipt, and exits nonzero if any
-expected decision or replay check fails. The summary table reports
-`commit`, `reject`, `quarantine`, `branch`, or `abstain`; unsupported verifier
-domains must reject, abstain, quarantine, or branch rather than silently pass.
-
-Correct claim boundary:
-
-> BoggersTheAI now has a canonical verifier-gated transaction kernel that can
-> perform and replay a narrow class of typed reasoning, arithmetic, and bounded
-> property-checking tasks without treating generated language or confidence as
-> authority.
-
-### Kernel v0.2 Boundary
-
-Kernel v0.1 established the canonical transaction path: deterministic TSIR
-parsing, transaction workspace, typed verifier obligations, BOGVM execution
-artifacts where applicable, commit policy, receipt creation and deterministic
-replay. Kernel v0.2 hardens the authority checks on that path and adds bounded
-deterministic chained syllogism proofs.
-
-The proof expansion remains deliberately small. The syllogism verifier can
-prove a requested target across a bounded class chain, such as class-to-class
-membership and a terminal class-to-property rule. It records the actual proof
-steps and stable proof hash, but it does not compute unbounded graph closure or
-general predicate logic.
-
-Authority boundary:
-
-- General language output may propose, but it is not proof.
-- Confidence may suggest, but confidence is not proof.
-- Rendered explanations are not proof authority.
-- Evidence and BOGVM execution completion are not semantic proof by themselves.
-- BOGVM artifacts are anchored to the semantic proof-object hash produced by the
-  verifier; `execution_completed`, `proof_obligation_satisfied`, and
-  `state_commit_authorized` are recorded separately.
-- Only verifier-backed committed receipts with valid hash, replay verification,
-  passing mandatory obligations and explicit provenance are eligible for
-  verified self-improvement data.
-
-### BOGVM Wave Payload Spike
-
-The current Wave 1 spike adds a narrow graph observation path:
-
-```bash
-python -m experiments.frontier.bogvm_wave_payload_demo
-```
-
-A graph node can carry a typed `bogvm_program` payload with deterministic source
-hash, provenance and bounded `max_steps`. `WaveCycleRunner.run_single_cycle()`
-can discover at most the configured number of runnable payloads, release the
-graph lock, execute them through BOGVM, then reacquire the lock to record a
-`bogvm_execution_observation` node.
-
-These observations include the source graph node, program hash, VM receipt hash,
-execution status, exit code, artifact hash and
-`state_commit_authorized: false`. They do not mutate accepted truth directly.
-Unsupported, failed or blocked VM execution records a failed observation; it
-does not authorize canonical TS state.
-
-Kernel receipts remain the authority boundary for accepted TS state. Receipt
-linkage is currently limited to a narrow `bogvm_observation` verifier that
-checks exact artifact facts: artifact hash, program hash, VM receipt hash,
-execution status, exit code and non-authorizing observation state. It does not
-infer semantic truth from execution.
-
-The `bogvm_arithmetic_program` verifier is one step deeper but still narrow: it
-checks only a strict `result:<integer>` BOGVM output convention from a bounded
-observation. It is not general program verification, arbitrary code proof or
-deep simulation.
-
-Run the verifier demo:
-
-```bash
-python -m experiments.frontier.bogvm_observation_verifier_demo
-python -m experiments.frontier.bogvm_arithmetic_program_verifier_demo
-```
-
-**Not a traditional LLM.** The core intelligence is the TS (Thinking System) stack:
-
-- **Graph**: UniversalLivingGraph with nodes (facts, conclusions) carrying activation, stability, topics.
-- **Waves**: Dynamics for focus/tension propagation (run_wave_cycle).
-- **Verifier**: VerifierOS wrapping VerifierFirstRuntimeKernel + arithmetic checks. Authority, not confidence. Receipts.
-- **BOGVM**: Proof-artifact-linked execution for supported formal syllogism
-  proofs, plus bounded graph payload observations and a narrow exact-fact
-  observation verifier. Execution is evidence; verifier-backed receipts remain
-  the authority boundary.
-- **Language**: TSLCCompiler — deterministic text → graph_deltas + obligations + plan_skeleton.
-- **Synthesis**: TensionGenerator (117M TensionLM from bozo) only for generation from verified TS context. Proof prompts for reasoning.
-
-**Fast factual path**: Known facts (preload + injected self-data) returned direct from graph + light process (2 waves, 0 BOGVM, no model). E.g. capital of France, 2+2.
-
-**Formal kernel path**: supported "prove" tasks route through
-`TSKernel.transact()` and may produce proof-object-linked BOGVM artifacts.
-Unsupported verifier domains fail closed.
-
-**Self-data loop**: collect_self_data on hard tasks → high-quality traces with BOGVM/verifier/synth → inject conclusions as high-stability nodes → math/prove retrieval boosts them (is_mathy, topics, keywords) → proof prompt ("Prove the claim step by step using only these verified facts") + prioritized facts → synthesis references self-data.
-
-Canonical self-improvement eligibility is verifier-gated: a trace is training
-eligible only with a committed transaction, passing mandatory verifier
-obligations, a valid receipt hash, replay evidence and explicit provenance.
-Confidence-only traces are retained separately for repair/adversarial analysis.
-
-**Graph state** now includes self-data nodes (high stability, topics). Retrieval + prompts make them surface in formal reasoning.
-
-See core/ts_engine.py, core/verifier/, core/language/tslc.py, core/intuition/tension_generator.py, experiments/frontier/ for traces and demos.
-
-**Progress**: Wave 0 foundation plus Kernel v0.2 authority hardening
-(unified engine, BOGVM-linked proof artifacts, VerifierOS compatibility, TSLC
-compatibility, receipt replay, seed tasks). Light factual remains practical.
-The self-data flywheel is gated by committed, replay-verified receipts with
-passing mandatory obligations and explicit provenance. See
-COGNITIVE_PHYSICS_ROADMAP.md for the multi-wave plan: deeper verifiers, BOGVM
-as wave payload, graph scale, agency, and self-improvement.
-
-Not frontier yet — graph modest (~35 nodes), model 117M, synthesis context-driven. But verifiable formal + feedback loop active. Factual practical. Formal produces real traces. 
-
-Run probes in experiments/frontier/ or gpt55_progress_demo.py (lightened).
-
-### Core Primitives
-
-| Primitive | Meaning |
-|-----------|---------|
-| **Node** | A concept: carries `content` (text), `topics` (set), `activation` (0–1 heat), `stability` (0–1 groundedness), `base_strength` (resting state), `embedding` (vector), `collapsed` (boolean) |
-| **Edge** | A relation between two nodes: carries `weight` (0–1 strength) and `relation` (label) |
-| **Wave** | One full cycle: elect → propagate → relax → normalize → prune → merge → split → contradiction check → tension check → emergence |
-| **Tension** | A scalar score indicating how much a node's constraints are violated |
-| **Emergence** | The system synthesizing a *new* node from high-tension regions — genuinely novel structure |
+* **Verifier-Gated State Authorization:** No proposal enters canonical graph memory without passing explicit verifier obligations.
+* **Residual & Tension Accounting:** Measures tension vector components across activation, contradiction, provenance, and verification dimensions.
+* **Content-Addressable Receipts:** Every transaction yields an immutable SHA-256 receipt for exact deterministic replay.
 
 ---
 
-## How It Differs from Standard AI
+## 3. What Thinking System Is NOT
 
-| Dimension | Standard LLM | BoggersTheAI / TS-OS |
-|-----------|-------------|----------------------|
-| Knowledge store | Frozen weights | Living, mutable graph with persistence |
-| Reasoning | Single forward pass | Iterative wave propagation converging over time |
-| Learning | Expensive retraining | Continuous graph evolution + optional QLoRA fine-tune |
-| Contradiction handling | Hallucination | Explicit detection and resolution via stability comparison |
-| Transparency | Black box | Full reasoning trace, activation scores, tension values |
-| Autonomy | Responds only when prompted | Background OS loop explores, consolidates, and generates insights when idle |
-| Multimodal | Requires separate models per modality | Unified pipeline: audio/image → transcription/caption → graph → synthesis |
-| Cost | Cloud GPU bills | Runs on a laptop with Ollama; GPU optional for fine-tuning only |
-
-BoggersTheAI can and does use an LLM (via Ollama) for synthesis, but the LLM is a *tool* the graph uses — not the other way around. The graph decides what context to provide, scores sufficiency, generates hypotheses, checks consistency, and only then asks the LLM to produce natural language.
+> [!IMPORTANT]
+> **Authority Boundary Statement:**
+> * **Generated language is NOT proof authority.**
+> * **Model confidence is NOT proof authority.**
+> * **Execution completion is NOT proof authority by itself.**
+> * **Canonical accepted state is strictly verifier-gated.**
+> * **The current implemented scope is narrower than the research roadmap.**
 
 ---
 
-## Capability Map
-
-### Graph Engine
-- **WaveCycleRunner** (`core/graph/wave_runner.py`) — owns background wave thread lifecycle and step order; graph holds data, runner executes elect → propagate → relax → … → save
-- **UniversalLivingGraph** with thread-safe concurrent access (RLock)
-- Dual persistence: **SQLite** (WAL mode, default) or **JSON**
-- Topic index for O(1) topic-based lookups
-- Adjacency dictionary for fast neighbor traversal
-- Node embeddings via **OllamaEmbedder** (`nomic-embed-text`) on creation
-- Hybrid propagation: topological (edge weight) + semantic (cosine similarity)
-- Activation normalization with configurable damping and cap
-- Incremental save every N waves (only dirty nodes persisted)
-- Resource guardrails: max nodes, max cycles/hour, tension-based pause
-- Strongest-node caching with invalidation on mutation
-- Snapshot versioning: save, list, restore, delete full graph states (max 50 with auto-pruning)
-- GraphML and JSON-LD export for interoperability
-- **Pure graph helpers** (`core/graph/utils.py`): neighborhood BFS (`get_subgraph_around`), bulk insert (`batch_add_nodes`), connected components, activation-range filtering — usable without loading the full runtime
-
-### Query Pipeline
-- Topic extraction (regex tokenizer, stopword removal)
-- Graph-aware context retrieval (topic index + activated subgraph, top-k scoring)
-- Sufficiency scoring (count + activation + recency weighted)
-- Automatic ingestion from adapters when context is insufficient
-- Tool routing for calc, search, code execution, and file reading
-- LLM synthesis with hypotheses, confidence, and reasoning trace
-- Extractive fallback when LLM is unavailable
-- Hypothesis consistency checking against existing graph nodes
-- High-confidence trace logging for self-improvement
-- Consolidation: new query node linked to context nodes
-- Vault insight writing when enabled
-
-### Self-Improvement
-- Automatic trace logging of high-confidence responses
-- TraceProcessor: scans traces, filters by confidence, converts to Alpaca format
-- 80/20 train/val split with configurable thresholds
-- UnslothFineTuner: 4-bit QLoRA on configurable base models
-- Validation gating before hot-swap
-- Adapter rollback on degradation
-- Safety dry-run mode
-
-### Autonomy
-- Background wave thread with configurable interval
-- OS loop: exploration, consolidation, and insight generation when idle
-- Nightly consolidation (deep prune/merge/emergence at configured UTC hour)
-- Multi-turn session memory via session nodes in the graph
-- Cognitive temperament presets (contemplative, analytical, reactive, critical, creative, default)
-- Mode manager: AUTO/USER coordination with timeout-based lock
-
-### Multimodal
-- **Voice in:** faster-whisper transcription with temp file cleanup
-- **Voice out:** piper-tts or placeholder fallback
-- **Image in:** BLIP2-style captioning or placeholder fallback
-- Graceful degradation when dependencies are missing
-
-### Observability
-- CLI with status, graph stats, trace inspection, wave control, and history
-- Rich TUI with live graph stats and wave events
-- FastAPI dashboard with status JSON, Chart.js tension chart, Cytoscape.js graph visualization, metrics, and trace viewer
-- Token-based authentication for dashboard endpoints
-- Per-module health checks with duration tracking
-- Thread-safe metrics: counters, gauges, timers
-- EventBus for decoupled module communication
-
-### Extensibility
-- Plugin registry with entry-point discovery (adapter and tool plugins)
-- AdapterRegistry with TTL caching and rate limiting (cache access is thread-safe)
-- ToolRegistry with rule-based routing
-- ContextMind: named subgraph views with per-context temperament
-- **HTTP resilience** (`shared/http.py`): `fetch_url` / `fetch_json` with exponential backoff — used by Wikipedia, RSS, Hacker News
-- **Path sandbox** (`core/path_sandbox.py`): `validate_path` for markdown/vault/file reads under a fixed base directory
-
-### Runtime composition (v0.5.0)
-- **`BoggersRuntime`** composes **`AutonomousLoopManager`** (`interface/autonomous_loop.py`) and **`SelfImprovementManager`** (`interface/self_improvement.py`) — OS loop, nightly consolidation, and self-improvement logic live in dedicated managers; `runtime.py` remains the public composition root
-- **Dashboard** uses **`get_runtime()`** (lazy singleton) so importing `dashboard.app` does not construct the full runtime at import time
-
-### Additional tools (beyond calc / search / code / file_read)
-- **WebSearchTool** — DuckDuckGo instant-answer API (no API key)
-- **DateTimeTool** — current UTC time, parse/format helpers
-- **UnitConvertTool** — common unit pairs (km/miles, kg/lbs, °C/°F, m/ft)
-
----
-
-## Prerequisites
-
-### Required
-
-- **Python 3.10 or later** (tested on 3.10, 3.11, 3.12)
-- **`config.yaml`** at the project root (ships with the repo, loaded automatically by `core/config_loader.py`)
-
-### Recommended
-
-- **Ollama** — required for LLM synthesis and embeddings. Install from [ollama.com](https://ollama.com/), then pull models:
-
-```bash
-ollama pull llama3.2          # or whichever model matches inference.ollama.model
-ollama pull nomic-embed-text  # for node embeddings (if embeddings.enabled: true)
-```
-
-### Optional
-
-- **GPU + VRAM (8 GB+):** for Unsloth QLoRA fine-tuning. CPU-only works for everything else.
-- **X/Twitter API access:** set `X_BEARER_TOKEN` environment variable and enable `adapters.enabled.x_api` in config.
-- **feedparser:** pulled automatically for RSS ingestion.
-- **faster-whisper, piper-tts, transformers:** for multimodal features. The system gracefully degrades if these are absent.
-
----
-
-## Installation
-
-From the **`BoggersTheAI`** directory (the one containing `pyproject.toml`):
-
-```bash
-# Core only — graph, wave engine, query processor, CLI
-pip install -e .
-
-# Core + Ollama for LLM synthesis and embeddings
-pip install -e ".[llm]"
-
-# Core + Unsloth + PyTorch for QLoRA fine-tuning (requires GPU)
-pip install -e ".[gpu]"
-
-# Core + dev tools (pytest, black, ruff, isort, mypy, fastapi, uvicorn)
-pip install -e ".[dev]"
-
-# Everything
-pip install -e ".[all]"
-```
-
-| Extra | What It Adds |
-|-------|-------------|
-| `llm` | `ollama` Python client for LLM synthesis and embedding generation |
-| `gpu` | `unsloth`, `torch`, `trl`, `datasets` for QLoRA fine-tuning |
-| `dev` | `pytest`, `pytest-cov`, `black`, `ruff`, `isort`, `mypy`, `fastapi`, `uvicorn`, `ollama` |
-| `multimodal` | `faster-whisper`, `transformers`, `pillow`, `piper-tts` |
-| `adapters` | `feedparser` (RSS and related ingestion) |
-| `all` | Broader union (see `pyproject.toml` — includes rich, feedparser, etc.) |
-| `security` | `defusedxml` — safer XML parsing for RSS when installed |
-
-**Developer workflow:** a **`Makefile`** at the project root provides `make test`, `make lint`, `make format`, `make run`, `make dashboard`. **`.pre-commit-config.yaml`** hooks ruff, black, and isort (optional local install: `pre-commit install`).
-
----
-
-## First Run
-
-### 1. Environment Setup
-
-Copy `.env.example` to `.env` if you use API tokens. **Never commit `.env`.**
-
-```bash
-cp .env.example .env
-# Edit .env to add X_BEARER_TOKEN, BOGGERS_DASHBOARD_TOKEN, etc.
-```
-
-### 2. Start Ollama
-
-If `inference.ollama.enabled` is `true` (default), ensure Ollama is running:
-
-```bash
-ollama serve
-```
-
-### 3. Launch the CLI
-
-```bash
-boggers
-```
-
-You will see the TS-OS banner and a `boggers>` prompt. The background wave thread is already running. Type `help` to see commands, or just ask a question.
-
-You can also launch the same CLI entry point through the package module:
-
-```bash
-python -m BoggersTheAI
-```
-
-### 4. Minimal Python Usage
-
-```python
-from BoggersTheAI import BoggersRuntime
-
-rt = BoggersRuntime()
-print(rt.get_status())
-
-response = rt.ask("What is TS-OS in one sentence?")
-print(response.answer)
-print(f"Confidence: {response.confidence}")
-print(f"Hypotheses: {response.hypotheses}")
-
-rt.shutdown()
-```
-
-### 5. Launch the Dashboard
-
-```bash
-dashboard-start
-```
-
-Open `http://localhost:8000/wave` for the live tension chart, or `http://localhost:8000/graph/viz` for the interactive graph.
-
----
-
-## Configuration
-
-Runtime settings are loaded from `config.yaml`, deep-merged over
-`RuntimeConfig` defaults by `core/config_loader.py`, and validated by
-`core/config_schema.py`. Set `BOGGERS_CONFIG_STRICT=1` to raise on config
-warnings instead of logging them.
-
-See [docs/configuration.md](docs/configuration.md) for the maintained config
-map and environment variables.
-
----
-
-## CLI
-
-Entry point: `boggers` -> `BoggersTheAI.interface.chat:run_chat`.
-
-Common commands: `help`, `status`, `graph`, `trace`, `wave pause`,
-`wave resume`, `improve`, `health`, `history`, `exit`.
-
-See [docs/cli.md](docs/cli.md) for command notes.
-
----
-
-## Python API
-
-### Main Class: `BoggersRuntime`
-
-```python
-from BoggersTheAI import BoggersRuntime, RuntimeConfig
-```
-
-`BoggersRuntime` is the composition root. Its constructor loads `config.yaml`, creates the graph, starts the wave thread, wires all adapters/tools/engines, starts the OS loop, and registers health checks.
-
-### Methods
-
-#### `ask(query: str) -> QueryResponse`
-
-Full query pipeline. Extracts topics, retrieves context from the graph, scores sufficiency, ingests from adapters if needed, routes to tools, synthesizes via LLM (or extractive fallback), checks hypothesis consistency, logs traces, consolidates into graph, and optionally writes vault insights. Uses multi-turn session context when `os_loop.multi_turn_enabled` is `true`.
-
-#### `ask_audio(audio: bytes) -> QueryResponse`
-
-Transcribes audio via the configured voice-in backend (faster-whisper), then passes the transcript to `ask()`.
-
-#### `ask_image(image: bytes, query_hint: str = "") -> QueryResponse`
-
-Captions the image via the configured image-in backend (BLIP2), optionally appends a query hint, then passes to `ask()`.
-
-#### `speak(text: str) -> bytes`
-
-Converts text to speech via the configured voice-out backend (piper). Returns raw audio bytes.
-
-#### `get_status() -> dict`
-
-Returns wave/graph observability data: cycle count, node count, edge count, current tension, wave thread alive status, last cycle timestamp.
-
-#### `get_conversation_history(last_n: int = 8) -> list[dict]`
-
-Returns the last N conversation turns from the current session, pulled from session nodes in the graph.
-
-#### `build_training_dataset() -> dict`
-
-Scans `traces/*.jsonl`, filters by `dataset_build.min_confidence`, converts to Alpaca format (`instruction`/`input`/`output`), splits 80/20 into `dataset/train.jsonl` and `dataset/val.jsonl`. Returns stats: total traces scanned, samples written, split counts.
-
-#### `fine_tune_and_hotswap(epochs: int = 1) -> dict`
-
-Runs QLoRA fine-tuning on the training dataset using the configured base model. If `validation_enabled`, evaluates on `val.jsonl` and gates the hot-swap. If `auto_hotswap` and validation passes, loads the new adapter into the running LocalLLM. Backs up the previous adapter to `backup_dir`. Returns training stats and swap status.
-
-#### `trigger_self_improvement() -> dict`
-
-Scheduled-style self-improvement: checks if enough new traces have accumulated (`min_new_traces`), builds dataset, optionally trains, validates, and hot-swaps. Designed to be called from the OS loop or the `improve` CLI command.
-
-#### `run_health_checks() -> dict`
-
-Runs all registered health checks (graph, wave, LLM) and returns overall status (`healthy` / `degraded`) with per-check results and duration in milliseconds.
-
-#### `run_tui()`
-
-Launches the Rich TUI if `tui.enabled` is `true`. Displays live graph stats and wave events.
-
-#### `run_nightly_consolidation()`
-
-Performs deep pruning, merging of similar nodes, and emergence spawning. Automatically called at the configured `nightly_hour_utc` and during `shutdown()`.
-
-#### `shutdown()`
-
-Stops the OS loop and TUI thread, optionally runs **`run_nightly_consolidation(force=True)`** when `os_loop.consolidation_on_shutdown` is `true`, saves the graph, stops the wave thread. Registered via `atexit`. If the mode manager cannot grant user mode in time, `ask()` may return a **busy** response (see router).
-
-### Response Object: `QueryResponse`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `answer` | str | The synthesized answer text |
-| `topics` | list[str] | Topics extracted from the query |
-| `sufficiency_score` | float | How sufficient the graph context was (0.0–1.0) |
-| `used_research` | bool | Whether external adapters were called |
-| `used_tool` | bool | Whether a tool was invoked |
-| `hypotheses` | list[str] | Generated hypotheses about the answer |
-| `confidence` | float | Confidence score (0.0–1.0) |
-| `reasoning_trace` | str | Step-by-step reasoning trace from the LLM |
-| `context_nodes` | list[str] | IDs of nodes used as context |
-| `activation_scores` | dict[str, float] | Activation scores of context nodes |
-
----
-
-## HTTP API & Dashboard
-
-### Library Helper
-
-`BoggersTheAI.interface.api.handle_query` is a thread-safe library function (not a standalone server):
-
-```python
-from BoggersTheAI.interface.api import handle_query
-
-result = handle_query({"query": "Explain wave propagation"})
-# result: {"ok": True, "answer": "...", "hypotheses": [...], "confidence": 0.85, ...}
-```
-
-Uses a singleton `BoggersRuntime` internally.
-
-### Dashboard (FastAPI)
-
-Start with:
-
-```bash
-dashboard-start
-```
-
-Override host/port with `BOGGERS_DASHBOARD_HOST` and `BOGGERS_DASHBOARD_PORT` environment variables.
-
-| Endpoint | Method | Auth | Content-Type | Description |
-|----------|--------|------|-------------|-------------|
-| `/status` | GET | Bearer (if token set) | `application/json` | Wave status, node/edge counts, tension, cycle count |
-| `/wave` | GET | Public | `text/html` | Chart.js page with live tension chart (polls `/status` every few seconds) |
-| `/graph` | GET | Bearer (if token set) | `application/json` | Full node and edge data as JSON |
-| `/graph/viz` | GET | Public | `text/html` | Cytoscape.js interactive graph visualization — **polls `/graph` every ~2.5s** for live updates |
-| `/metrics` | GET | Bearer (if token set) | `application/json` | Graph metrics (density, mean activation, stability distribution) + system metrics (counters, gauges) |
-| `/traces` | GET | Bearer (if token set) | `application/json` | Recent trace files from the traces directory |
-| `/health/live` | GET | Public | `application/json` | Liveness probe: `{"status": "alive"}` — no auth |
-| `/health/ready` | GET | Bearer (if token set) | `application/json` | Readiness: runs `run_health_checks()` on the lazy runtime |
-
-**Authentication:** When `BOGGERS_DASHBOARD_TOKEN` is set, protected endpoints require `Authorization: Bearer <token>` header. The bundled HTML pages (`/wave`, `/graph/viz`) include auth headers in fetch calls when a token cookie is present. For local development, leave the token unset.
-
-**Lazy runtime:** The dashboard module does **not** construct `BoggersRuntime` at import time; it calls **`get_runtime()`** on first request (thread-safe singleton).
-
-### Meta-critique traces
-
-- **`traces/` is gitignored** (dynamic JSONL). The repo includes **`traces/meta_critique/.gitkeep`** so the path exists; local trace and prompt-helper files remain ignored.
-- **Fold waves into the living graph:** set `runtime.fold_waves_jsonl_on_startup: true` in `config.yaml` to ingest `traces/meta_critique/waves.jsonl` as `meta:*` nodes on startup (inspectable in the dashboard Cytoscape view and `/metrics`).
-- Manual third-party chat hand-off notes are documented separately in
-  [docs/personal-workflows.md](docs/personal-workflows.md). They are not an
-  automated runtime feature or proof authority.
-- **TUI:** when `tui.enabled` is true, the Rich Live dashboard refreshes at **~8 Hz** with live `folded_wave` counts (see `mind/tui.py`).
-
----
-
-## Data Flow — Query Lifecycle
-
-Here is exactly what happens when you call `rt.ask("How does photosynthesis work?")`:
-
-```
-1. QueryRouter receives the query
-   ├── ModeManager.request_user_mode() — acquires lock, pauses autonomous cycle
-   └── Passes to QueryProcessor.process()
-
-2. QueryProcessor.process()
-   ├── 2a. Extract topics: ["photosynthesis", "work"]
-   │       (regex tokenizer, stopword removal, lowercased)
-   │
-   ├── 2b. Retrieve context from graph
-   │       ├── Topic index lookup — O(1) for each topic
-   │       ├── Activated subgraph traversal (neighbors of matched nodes)
-   │       ├── Score and rank by: activation × stability × recency
-   │       └── Take top-k nodes (default 5)
-   │
-   ├── 2c. Score sufficiency
-   │       ├── count_weight × node_count
-   │       ├── activation_weight × mean_activation
-   │       ├── recency_weight × recency_score
-   │       └── Returns float 0.0–1.0
-   │
-   ├── 2d. If sufficiency < threshold: ingest from adapters
-   │       ├── AdapterRegistry.ingest("photosynthesis")
-   │       ├── Checks TTL cache (5-minute expiry per source+query)
-   │       ├── Calls enabled adapters: Wikipedia, RSS, HN, Vault, X
-   │       ├── Rate-limited: 30 calls/minute per adapter
-   │       └── New nodes added to graph with topics and embeddings
-   │
-   ├── 2e. Route to tools if needed
-   │       ├── ToolRouter checks keywords, patterns, sufficiency
-   │       ├── Math expression → CalcTool (AST-safe eval)
-   │       ├── Backtick path → FileReadTool (base-dir restricted)
-   │       ├── Code block → CodeRunTool (sandboxed)
-   │       └── Low sufficiency + search keyword → SearchTool (HN Algolia)
-   │
-   ├── 2f. Synthesize answer
-   │       ├── If Ollama enabled:
-   │       │   ├── Build prompt with context nodes
-   │       │   ├── Call LocalLLM.summarize_and_hypothesize()
-   │       │   └── Returns: answer, hypotheses, confidence, reasoning_trace
-   │       └── Else: extractive fallback (BoggersSynthesisEngine)
-   │
-   ├── 2g. Check hypothesis consistency
-   │       ├── Compare each hypothesis against graph nodes
-   │       ├── Antonym detection (true/false, good/bad, etc.)
-   │       └── Adjust confidence if contradictions found
-   │
-   ├── 2h. Log trace (if confidence ≥ min_confidence_for_log)
-   │       └── Append to traces/<timestamp>.jsonl
-   │
-   └── 2i. Consolidate
-           ├── Create query node linked to context nodes
-           ├── Insight engine writes to vault (if tension warrants)
-           └── Return QueryResponse
-
-3. QueryRouter receives response
-   ├── ModeManager.release_to_auto() — releases lock
-   └── Returns QueryResponse to caller
-```
-
----
-
-## Wave Cycle — What Happens Each Tick
-
-Every `wave.interval_seconds` (default 30s), the background wave thread runs a full cycle through `core/graph/rules_engine.py`:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ 1. ELECT STRONGEST                                      │
-│    Find the node with highest activation (cached,       │
-│    invalidated on mutation). This is the "wave source." │
-├─────────────────────────────────────────────────────────┤
-│ 2. PROPAGATE                                            │
-│    From the elected node, spread activation to          │
-│    neighbors via two channels:                          │
-│    • Topological: activation × edge_weight × spread     │
-│    • Semantic: activation × cosine_sim × semantic_weight│
-│    Combined and added to neighbor activations.          │
-├─────────────────────────────────────────────────────────┤
-│ 3. RELAX                                                │
-│    All nodes: activation moves toward base_strength     │
-│    by multiplying by relax_decay. Prevents runaway.     │
-├─────────────────────────────────────────────────────────┤
-│ 4. NORMALISE                                            │
-│    Apply damping factor (default 0.95) to all           │
-│    activations. Clamp to [0.0, activation_cap].         │
-├─────────────────────────────────────────────────────────┤
-│ 5. PRUNE EDGES                                          │
-│    Remove edges with weight < prune_threshold (0.25).   │
-│    Keeps the graph from accumulating noise.             │
-├─────────────────────────────────────────────────────────┤
-│ 6. MERGE SIMILAR TOPICS                                 │
-│    Find node pairs sharing >50% topics with high        │
-│    cosine similarity. Merge into single node,           │
-│    combining content and taking max stability.          │
-├─────────────────────────────────────────────────────────┤
-│ 7. SPLIT OVERACTIVATED                                  │
-│    Nodes with activation > 2× activation_cap are        │
-│    split into two nodes with divided activation.        │
-├─────────────────────────────────────────────────────────┤
-│ 8. DETECT CONTRADICTIONS                                │
-│    Group active nodes by topic. Compare pairs for       │
-│    antonym conflicts. Calculate severity. Log.          │
-├─────────────────────────────────────────────────────────┤
-│ 9. RESOLVE CONTRADICTIONS                               │
-│    For each detected contradiction: weaken or collapse  │
-│    the node with lower stability. The more grounded     │
-│    belief survives.                                     │
-├─────────────────────────────────────────────────────────┤
-│ 10. DETECT TENSION                                      │
-│     Calculate tension score per node (constraint        │
-│     violations). If max tension > tension_threshold:    │
-│     → BREAK: collapse weakest node (lowest stability)   │
-│     → EVOLVE: spawn up to EMERGENCE_MAX_SPAWN (2) new  │
-│       nodes via LLM synthesis of high-tension content   │
-├─────────────────────────────────────────────────────────┤
-│ 11. INCREMENTAL SAVE                                    │
-│     Every incremental_save_interval (5) cycles, persist │
-│     only dirty (mutated) nodes to SQLite/JSON.          │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Wave Cycle Diagram
-
-```mermaid
-flowchart LR
-    A[Elect Strongest] --> B[Propagate]
-    B --> C[Relax]
-    C --> D[Normalise]
-    D --> E[Prune Edges]
-    E --> F[Merge Similar]
-    F --> G[Split Overactivated]
-    G --> H[Detect Contradictions]
-    H --> I[Resolve Contradictions]
-    I --> J{Tension High?}
-    J -- Yes --> K[Break Weakest]
-    K --> L[Evolve / Spawn]
-    J -- No --> M[Incremental Save]
-    L --> M
-    M --> A
-
-    style A fill:#1a1a2e,color:#00d2ff
-    style B fill:#16213e,color:#eee
-    style C fill:#16213e,color:#eee
-    style D fill:#16213e,color:#eee
-    style E fill:#0f3460,color:#e94560
-    style F fill:#533483,color:#eee
-    style G fill:#533483,color:#eee
-    style H fill:#2b2d42,color:#8d99ae
-    style I fill:#2b2d42,color:#8d99ae
-    style J fill:#0f3460,color:#e94560
-    style K fill:#e94560,color:#fff
-    style L fill:#533483,color:#eee
-    style M fill:#1a1a2e,color:#00d2ff
-```
-
-### Named Constants (from `rules_engine.py`)
-
-| Constant | Value | Purpose |
-|----------|-------|---------|
-| `PRUNE_EDGE_THRESHOLD` | `0.25` | Minimum edge weight to survive pruning |
-| `EMERGENCE_MAX_SPAWN` | `2` | Maximum new nodes spawned per emergence event |
-
----
-
-## Thread Model
-
-BoggersTheAI runs multiple concurrent threads, carefully coordinated:
-
-```
-Main Thread
-├── BoggersRuntime construction
-├── CLI input loop (interface/chat.py) or user code
-└── rt.ask() calls → QueryProcessor (acquires user mode lock)
-
-Wave Thread (daemon)
-├── Runs every wave.interval_seconds
-├── Executes full rules_engine cycle
-├── Acquires graph RLock for mutations
-└── Pauses on: high tension, guardrail limits, user mode active
-
-OS Loop Thread (daemon)
-├── Runs every os_loop.interval_seconds
-├── Checks idle_threshold_seconds since last query
-├── If idle: runs exploration / consolidation / insight
-├── Coordinates with ModeManager (AUTO mode)
-└── Processes hypothesis queue
-
-Dashboard Thread (if started)
-├── FastAPI/uvicorn serving HTTP
-└── Reads graph state (acquires RLock for reads)
-```
-
-### Synchronization Primitives
-
-| Lock | Location | Purpose |
-|------|----------|---------|
-| `RLock` | `UniversalLivingGraph` | Thread-safe node/edge mutations and reads |
-| `threading.Condition` | `ModeManager` | AUTO/USER mode coordination with timeout |
-| `threading.Lock` | `QueryRouter._queue_lock` | Hypothesis queue access |
-| `threading.Lock` | `BoggersRuntime._state_lock` | Query timing state |
-| `threading.Lock` | `BoggersRuntime._llm_lock` | LLM adapter hot-swap |
-| `threading.Lock` | `MetricsCollector` | Counter/gauge/timer updates |
-
-### Preventing Races
-
-The `ModeManager` prevents the wave thread and OS loop from mutating the graph during a user query:
-
-1. User query arrives → `request_user_mode(timeout=10)` blocks until AUTO cycle finishes
-2. Query runs with exclusive user-mode access
-3. Query completes → `release_to_auto()` allows background cycles to resume
-
----
-
-## Self-Improvement Pipeline
-
-BoggersTheAI can improve its own synthesis quality over time through a closed-loop pipeline:
-
-```
-┌──────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  User Queries │───→│  Trace Logging    │───→│  traces/*.jsonl  │
-│  (ask())      │    │  (confidence ≥    │    │  (raw traces)    │
-│               │    │   0.7 threshold)  │    │                  │
-└──────────────┘    └──────────────────┘    └────────┬────────┘
-                                                      │
-                                                      ▼
-                                            ┌─────────────────┐
-                                            │ TraceProcessor   │
-                                            │ - Filter by conf │
-                                            │ - Convert Alpaca │
-                                            │ - 80/20 split    │
-                                            └────────┬────────┘
-                                                      │
-                                          ┌───────────┴───────────┐
-                                          ▼                       ▼
-                                   dataset/train.jsonl    dataset/val.jsonl
-                                          │
-                                          ▼
-                                ┌──────────────────┐
-                                │ UnslothFineTuner  │
-                                │ - 4-bit QLoRA     │
-                                │ - Configurable LR │
-                                │ - N epochs        │
-                                └────────┬─────────┘
-                                          │
-                                          ▼
-                                ┌──────────────────┐
-                                │ Validation Gate   │
-                                │ - Eval on val set │
-                                │ - Loss threshold  │
-                                └────────┬─────────┘
-                                          │
-                              ┌───────────┴───────────┐
-                              ▼                       ▼
-                         Pass: Hot-swap          Fail: Rollback
-                         new adapter into        to previous adapter
-                         running LocalLLM        from backup_dir
-```
-
-### Steps in Detail
-
-1. **Trace Logging:** Every `ask()` call that produces a response with `confidence ≥ min_confidence_for_log` (default 0.7) writes a JSONL record to `traces/`.
-
-2. **Dataset Build** (`build_training_dataset()`): `TraceProcessor` scans all trace files, filters by `dataset_build.min_confidence` (0.75), converts each to Alpaca format (`{"instruction": ..., "input": ..., "output": ...}`), shuffles, splits at `split_ratio` (0.8), and writes `dataset/train.jsonl` and `dataset/val.jsonl`.
-
-3. **Fine-Tuning** (`fine_tune_and_hotswap()`): `UnslothFineTuner` loads the base model with 4-bit quantization, applies LoRA adapters, trains on `train.jsonl` for the configured epochs, and saves the adapter.
-
-4. **Validation:** If `validation_enabled`, evaluates on `val.jsonl`. If loss exceeds threshold, the hot-swap is blocked.
-
-5. **Hot-Swap:** If `auto_hotswap` and validation passes, the new adapter is loaded into the running `LocalLLM` instance. The previous adapter is backed up to `backup_dir`.
-
-6. **Rollback:** If the new adapter degrades performance (detected at next validation), `LocalLLM` rolls back to the backup.
-
-7. **Safety Dry Run:** When `safety_dry_run` is `true`, the full pipeline runs but the adapter is not actually loaded — useful for testing.
-
-### Supported Base Models
-
-- `unsloth/llama-3.2-1b-instruct`
-- `unsloth/Phi-3-mini-4k-instruct`
-- `unsloth/gemma-2-2b-it`
-
----
-
-## Multimodal Capabilities
-
-### Voice Input (`ask_audio`)
-
-- **Backend:** faster-whisper (CTranslate2-based Whisper)
-- **Process:** Audio bytes → temp WAV file → transcription → `ask()` → cleanup temp file
-- **Fallback:** If faster-whisper is not installed, returns a placeholder message
-
-### Voice Output (`speak`)
-
-- **Backend:** piper-tts
-- **Process:** Text → piper synthesis → raw audio bytes
-- **Fallback:** If piper is not installed, returns empty bytes
-
-### Image Input (`ask_image`)
-
-- **Backend:** BLIP2 (via HuggingFace transformers)
-- **Process:** Image bytes → BLIP2 captioning → optional query hint appended → `ask()`
-- **Fallback:** If transformers is not installed, returns a placeholder caption
-
-All multimodal adapters implement protocols defined in `core/protocols.py` (`VoiceInProtocol`, `VoiceOutProtocol`, `ImageInProtocol`) for clean dependency inversion.
-
----
-
-## Security Model
-
-### Code Execution Sandbox (`tools/code_run.py`)
-
-- **Timeout:** Configurable via `tools.code_run_timeout_seconds` (default 5 seconds)
-- **Import restrictions:** Both line-scan AND AST-based detection of:
-  - Direct `import` of dangerous modules (`os`, `sys`, `subprocess`, `shutil`, etc.)
-  - `__import__()` calls (including obfuscated forms)
-  - `exec()` and `eval()` calls
-- **Restricted builtins:** Only safe builtins are available in the execution namespace
-- **Process isolation:** Code runs in a subprocess with resource limits
-
-### File Read Restrictions (`tools/file_read.py`)
-
-- **Base directory restriction:** Base path is **pinned at tool construction** (resolved `Path`), not the current working directory at call time
-- **Max size:** Reads reject files larger than a configurable **max bytes** (default 1 MiB)
-- **Extension allowlist:** Only permitted file extensions can be read (includes `.toml`, `.cfg`, `.ini`, plus code and data extensions)
-- **Path traversal prevention:** Paths must resolve under the base directory; `core/path_sandbox.validate_path` is used where applicable
-
-### Network Security
-
-- **RSS adapter:** HTTPS-only enforcement — HTTP feed URLs are rejected
-- **X API adapter:** Requires `X_BEARER_TOKEN` environment variable (never stored in config)
-- **Dashboard auth:** Token-based Bearer authentication via `BOGGERS_DASHBOARD_TOKEN`
-
-### Data Privacy
-
-- **Local-first:** No data leaves your machine unless you explicitly enable cloud adapters
-- **No telemetry:** Zero phone-home behavior
-- **`.gitignore`:** Graph databases, traces, datasets, models, and vault are excluded from version control by default
-
----
-
-## Repository Layout
+## 4. Architecture Diagram
 
 ```text
-BoggersTheAI/
-├── core-vm/                       # BOGVM-0 bedrock (16-opcode wave-state VM)
-│   ├── bogvm/                     # VM, opcodes, .bogpk container, archive
-│   ├── spec/                      # BOGPK-0.1 specification
-│   └── artifact_log.py            # VM state → .bogpk logging
-├── inference/                     # Neural execution layer
-│   ├── tension_lm/                # TensionLM (from bozo)
-│   ├── tension_forge/             # OpenCL tension-field runtime
-│   └── artifact_export.py         # Tension field → .bogpk
-├── reasoner/                      # Constraint resolution layer
-│   ├── ts_reasoner/               # GOAT-TS, Verse Engine, verifier gates
-│   ├── ts_metacompute/            # Spectral metacompute substrates
-│   ├── hooks/                     # NebulaGraph, Redis, Spark connectors
-│   └── artifact_receipts.py       # Reasoner receipt → .bogpk
-├── shared/artifacts/              # Unified .bogpk serialization API
-├── docs/                          # Unified manifesto and cognitive physics
-├── traces/meta_critique/.gitkeep  # Placeholder path; runtime JSONL under traces/ is gitignored
-├── core/                          # Living graph runtime engine
-│   ├── graph/
-│   │   ├── universal_living_graph.py  # Main graph: nodes, edges, persistence, embeddings, guardrails
-│   │   ├── wave_propagation.py        # Low-level: elect, propagate, relax, normalize
-│   │   ├── rules_engine.py            # Full cycle: prune, merge, split, contradiction, tension, emergence
-│   │   ├── node.py                    # GraphNode dataclass
-│   │   ├── sqlite_backend.py          # SQLite WAL persistence backend
-│   │   ├── snapshots.py               # Full-graph snapshot save/restore/prune
-│   │   ├── export.py                  # GraphML and JSON-LD export
-│   │   ├── pruning.py                 # PruningPolicy (min_stability, max_age, max_nodes)
-│   │   ├── wave_runner.py             # WaveCycleRunner — wave thread + step sequence
-│   │   ├── utils.py                   # Pure graph helpers (subgraph, batch, components)
-│   │   ├── wave.py                    # Simplified wave API (propagate/relax/break/evolve)
-│   │   └── migrate.py                 # JSON schema migration
-│   ├── path_sandbox.py                # validate_path — safe paths under a base directory
-│   ├── query_processor.py             # Full query pipeline orchestration
-│   ├── router.py                      # QueryRouter + ModeManager coordination
-│   ├── types.py                       # Node, Edge, Tension dataclasses
-│   ├── local_llm.py                   # Ollama wrapper (synthesis, embedding, health, hot-swap)
-│   ├── fine_tuner.py                  # Unsloth QLoRA training pipeline
-│   ├── trace_processor.py             # Trace → Alpaca dataset conversion
-│   ├── embeddings.py                  # Cosine similarity, OllamaEmbedder, batch matrix
-│   ├── contradiction.py               # Topic-indexed contradiction detection + resolution
-│   ├── temperament.py                 # Cognitive temperament presets
-│   ├── context_mind.py                # Named subgraph contexts with temperament
-│   ├── protocols.py                   # Protocol definitions (VoiceIn, VoiceOut, ImageIn, Graph)
-│   ├── config_loader.py               # YAML loading + deep merge into RuntimeConfig
-│   ├── config_resolver.py             # Safe nested dict/object traversal
-│   ├── config_schema.py               # Config validation (required sections, numeric ranges)
-│   ├── mode_manager.py                # AUTO/USER thread coordination
-│   ├── events.py                      # EventBus (on/off/emit) + singleton bus
-│   ├── plugins.py                     # PluginRegistry + entry-point discovery
-│   ├── health.py                      # HealthChecker + singleton health_checker
-│   ├── metrics.py                     # MetricsCollector (counters, gauges, timers)
-│   └── logger.py                      # boggers.* logging namespace configuration
-│
-├── adapters/                          # External data ingestion
-│   ├── base.py                        # AdapterRegistry (TTL cache, rate limiting, lock)
-│   ├── wikipedia.py                   # Wikipedia API adapter
-│   ├── rss.py                         # RSS feed adapter (HTTPS-only)
-│   ├── hacker_news.py                 # Hacker News Algolia API adapter
-│   ├── markdown.py                    # Markdown file ingestion adapter
-│   └── x_api.py                       # X/Twitter API adapter (requires bearer token)
-│
-├── shared/                            # Shared utilities
-│   └── http.py                        # fetch_url / fetch_json + retries
-│
-├── entities/                          # Higher-level engines
-│   ├── consolidation.py               # ConsolidationEngine (merge similar nodes)
-│   ├── insight.py                     # InsightEngine (vault writing, hypothesis extraction)
-│   ├── inference_router.py            # Throttled inference routing
-│   └── synthesis_engine.py            # BoggersSynthesisEngine (extractive fallback)
-│
-├── tools/                             # Built-in tools
-│   ├── base.py                        # ToolRegistry (register/execute by name)
-│   ├── executor.py                    # ToolExecutor (with_defaults creates all tools)
-│   ├── router.py                      # ToolRouter (keyword, pattern, sufficiency routing)
-│   ├── calc.py                        # CalcTool (AST-safe arithmetic)
-│   ├── code_run.py                    # CodeRunTool (sandboxed Python execution)
-│   ├── search.py                      # SearchTool (HN Algolia API)
-│   ├── file_read.py                   # FileReadTool (base-dir restricted, extension allowlist)
-│   ├── web_search.py                  # WebSearchTool (DuckDuckGo instant answers)
-│   ├── datetime_tool.py               # DateTimeTool (UTC now / parse / format)
-│   └── unit_convert.py                # UnitConvertTool (common conversions)
-│
-├── multimodal/                        # Voice and image processing
-│   ├── base.py                        # Re-exports protocols from core/protocols.py
-│   ├── voice_in.py                    # VoiceInAdapter (faster-whisper)
-│   ├── voice_out.py                   # VoiceOutAdapter (piper-tts)
-│   └── image_in.py                    # ImageInAdapter (BLIP2)
-│
-├── interface/                         # User-facing entry points
-│   ├── runtime.py                     # BoggersRuntime (composition root)
-│   ├── autonomous_loop.py           # AutonomousLoopManager — OS loop, nightly, exploration
-│   ├── self_improvement.py            # SelfImprovementManager — traces, fine-tune, hot-swap
-│   ├── chat.py                        # CLI: run_chat() with command parsing
-│   └── api.py                         # handle_query() library helper
-│
-├── mind/                              # UI extensions
-│   └── tui.py                         # Rich-based TUI (live graph stats, wave events)
-│
-├── dashboard/                         # Web dashboard
-│   └── app.py                         # FastAPI: status, wave, graph, metrics, traces, health
-│
-├── tests/                             # Test suite (200+ tests; CI enforces --cov-fail-under=60)
-│   ├── test_graph.py                  # Graph creation, mutation, persistence
-│   ├── test_wave.py                   # Wave propagation, relaxation, breaking
-│   ├── test_synthesis.py              # Extractive and LLM synthesis
-│   ├── test_router.py                 # Query routing and tool routing
-│   ├── test_runtime.py                # Runtime lifecycle, startup, shutdown
-│   ├── test_tools.py                  # Tool execution and routing
-│   ├── test_tools_detailed.py         # Sandbox restrictions, edge cases
-│   ├── test_adapters_detailed.py      # Adapter caching, rate limiting, errors
-│   ├── test_multimodal.py             # Voice/image adapter fallbacks
-│   ├── test_concurrency.py            # Thread safety, race conditions
-│   ├── test_dashboard_endpoints.py    # FastAPI endpoint responses
-│   ├── test_config_schema.py          # Config validation
-│   ├── test_protocols.py              # Protocol compliance
-│   ├── test_events_metrics.py         # EventBus and MetricsCollector
-│   ├── test_health.py                 # Health check registration and execution
-│   └── ...                            # Additional test modules
-│
-├── examples/                          # Usage examples
-│   ├── quickstart.py                  # Minimal getting-started script
-│   ├── TS-OS_Living_Demo.ipynb        # Jupyter notebook demo
-│   └── demos/                         # Additional demo scripts
-│
-├── traces/                            # Reasoning trace JSONL files (gitignored)
-├── dataset/                           # Training data (gitignored)
-│   ├── train.jsonl                    # Training split
-│   └── val.jsonl                      # Validation split
-├── models/                            # Fine-tuned adapters (gitignored)
-│   ├── fine_tuned_adapter/            # Current adapter
-│   └── backups/                       # Pre-swap backups
-├── vault/                             # Markdown insights (gitignored)
-├── snapshots/                         # Graph snapshots (gitignored)
-├── graph.json                         # JSON graph persistence (gitignored)
-├── graph.db                           # SQLite graph persistence (gitignored)
-│
-├── config.yaml                        # Main configuration file
-├── pyproject.toml                     # Project metadata, deps, extras, pytest/ruff/black
-├── Makefile                           # make test / lint / format / run / dashboard
-├── .pre-commit-config.yaml            # Optional ruff, black, isort hooks
-├── .env.example                       # Environment variable template
-├── .gitignore                         # Excludes data files from version control
-├── CONTRIBUTING.md                    # Contribution guidelines
-└── LICENSE                            # MIT License
+ts-core (Foundational Types & Memory Specs)
+  ↓
+ts-ir + ts-artifacts (TSIR Proposals & Receipt Replay)
+  ↓
+ts-verifiers (Arithmetic & Observation Checkers)
+  ↓
+ts-kernel (Transaction Authority & Tension Accounting)
+  ↓
+ts-graph + ts-reasoner (Living Graph & Wave Dynamics)
+  ↓
+ts-language + ts-runtime (TSLC Dialogue & Runtime Composition)
+  ↓
+CLI (`ts`) / Lab (`apps/lab`) / Dashboard / Chat
 ```
 
 ---
 
-## Testing
+## 5. Verified & Implemented Capabilities
 
-### Running Tests
+* **`ts-kernel` Transaction Authority:** 59/59 verified tests covering commit, reject, quarantine, branch, and abstain decisions.
+* **BOGVM Verifiers:** Arithmetic program verifier (18 tests) and observation predicate verifiers (15 tests).
+* **Wave Runner Dynamics:** Tension-triggered graph wave cycles and local tension dissipation (5 tests).
+* **Deterministic Replay:** SHA-256 receipt audit and graph snapshot restoration.
+
+---
+
+## 6. Five-Minute Quick Start
 
 ```bash
-# Quick run
-pytest -q
+# 1. Clone the canonical monorepo
+git clone https://github.com/BoggersTheFish/thinking-system.git
+cd thinking-system
 
-# Verbose with coverage
-pytest --cov=BoggersTheAI -v
+# 2. Install package and dev dependencies
+pip install -e ".[dev]"
+# Or using make:
+make install
 
-# With coverage enforcement (CI uses --cov-fail-under=60)
-pytest --cov=BoggersTheAI --cov-fail-under=60
+# 3. Run unit tests
+make unit-test
 ```
 
-### Test Stats
+---
 
-- **200+ tests** across many modules (graph, wave, http client, rules engine, sqlite, config loader, plugins, tools, adapters, dashboard, concurrency, etc.)
-- **~70%** line coverage typical locally; CI fails if total coverage drops below **60%**
-- Tests cover: graph operations, wave runner, synthesis, routing, runtime lifecycle, tool execution (including web search / datetime / unit convert), adapter behavior (mocked HTTP via `shared.http`), multimodal fallbacks, concurrency, dashboard endpoints, config validation, protocols, events, metrics, health checks
+## 7. Canonical Runnable Demonstration
 
-### CI Pipeline
+Run the deterministic verifier-first transaction demo (**100% offline, no GPU/Ollama required**):
 
-GitHub Actions runs on every push and PR:
+```bash
+# Primary CLI command:
+ts demo
 
-- **Matrix:** Python 3.10, 3.11, 3.12
-- **Caching:** pip dependencies cached via `actions/cache`
-- **Linting:** `ruff check`, `black --check`, `isort --check`
-- **Type checking:** full-package mypy still has historical optional-dependency
-  and typing debt. For this Kernel v0.2 demo branch, the stable narrow target is:
-  `mypy --follow-imports=skip --ignore-missing-imports core/kernel/obligations.py core/kernel/representation.py core/kernel/kernel.py core/trace_processor.py experiments/frontier/run_seed_tasks.py interface/chat.py`
-- **Tests:** `pytest --cov=BoggersTheAI --cov-fail-under=60`
+# Or with raw JSON receipt output:
+ts demo --json
+```
 
 ---
 
-## Limitations
+## 8. Repository Map
 
-- BoggersTheAI is an alpha local-first reasoning runtime. Graph evolution, autonomy, and self-improvement behavior should be inspected before relying on outputs for important decisions.
-- LLM synthesis and embeddings depend on a running Ollama service and locally pulled models. Without them, the system falls back to extractive or placeholder behavior where supported.
-- Multimodal, RSS, X/Twitter, dashboard, and fine-tuning features require optional dependencies or external services that are not installed by the core package.
-- QLoRA fine-tuning is disabled by default and requires suitable GPU resources when enabled. Validation gates are provided, but trained adapters still need manual review before use.
-- Runtime graph files, traces, generated datasets, snapshots, and fine-tuning outputs are local artifacts and are generally gitignored rather than distributed with the package.
+```text
+thinking-system/
+├── packages/       # Core domain packages (ts-core, ts-kernel, ts-verifiers, ts-graph, ts-language)
+├── engines/        # Compute substrates (bogvm, tension-lm, tension-forge)
+├── apps/           # Interfaces (cli, lab, dashboard, chat)
+├── research/       # Active research programmes (exodus, genesis, observer-birth)
+├── benchmarks/     # Falsification harnesses and seed task fixtures
+├── experiments/    # Bounded active, completed, and archived experiments
+└── docs/           # Comprehensive specifications, architecture, claims, and lineage
+```
 
 ---
 
-## Contributing
+## 9. Claim-Boundary Statement
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup instructions, code style (ruff, black, isort), and PR guidelines.
+Every major public claim is formally tracked in the [Claim Ledger](docs/claims-and-evidence/claim-ledger.md). Public claims are classified under strict status labels: `VERIFIED`, `IMPLEMENTED`, `EXPERIMENTAL`, `HYPOTHESIS`, `ROADMAP`, `SUPERSEDED`, or `ARCHIVED`.
 
 ---
 
-## License
+## 10. Documentation Links
 
-[MIT](LICENSE)
+* [What is Thinking System?](docs/introduction/what-is-thinking-system.md)
+* [What Thinking System is NOT](docs/introduction/what-thinking-system-is-not.md)
+* [Architecture Overview](docs/architecture/overview.md)
+* [Authority Boundary Specification](docs/architecture/authority-boundary.md)
+* [Dependency Direction Rules](docs/architecture/dependency-rules.md)
+* [Claim Ledger](docs/claims-and-evidence/claim-ledger.md)
+* [Repository Inventory & Lineage](docs/lineage/repository-inventory.md)
+* [Migration Baseline](docs/migration/baseline.md)
+
+---
+
+## 11. Contributing & Citation
+
+* **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and coding standards.
+* **Citation:** See [CITATION.cff](CITATION.cff) or cite as:
+  ```bibtex
+  @software{Michalek_Thinking_System_2026,
+    author = {Michalek, Ben},
+    title = {Thinking System: A Verifier-First Research Architecture for Structured Reasoning Under Residual Accounting},
+    year = {2026},
+    url = {https://github.com/BoggersTheFish/thinking-system}
+  }
+  ```
+
+---
+
+## 12. License
+
+This project is licensed under the [MIT License](LICENSE).
