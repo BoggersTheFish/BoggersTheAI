@@ -188,12 +188,150 @@ def collect_python_files(root_dir: Path | None = None) -> list[Path]:
     return files
 
 
+def module_name_for_file(file_rel: str) -> str:
+    """Repo-relative path → dotted module name (src/ stripped)."""
+    parts = list(Path(file_rel).with_suffix("").parts)
+    if parts and parts[0] == "src":
+        parts = parts[1:]
+    if parts and parts[-1] == "__init__":
+        parts = parts[:-1]
+    return ".".join(parts)
+
+
+def build_import_graph(
+    files: list[Path],
+    root_dir: Path | None = None,
+) -> dict[str, set[str]]:
+    """Build module→imported-modules edges for files under root_dir."""
+    base = root_dir or ROOT_DIR
+    graph: dict[str, set[str]] = {}
+    known: set[str] = set()
+    rel_by_mod: dict[str, str] = {}
+
+    for pth in files:
+        rel = _posix_rel(pth, base)
+        mod = module_name_for_file(rel)
+        if not mod:
+            continue
+        known.add(mod)
+        rel_by_mod[mod] = rel
+        graph.setdefault(mod, set())
+
+    for pth in files:
+        rel = _posix_rel(pth, base)
+        mod = module_name_for_file(rel)
+        if not mod:
+            continue
+        try:
+            tree = ast.parse(
+                pth.read_text(encoding="utf-8", errors="ignore"), filename=rel
+            )
+        except (SyntaxError, OSError):
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Import, ast.ImportFrom)):
+                continue
+            for imported in resolve_import_module(node, rel):
+                # Keep only edges to modules present in the scanned set
+                # (exact or parent package of a known module).
+                target = imported
+                if target in known:
+                    graph[mod].add(target)
+                    continue
+                # from pkg import sub may resolve as pkg when sub is submodule
+                for k in known:
+                    if k == imported or k.startswith(imported + "."):
+                        # edge to the imported package root if known
+                        if imported in known:
+                            graph[mod].add(imported)
+                        break
+    return graph
+
+
+def find_import_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
+    """
+    Return strongly-connected components of size >= 2 (true import cycles),
+    plus self-loops as single-node cycles.
+    """
+    index = 0
+    stack: list[str] = []
+    on_stack: set[str] = set()
+    indices: dict[str, int] = {}
+    lowlink: dict[str, int] = {}
+    sccs: list[list[str]] = []
+
+    def strongconnect(v: str) -> None:
+        nonlocal index
+        indices[v] = index
+        lowlink[v] = index
+        index += 1
+        stack.append(v)
+        on_stack.add(v)
+
+        for w in graph.get(v, ()):
+            if w not in indices:
+                strongconnect(w)
+                lowlink[v] = min(lowlink[v], lowlink[w])
+            elif w in on_stack:
+                lowlink[v] = min(lowlink[v], indices[w])
+
+        if lowlink[v] == indices[v]:
+            comp: list[str] = []
+            while True:
+                w = stack.pop()
+                on_stack.discard(w)
+                comp.append(w)
+                if w == v:
+                    break
+            if len(comp) > 1:
+                sccs.append(sorted(comp))
+            elif comp and comp[0] in graph.get(comp[0], ()):
+                sccs.append(comp)
+
+    for node in list(graph):
+        if node not in indices:
+            strongconnect(node)
+    return sccs
+
+
+def check_authority_import_cycles(
+    root_dir: Path | None = None,
+) -> list[str]:
+    """
+    Detect import cycles among authority-layer modules (layer <= 3).
+
+    Legacy application code may have cycles; this only fails closed for
+    kernel/verifier authority surfaces.
+    """
+    base = root_dir or ROOT_DIR
+    authority_files: list[Path] = []
+    for pth in collect_python_files(base):
+        rel = _posix_rel(pth, base)
+        layer = file_layer(rel)
+        if layer is not None and layer <= 3:
+            authority_files.append(pth)
+
+    graph = build_import_graph(authority_files, base)
+    cycles = find_import_cycles(graph)
+    violations: list[str] = []
+    for cycle in cycles:
+        violations.append(
+            "[IMPORT CYCLE] authority layer modules form a cycle: "
+            + " -> ".join(cycle + [cycle[0]])
+        )
+    return violations
+
+
 def main() -> int:
     print("Checking Thinking System dependency direction rules...")
-    print("(Authority denylist for kernel/verifier layers; not a full package DAG.)")
+    print(
+        "(Authority denylist for kernel/verifier layers; "
+        "authority-layer import-cycle scan; not a full package DAG.)"
+    )
     all_violations: list[str] = []
     for pth in collect_python_files():
         all_violations.extend(check_file(pth))
+    all_violations.extend(check_authority_import_cycles())
 
     if all_violations:
         print(

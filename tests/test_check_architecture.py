@@ -11,9 +11,12 @@ import ast
 from pathlib import Path
 
 from tools.check_architecture import (
+    build_import_graph,
+    check_authority_import_cycles,
     check_file,
     collect_python_files,
     file_layer,
+    find_import_cycles,
     resolve_import_module,
 )
 
@@ -106,4 +109,47 @@ def test_real_repo_kernel_has_no_app_imports():
     violations: list[str] = []
     for pth in kernel_dir.rglob("*.py"):
         violations.extend(check_file(pth, root_dir=root))
+    assert violations == []
+
+
+def test_find_import_cycles_detects_two_node_cycle():
+    graph = {
+        "pkg.a": {"pkg.b"},
+        "pkg.b": {"pkg.a"},
+        "pkg.c": set(),
+    }
+    cycles = find_import_cycles(graph)
+    assert len(cycles) == 1
+    assert set(cycles[0]) == {"pkg.a", "pkg.b"}
+
+
+def test_find_import_cycles_detects_self_loop():
+    graph = {"pkg.a": {"pkg.a"}, "pkg.b": set()}
+    cycles = find_import_cycles(graph)
+    assert cycles == [["pkg.a"]]
+
+
+def test_authority_cycle_is_reported(tmp_path: Path):
+    """Synthetic authority-layer A↔B cycle must surface as IMPORT CYCLE."""
+    a = tmp_path / "core" / "kernel" / "mod_a.py"
+    b = tmp_path / "core" / "kernel" / "mod_b.py"
+    a.parent.mkdir(parents=True, exist_ok=True)
+    a.write_text("from core.kernel.mod_b import x\n", encoding="utf-8")
+    b.write_text("from core.kernel.mod_a import y\n", encoding="utf-8")
+
+    # build_import_graph + find_import_cycles on these two files
+    graph = build_import_graph([a, b], root_dir=tmp_path)
+    cycles = find_import_cycles(graph)
+    assert any(set(c) == {"core.kernel.mod_a", "core.kernel.mod_b"} for c in cycles)
+
+    # Full authority cycle checker path (search roots under tmp)
+    violations = check_authority_import_cycles(root_dir=tmp_path)
+    assert any("IMPORT CYCLE" in v for v in violations)
+
+
+def test_authority_cycle_clean_when_acyclic(tmp_path: Path):
+    a = tmp_path / "core" / "kernel" / "leaf.py"
+    a.parent.mkdir(parents=True, exist_ok=True)
+    a.write_text("import math\n", encoding="utf-8")
+    violations = check_authority_import_cycles(root_dir=tmp_path)
     assert violations == []

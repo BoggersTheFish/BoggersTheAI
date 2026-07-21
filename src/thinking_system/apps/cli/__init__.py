@@ -1,20 +1,23 @@
 """
 Thinking System CLI Application (`thinking_system.apps.cli`).
 
-Implementation lives in `.main`. Import from there for `python -m` usage
-to avoid preloading the module into sys.modules before runpy executes it.
+Canonical entry points:
+
+  from thinking_system.apps.cli.main import main
+  python -m thinking_system.apps.cli.main demo --json
+
+Note: the name ``main`` is the *submodule* ``thinking_system.apps.cli.main``.
+The callable lives at ``thinking_system.apps.cli.main.main``. Do not rely on
+``from thinking_system.apps.cli import main`` returning the callable — that
+binds the submodule object (standard Python package behaviour).
+
+Helpers below are re-exported from the implementation module without
+lazy ``__getattr__`` (avoids historical RecursionError from
+``from . import main`` inside ``__getattr__``).
 """
 
 from __future__ import annotations
 
-from typing import Any
+from .main import run_legacy_chat, run_legacy_dashboard
 
-__all__ = ["main", "run_legacy_chat", "run_legacy_dashboard"]
-
-
-def __getattr__(name: str) -> Any:
-    if name in __all__:
-        from . import main as _main
-
-        return getattr(_main, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__all__ = ["run_legacy_chat", "run_legacy_dashboard"]
