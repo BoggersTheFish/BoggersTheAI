@@ -3,16 +3,24 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "BoggersTheAI"
-version = "0.5.0"
-description = "Modular TS-OS architecture with graph-wave reasoning pipeline."
+name = "thinking-system"
+version = "1.0.0"
+description = "Verifier-first research architecture for constructing, measuring, localising and minimally revising structured reasoning systems."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
-authors = [{ name = "BoggersTheAI Contributors" }]
-keywords = ["ts-os", "graph", "reasoning", "autonomy", "ollama"]
+license = { text = "MIT" }
+authors = [{ name = "Thinking System Contributors" }]
+keywords = [
+  "thinking-system",
+  "verifier-first",
+  "structured-reasoning",
+  "residual-accounting",
+  "bogvm",
+  "ts-kernel",
+]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
@@ -69,37 +77,19 @@ security = [
 ]
 
 [project.scripts]
-boggers = "BoggersTheAI.interface.chat:run_chat"
-dashboard-start = "BoggersTheAI.dashboard.app:main"
+ts = "thinking_system.apps.cli.main:main"
+boggers = "thinking_system.apps.cli.main:run_legacy_chat"
+dashboard-start = "thinking_system.apps.cli.main:run_legacy_dashboard"
 
 [tool.setuptools]
 include-package-data = true
-packages = [
-  "BoggersTheAI",
-  "BoggersTheAI.adapters",
-  "BoggersTheAI.core",
-  "BoggersTheAI.core.graph",
-  "BoggersTheAI.core.kernel",
-  "BoggersTheAI.dashboard",
-  "BoggersTheAI.entities",
-  "BoggersTheAI.experiments",
-  "BoggersTheAI.experiments.frontier",
-  "BoggersTheAI.interface",
-  "BoggersTheAI.mind",
-  "BoggersTheAI.multimodal",
-  "BoggersTheAI.tools",
-  "BoggersTheAI.shared",
-]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["thinking_system*", "BoggersTheAI*", "core*", "adapters*", "dashboard*", "entities*", "experiments*", "interface*", "mind*", "multimodal*", "tools*", "shared*", "packages*", "engines*", "apps*", "research*", "benchmarks*"]
 
 [tool.setuptools.package-data]
-"BoggersTheAI" = ["core-vm/**/*", "inference/**/*", "reasoner/**/*", "shared/**/*", "docs/**/*", "experiments/frontier/seed_tasks/*.json"]
-
-[tool.setuptools.package-dir]
-BoggersTheAI = "."
-
-[project.entry-points."boggers.adapters"]
-
-[project.entry-points."boggers.tools"]
+"*" = ["*.json", "*.yaml", "*.yml", "*.md", "*.bogpkg", "seed_tasks/*.json"]
 
 [tool.ruff]
 line-length = 88
@@ -109,8 +99,8 @@ target-version = "py310"
 select = ["E", "F", "W"]
 ignore = [
     "E501",  # black handles line length
-    "E402",  # module level import not at top - legacy code in core-vm/reasoner
-    "E741",  # ambiguous var l - in legacy/demo code
+    "E402",  # module level import not at top - legacy code
+    "E741",  # ambiguous var l
 ]
 
 [tool.isort]
@@ -129,6 +119,7 @@ markers = [
 
 [tool.mypy]
 ignore_missing_imports = true
+explicit_package_bases = true
 exclude = [
     "reasoner",
     "core-vm",
