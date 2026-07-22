@@ -102,4 +102,3 @@ Imported:
 The recorded source result failed its strict success criteria. The import
 preserves that negative result as a falsification finding, not a capability
 claim.
-

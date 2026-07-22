@@ -13,7 +13,6 @@ from thinking_system.benchmarks.graph_scaling.tasks.scaling import (
     GraphSpec,
     SyntheticGraph,
     build_adjacency,
-    node_degrees,
 )
 
 PLACEMENTS = ["hub_hub", "hub_leaf", "leaf_leaf", "random"]
