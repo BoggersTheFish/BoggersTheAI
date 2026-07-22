@@ -79,3 +79,26 @@ monorepo.
 
 Archiving the satellite remains a separate maintainer action after this import
 is merged and verified by CI.
+
+## Supplemental v0.5 adversarial-topology import
+
+- Source pull request: `BoggersTheFish/TS-Benchmarks#7`
+- Source branch: `experiment/v0.5-adversarial-topology-generalization`
+- Source commit: `ea6a944f5f4170a3ae02cfa8f93ce1bd87d31392`
+- Canonical issue: `#15`
+
+Imported:
+
+- mixed core/periphery graph generation
+- hub-threshold topology sweeps
+- topology-noise sweeps
+- hub-hub, hub-leaf, leaf-leaf, and random contradiction placement
+- selector-versus-oracle comparisons
+- selector regret metrics
+- catastrophic-regression detection
+- adversarial benchmark receipts and reports
+- focused tests
+
+The recorded source result failed its strict success criteria. The import
+preserves that negative result as a falsification finding, not a capability
+claim.
