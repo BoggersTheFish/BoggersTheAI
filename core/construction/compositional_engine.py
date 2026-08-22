@@ -23,6 +23,9 @@ from .grammar import (
 from .registry import (
     ConstructionRegistry,
 )
+from .scaffold import (
+    generate_scaffold_candidates,
+)
 from .state import (
     ConstructionStateBuilder,
 )
@@ -36,19 +39,22 @@ class CandidateFieldSnapshot:
     epoch: int
     candidate_count: int
     primitive_candidate_count: int
+    scaffold_candidate_count: int
     composed_candidate_count: int
     active_construction_count: int
     threshold: int
 
 
 class CompositionalAdaptiveConstructionEngine:
-    """PRIME M20-B/C.
+    """PRIME M20 higher-order construction engine.
 
-    Candidate grammar expands after each authorization.
+    Candidate classes:
 
-    Authorized constructions become typed reusable atoms.
+        primitive/raw relational candidates;
+        optional non-authoritative scaffold candidates;
+        compositions over verifier-authorized constructions.
 
-    Candidate field remains bounded.
+    Only verifier authorization changes canonical representation.
     """
 
     def __init__(
@@ -56,10 +62,18 @@ class CompositionalAdaptiveConstructionEngine:
         *,
         max_lag: int = 8,
         max_candidates: int = 128,
+        enable_scaffolds: bool = False,
     ) -> None:
-        self.max_lag = max_lag
+        self.max_lag = (
+            max_lag
+        )
+
         self.max_candidates = (
             max_candidates
+        )
+
+        self.enable_scaffolds = (
+            enable_scaffolds
         )
 
         self.registry = (
@@ -95,6 +109,17 @@ class CompositionalAdaptiveConstructionEngine:
                     max_candidates
                 ),
             )
+        )
+
+        self._scaffold_specs = (
+            generate_scaffold_candidates(
+                max_lag=max_lag,
+                max_candidates=(
+                    max_candidates
+                ),
+            )
+            if enable_scaffolds
+            else ()
         )
 
         self._candidate_specs: tuple[
@@ -133,14 +158,29 @@ class CompositionalAdaptiveConstructionEngine:
                 ] = spec
 
         for spec in (
+            self._scaffold_specs
+        ):
+            if (
+                spec.construction_id
+                not in active
+            ):
+                combined[
+                    spec.construction_id
+                ] = spec
+
+        composed = (
             generate_composed_candidates(
                 self.registry,
-                max_lag=self.max_lag,
+                max_lag=(
+                    self.max_lag
+                ),
                 max_candidates=(
                     self.max_candidates
                 ),
             )
-        ):
+        )
+
+        for spec in composed:
             if (
                 spec.construction_id
                 not in active
@@ -188,7 +228,9 @@ class CompositionalAdaptiveConstructionEngine:
             candidates
         )
 
-    def begin_episode(self) -> None:
+    def begin_episode(
+        self,
+    ) -> None:
         self._private_history = []
         self._pending = None
 
@@ -200,8 +242,7 @@ class CompositionalAdaptiveConstructionEngine:
     ) -> tuple[int, ...]:
         if self._pending is not None:
             raise RuntimeError(
-                "previous observation "
-                "must be finalized"
+                "previous observation must be finalized"
             )
 
         self._event_index += 1
@@ -210,14 +251,19 @@ class CompositionalAdaptiveConstructionEngine:
             observation
         )
 
+        maximum = (
+            self.max_lag
+            + 1
+        )
+
         if (
             len(
                 self._private_history
             )
-            > self.max_lag + 1
+            > maximum
         ):
             del self._private_history[
-                :-(self.max_lag + 1)
+                :-maximum
             ]
 
         policy_state = (
@@ -325,8 +371,6 @@ class CompositionalAdaptiveConstructionEngine:
             )
         )
 
-        # Candidate field grows only after
-        # verifier-backed authorization.
         self._epoch_index += 1
 
         self._epoch = (
@@ -335,7 +379,9 @@ class CompositionalAdaptiveConstructionEngine:
 
         return ConstructionDecision(
             authorized=True,
-            construction_id=selected,
+            construction_id=(
+                selected
+            ),
             evidence=evidence,
             receipt=receipt,
         )
@@ -349,9 +395,22 @@ class CompositionalAdaptiveConstructionEngine:
             in self._primitive_specs
         }
 
+        scaffold_ids = {
+            spec.construction_id
+            for spec
+            in self._scaffold_specs
+        }
+
         primitive = sum(
             spec.construction_id
             in primitive_ids
+            for spec
+            in self._candidate_specs
+        )
+
+        scaffold = sum(
+            spec.construction_id
+            in scaffold_ids
             for spec
             in self._candidate_specs
         )
@@ -361,15 +420,21 @@ class CompositionalAdaptiveConstructionEngine:
                 self._candidate_specs
             )
             - primitive
+            - scaffold
         )
 
         return CandidateFieldSnapshot(
-            epoch=self._epoch_index,
+            epoch=(
+                self._epoch_index
+            ),
             candidate_count=len(
                 self._candidate_specs
             ),
             primitive_candidate_count=(
                 primitive
+            ),
+            scaffold_candidate_count=(
+                scaffold
             ),
             composed_candidate_count=(
                 composed
@@ -386,7 +451,9 @@ class CompositionalAdaptiveConstructionEngine:
     def active_construction_ids(
         self,
     ) -> tuple[str, ...]:
-        return self.registry.active_ids()
+        return (
+            self.registry.active_ids()
+        )
 
     @property
     def receipt_chain(
