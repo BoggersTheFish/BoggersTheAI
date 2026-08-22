@@ -1,0 +1,33 @@
+"""Frozen configuration for PRIME Canonical Agent Benchmark v1.3."""
+
+BENCHMARK_VERSION = "prime-canonical-agent-benchmark-v1.3"
+
+DEVELOPMENT_SEEDS = tuple(range(300, 332))
+EVALUATION_SEEDS = tuple(range(3000, 3128))
+
+PERMITTED_DEPTHS = (0, 1, 2, 4)
+
+FIXED_CONDITIONS = (
+    "FIXED-H1",
+    "FIXED-H2",
+    "FIXED-H4",
+)
+
+ADAPTIVE_CONDITIONS = (
+    "ADAPTIVE-NO-VERIFIER",
+    "FULL-PRIME-V1.2-REFERENCE",
+    "FACTOR-WITNESS-CARRIER-COST",
+    "FULL-PRIME-V1.3",
+)
+
+PARENT_V12_FINAL_COMMIT = "6f17789"
+
+PARENT_V12_RESULT_SHA256 = (
+    "6ce64dc7aa0bcc44ce1453788162a007"
+    "ea79429d0283e69d6ba4e8c9e91028f0"
+)
+
+PARENT_V12_CORE_SHA256 = (
+    "bed64cbe558c928d3793c915e3426063"
+    "8c9c0ed3f7061c350695e769b5c3efc9"
+)
