@@ -2,15 +2,25 @@
 
 from __future__ import annotations
 
-from .grammar import evaluate
-from .registry import ConstructionRegistry
+from .grammar import (
+    evaluate,
+)
+from .registry import (
+    ConstructionRegistry,
+)
 
 
 class ConstructionStateBuilder:
-    """Policy-visible buffers only.
+    """Policy-visible construction state.
 
-    Newly authorized constructions always start with empty history.
-    Verifier-private history is never backfilled here.
+    Every construction owns a prospective raw-history buffer.
+
+    Newly authorized constructions begin empty.
+
+    REF dependencies use only the current outputs of already-authorized
+    constructions.
+
+    Verifier-private sensory history is never backfilled into these buffers.
     """
 
     def __init__(
@@ -23,6 +33,19 @@ class ConstructionStateBuilder:
             str,
             list[int],
         ] = {}
+
+        self._current_values: dict[
+            str,
+            int,
+        ] = {}
+
+    @property
+    def current_values(
+        self,
+    ) -> dict[str, int]:
+        return dict(
+            self._current_values
+        )
 
     def sync_registry(self) -> None:
         active = set(
@@ -43,6 +66,13 @@ class ConstructionStateBuilder:
                     construction_id
                 ]
 
+        self._current_values = {
+            key: value
+            for key, value
+            in self._current_values.items()
+            if key in active
+        }
+
     def reset_episode(self) -> None:
         self.sync_registry()
 
@@ -53,11 +83,16 @@ class ConstructionStateBuilder:
                 construction_id
             ] = []
 
+        self._current_values = {}
+
     def observe(
         self,
         observation: int,
     ) -> tuple[int, ...]:
-        if observation not in (0, 1):
+        if observation not in (
+            0,
+            1,
+        ):
             raise ValueError(
                 "observation must be binary"
             )
@@ -68,11 +103,14 @@ class ConstructionStateBuilder:
             observation
         ]
 
-        active = (
-            self.registry.active_records()
-        )
+        resolved: dict[
+            str,
+            int,
+        ] = {}
 
-        for record in active:
+        for record in (
+            self.registry.active_records()
+        ):
             construction_id = (
                 record.spec.construction_id
             )
@@ -85,15 +123,27 @@ class ConstructionStateBuilder:
                 observation
             )
 
-            # Initial M20 grammar only needs <=8 lags.
             if len(buffer) > 9:
                 del buffer[:-9]
 
-            state.append(
-                evaluate(
-                    record.spec.expression,
-                    buffer,
-                )
+            value = evaluate(
+                record.spec.expression,
+                buffer,
+                resolved,
             )
 
-        return tuple(state)
+            resolved[
+                construction_id
+            ] = value
+
+            state.append(
+                value
+            )
+
+        self._current_values = (
+            resolved
+        )
+
+        return tuple(
+            state
+        )

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 
+from .grammar import dependencies
 from .receipts import ReceiptChain
 from .types import (
     AuthorityAction,
@@ -42,6 +43,10 @@ class ConstructionRegistry:
         self,
         spec: ConstructionSpec,
     ) -> ConstructionRecord:
+        self.validate_dependencies(
+            spec
+        )
+
         construction_id = (
             spec.construction_id
         )
@@ -105,6 +110,49 @@ class ConstructionRegistry:
             row.spec.construction_id
             for row in self.active_records()
         )
+
+    def active_dependents(
+        self,
+        construction_id: str,
+    ) -> tuple[str, ...]:
+        rows = []
+
+        for record in self.active_records():
+            if (
+                construction_id
+                in dependencies(
+                    record.spec.expression
+                )
+            ):
+                rows.append(
+                    record.spec.construction_id
+                )
+
+        return tuple(
+            sorted(rows)
+        )
+
+    def validate_dependencies(
+        self,
+        spec: ConstructionSpec,
+    ) -> None:
+        active = set(
+            self.active_ids()
+        )
+
+        missing = sorted(
+            dependencies(
+                spec.expression
+            )
+            - active
+        )
+
+        if missing:
+            raise ValueError(
+                "construction references "
+                "non-authorized dependencies: "
+                + ", ".join(missing)
+            )
 
     def registry_hash(self) -> str:
         payload = [
@@ -186,6 +234,21 @@ class ConstructionRegistry:
             ):
                 raise ValueError(
                     "only authorized construction may be retired"
+                )
+
+            dependents = (
+                self.active_dependents(
+                    authorization.construction_id
+                )
+            )
+
+            if dependents:
+                raise ValueError(
+                    "cannot retire construction "
+                    "with active dependents: "
+                    + ", ".join(
+                        dependents
+                    )
                 )
 
             record.status = (

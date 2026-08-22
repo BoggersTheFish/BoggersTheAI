@@ -188,6 +188,7 @@ class EvidenceEpoch:
         self,
         canonical_state: tuple[int, ...],
         verifier_history: tuple[int, ...],
+        resolved: dict[str, int] | None = None,
     ) -> FrozenPredictions:
         canonical_prediction = (
             self.canonical_predictor.predict(
@@ -204,6 +205,7 @@ class EvidenceEpoch:
             bit = evaluate(
                 tracker.spec.expression,
                 verifier_history,
+                resolved,
             )
 
             candidate_state = (

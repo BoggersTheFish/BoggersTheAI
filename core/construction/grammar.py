@@ -24,17 +24,33 @@ def lag(k: int) -> FeatureExpr:
     )
 
 
+def ref(
+    construction_id: str,
+) -> FeatureExpr:
+    return FeatureExpr(
+        op=FeatureOp.REF,
+        ref_id=construction_id,
+    )
+
+
 def binary(
     op: FeatureOp,
     left: FeatureExpr,
     right: FeatureExpr,
 ) -> FeatureExpr:
     if op not in COMMUTATIVE:
-        raise ValueError("unsupported binary operator")
+        raise ValueError(
+            "unsupported binary operator"
+        )
 
-    # Deterministic commutative normalization.
-    if left.expression_hash > right.expression_hash:
-        left, right = right, left
+    if (
+        left.expression_hash
+        > right.expression_hash
+    ):
+        left, right = (
+            right,
+            left,
+        )
 
     return FeatureExpr(
         op=op,
@@ -44,32 +60,114 @@ def binary(
 
 
 def history_value(
-    history: list[int] | tuple[int, ...],
+    history: (
+        list[int]
+        | tuple[int, ...]
+    ),
     k: int,
 ) -> int:
-    index = len(history) - 1 - k
+    index = (
+        len(history)
+        - 1
+        - k
+    )
 
     if index < 0:
         return 0
 
-    value = history[index]
+    value = history[
+        index
+    ]
 
-    if value not in (0, 1):
-        raise ValueError("history must be binary")
+    if value not in (
+        0,
+        1,
+    ):
+        raise ValueError(
+            "history must be binary"
+        )
 
     return value
 
 
+def dependencies(
+    expr: FeatureExpr,
+) -> frozenset[str]:
+    if expr.op == FeatureOp.LAG:
+        return frozenset()
+
+    if expr.op == FeatureOp.REF:
+        assert expr.ref_id is not None
+
+        return frozenset(
+            (
+                expr.ref_id,
+            )
+        )
+
+    assert expr.left is not None
+    assert expr.right is not None
+
+    return (
+        dependencies(
+            expr.left
+        )
+        |
+        dependencies(
+            expr.right
+        )
+    )
+
+
 def evaluate(
     expr: FeatureExpr,
-    history: list[int] | tuple[int, ...],
+    history: (
+        list[int]
+        | tuple[int, ...]
+    ),
+    resolved: (
+        dict[str, int]
+        | None
+    ) = None,
 ) -> int:
+    if resolved is None:
+        resolved = {}
+
     if expr.op == FeatureOp.LAG:
         assert expr.lag is not None
+
         return history_value(
             history,
             expr.lag,
         )
+
+    if expr.op == FeatureOp.REF:
+        assert expr.ref_id is not None
+
+        if (
+            expr.ref_id
+            not in resolved
+        ):
+            raise KeyError(
+                "construction reference "
+                "is not currently resolved: "
+                + expr.ref_id
+            )
+
+        value = resolved[
+            expr.ref_id
+        ]
+
+        if value not in (
+            0,
+            1,
+        ):
+            raise ValueError(
+                "resolved construction "
+                "value must be binary"
+            )
+
+        return value
 
     assert expr.left is not None
     assert expr.right is not None
@@ -77,18 +175,22 @@ def evaluate(
     a = evaluate(
         expr.left,
         history,
+        resolved,
     )
 
     b = evaluate(
         expr.right,
         history,
+        resolved,
     )
 
     if expr.op == FeatureOp.XOR:
         return a ^ b
 
     if expr.op == FeatureOp.EQ:
-        return int(a == b)
+        return int(
+            a == b
+        )
 
     if expr.op == FeatureOp.AND:
         return a & b
@@ -97,25 +199,36 @@ def evaluate(
         return a | b
 
     raise ValueError(
-        f"unsupported expression op: {expr.op}"
+        "unsupported expression op"
     )
 
 
-def required_history(expr: FeatureExpr) -> int:
+def required_history(
+    expr: FeatureExpr,
+) -> int:
     if expr.op == FeatureOp.LAG:
         assert expr.lag is not None
         return expr.lag
+
+    if expr.op == FeatureOp.REF:
+        return 0
 
     assert expr.left is not None
     assert expr.right is not None
 
     return max(
-        required_history(expr.left),
-        required_history(expr.right),
+        required_history(
+            expr.left
+        ),
+        required_history(
+            expr.right
+        ),
     )
 
 
-def description_length(expr: FeatureExpr) -> int:
+def description_length(
+    expr: FeatureExpr,
+) -> int:
     if expr.op == FeatureOp.LAG:
         assert expr.lag is not None
 
@@ -127,13 +240,23 @@ def description_length(expr: FeatureExpr) -> int:
             )
         )
 
+    if expr.op == FeatureOp.REF:
+        # Reusing a verified construction
+        # should be cheaper than restating
+        # its internal expression.
+        return 3
+
     assert expr.left is not None
     assert expr.right is not None
 
     return (
         1
-        + description_length(expr.left)
-        + description_length(expr.right)
+        + description_length(
+            expr.left
+        )
+        + description_length(
+            expr.right
+        )
     )
 
 
@@ -141,28 +264,43 @@ def generate_bounded_candidates(
     *,
     max_lag: int = 8,
     max_candidates: int = 128,
-) -> tuple[ConstructionSpec, ...]:
+) -> tuple[
+    ConstructionSpec,
+    ...,
+]:
     if max_lag < 1:
-        raise ValueError("max_lag must be positive")
+        raise ValueError(
+            "max_lag must be positive"
+        )
 
     if max_candidates < 1:
-        raise ValueError("max_candidates must be positive")
+        raise ValueError(
+            "max_candidates must be positive"
+        )
 
     primitives = [
         lag(k)
-        for k in range(1, max_lag + 1)
+        for k in range(
+            1,
+            max_lag + 1,
+        )
     ]
 
-    expressions: dict[str, FeatureExpr] = {}
+    expressions: dict[
+        str,
+        FeatureExpr,
+    ] = {}
 
     for expr in primitives:
         expressions[
             expr.expression_hash
         ] = expr
 
-    for i, left in enumerate(primitives):
+    for index, left in enumerate(
+        primitives
+    ):
         for right in primitives[
-            i + 1:
+            index + 1:
         ]:
             for op in (
                 FeatureOp.XOR,
@@ -183,8 +321,12 @@ def generate_bounded_candidates(
     ordered = sorted(
         expressions.values(),
         key=lambda expr: (
-            description_length(expr),
-            required_history(expr),
+            description_length(
+                expr
+            ),
+            required_history(
+                expr
+            ),
             expr.expression_hash,
         ),
     )
