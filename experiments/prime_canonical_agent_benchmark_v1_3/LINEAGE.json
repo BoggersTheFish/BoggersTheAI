@@ -1,0 +1,17 @@
+{
+  "benchmark": "prime-canonical-agent-benchmark-v1.3",
+  "parent_benchmark": "prime-canonical-agent-benchmark-v1.2",
+  "parent_final_commit": "6f17789",
+  "parent_evaluation_result_sha256": "6ce64dc7aa0bcc44ce1453788162a007ea79429d0283e69d6ba4e8c9e91028f0",
+  "parent_core_implementation_sha256": "bed64cbe558c928d3793c915e34260638c9c0ed3f7061c350695e769b5c3efc9",
+  "parent_primary_claim": "NOT SUPPORTED",
+  "parent_verifier_specific_claim": "SUPPORTED",
+  "parent_exact_final_depth_recovery": "128/128",
+  "parent_mean_authorization_latency_scored_events": 25,
+  "parent_d4_mean_authorization_latency_scored_events": 64,
+  "parent_d4_max_authorization_latency_scored_events": 100,
+  "identified_bottleneck": "deep-representation evidence complexity",
+  "v1_3_development_seeds": "300..331",
+  "v1_3_evaluation_seeds": "3000..3127",
+  "prior_held_out_seeds_reused": false
+}
