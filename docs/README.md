@@ -19,6 +19,7 @@ See root README.md, COGNITIVE_PHYSICS_ROADMAP.md (progress), ARCHITECTURE.md, CH
 - [ARCHITECTURE](../ARCHITECTURE.md)
 - [CHANGELOG](../CHANGELOG.md)
 - [MANIFESTO.md](MANIFESTO.md) (ideology)
+- [constraint-fields.md](constraint-fields.md) — deterministic TS-AI constraint-field reasoning substrate
 - [truth-graph.md](truth-graph.md)
 - [directory-structure.md](directory-structure.md)
 - [configuration.md](configuration.md)

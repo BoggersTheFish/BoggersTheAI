@@ -109,6 +109,12 @@ kernel is the authority boundary: language may propose, confidence may suggest,
 and BOGVM may execute, but only verifier-backed committed receipts authorize
 canonical TS state.
 
+The PRIME v19 development adapter adds a second, explicit final-admission mode
+immediately before graph commit. `legacy_local` remains visible in receipts for
+migration compatibility; the production target is fail-closed
+`prime_required`. See [the PRIME v19 authority seam](docs/prime-v19-authority.md)
+for the exact binding, denial behavior, and current recovery boundary.
+
 ```
 Input
   ↓

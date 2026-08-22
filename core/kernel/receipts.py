@@ -34,6 +34,8 @@ class TSReceipt:
     post_state_hash: str
     parent_receipt_hash: str | None
     receipt_hash: str
+    authority_mode: str = "legacy_local"
+    prime_authority_receipt: dict[str, Any] = field(default_factory=dict)
     renderer_metadata: dict[str, Any] = field(default_factory=dict)
     reasoning_artifacts: list[dict[str, Any]] = field(default_factory=list)
     execution_artifacts: list[dict[str, Any]] = field(default_factory=list)
@@ -81,6 +83,8 @@ def build_receipt(
     proof_artifacts: list[dict[str, Any]],
     rendered_explanation: str,
     committed_graph_delta: dict[str, Any],
+    authority_mode: str = "legacy_local",
+    prime_authority_receipt: dict[str, Any] | None = None,
 ) -> TSReceipt:
     input_hash = stable_hash({"raw_input": raw_input})
     transaction_id = (
@@ -115,6 +119,8 @@ def build_receipt(
         post_state_hash=post_state_hash,
         parent_receipt_hash=parent_receipt_hash,
         receipt_hash="",
+        authority_mode=authority_mode,
+        prime_authority_receipt=prime_authority_receipt or {},
         renderer_metadata=renderer_metadata,
         reasoning_artifacts=reasoning_artifacts,
         execution_artifacts=execution_artifacts,
