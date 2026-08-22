@@ -1,0 +1,61 @@
+{
+  "benchmark": "prime-canonical-agent-benchmark-v1.2",
+  "development_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131
+  ],
+  "evaluation_seeds_run": false,
+  "rows": [
+    {
+      "condition": "FIXED-H1",
+      "mean_primary_aulc_ppm": 722293,
+      "representation_depth": 1,
+      "world_count": 32
+    },
+    {
+      "condition": "FIXED-H2",
+      "mean_primary_aulc_ppm": 830512,
+      "representation_depth": 2,
+      "world_count": 32
+    },
+    {
+      "condition": "FIXED-H4",
+      "mean_primary_aulc_ppm": 917666,
+      "representation_depth": 4,
+      "world_count": 32
+    }
+  ],
+  "selected_fixed_baseline": "FIXED-H4",
+  "selection_rule": "highest mean primary_aulc_ppm; ties select smaller representation",
+  "status": "DEVELOPMENT_FIXED_COMPARATOR_SELECTION"
+}
