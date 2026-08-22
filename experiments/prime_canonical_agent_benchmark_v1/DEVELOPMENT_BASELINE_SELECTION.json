@@ -1,0 +1,54 @@
+{
+  "contract_sha256": "91681a38971cf85eb3315a5b56ab9fd7064c65f1a4c2575ab390eba8be372a48",
+  "development_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "implementation_sha256": "4c93d3cda0a9d3dcab8e47ad890b93a3abfafcd480285da37913cb582b3232df",
+  "rows": [
+    {
+      "condition": "FIXED-H1",
+      "mean_primary_aulc_ppm": 723264
+    },
+    {
+      "condition": "FIXED-H2",
+      "mean_primary_aulc_ppm": 831342
+    },
+    {
+      "condition": "FIXED-H4",
+      "mean_primary_aulc_ppm": 918812
+    }
+  ],
+  "selected_fixed_baseline": "FIXED-H4",
+  "selection_rule": "highest mean primary_aulc_ppm; ties select smaller depth"
+}
