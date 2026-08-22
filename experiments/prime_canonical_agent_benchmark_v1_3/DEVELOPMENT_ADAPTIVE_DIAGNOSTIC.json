@@ -1,0 +1,2721 @@
+{
+  "benchmark": "prime-canonical-agent-benchmark-v1.3",
+  "by_hidden_depth": [
+    {
+      "accepted_repairs": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "final_depth_counts": {
+        "0": 8
+      },
+      "hidden_depth": 0,
+      "max_authorization_latency": null,
+      "mean_authorization_latency": null,
+      "mean_final_window_reward_ppm": 953124,
+      "mean_primary_aulc_ppm": 945810,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "final_depth_counts": {
+        "0": 8
+      },
+      "hidden_depth": 0,
+      "max_authorization_latency": null,
+      "mean_authorization_latency": null,
+      "mean_final_window_reward_ppm": 953124,
+      "mean_primary_aulc_ppm": 945810,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "final_depth_counts": {
+        "0": 8
+      },
+      "hidden_depth": 0,
+      "max_authorization_latency": null,
+      "mean_authorization_latency": null,
+      "mean_final_window_reward_ppm": 953124,
+      "mean_primary_aulc_ppm": 945810,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "FULL-PRIME-V1.3",
+      "final_depth_counts": {
+        "0": 8
+      },
+      "hidden_depth": 0,
+      "max_authorization_latency": null,
+      "mean_authorization_latency": null,
+      "mean_final_window_reward_ppm": 953124,
+      "mean_primary_aulc_ppm": 945810,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "final_depth_counts": {
+        "1": 8
+      },
+      "hidden_depth": 1,
+      "max_authorization_latency": 0,
+      "mean_authorization_latency": 0,
+      "mean_final_window_reward_ppm": 946532,
+      "mean_primary_aulc_ppm": 927505,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "final_depth_counts": {
+        "1": 8
+      },
+      "hidden_depth": 1,
+      "max_authorization_latency": 9,
+      "mean_authorization_latency": 2,
+      "mean_final_window_reward_ppm": 946532,
+      "mean_primary_aulc_ppm": 926346,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "final_depth_counts": {
+        "1": 8
+      },
+      "hidden_depth": 1,
+      "max_authorization_latency": 17,
+      "mean_authorization_latency": 4,
+      "mean_final_window_reward_ppm": 946532,
+      "mean_primary_aulc_ppm": 924609,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {
+        "1": 8
+      },
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.3",
+      "final_depth_counts": {
+        "1": 8
+      },
+      "hidden_depth": 1,
+      "max_authorization_latency": 17,
+      "mean_authorization_latency": 4,
+      "mean_final_window_reward_ppm": 946532,
+      "mean_primary_aulc_ppm": 924609,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {
+        "1": 8
+      },
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 16,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "final_depth_counts": {
+        "2": 8
+      },
+      "hidden_depth": 2,
+      "max_authorization_latency": 0,
+      "mean_authorization_latency": 0,
+      "mean_final_window_reward_ppm": 949462,
+      "mean_primary_aulc_ppm": 901875,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "final_depth_counts": {
+        "2": 8
+      },
+      "hidden_depth": 2,
+      "max_authorization_latency": 25,
+      "mean_authorization_latency": 6,
+      "mean_final_window_reward_ppm": 949462,
+      "mean_primary_aulc_ppm": 921505,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "final_depth_counts": {
+        "2": 8
+      },
+      "hidden_depth": 2,
+      "max_authorization_latency": 17,
+      "mean_authorization_latency": 3,
+      "mean_final_window_reward_ppm": 949462,
+      "mean_primary_aulc_ppm": 922557,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {
+        "2": 8
+      },
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.3",
+      "final_depth_counts": {
+        "2": 8
+      },
+      "hidden_depth": 2,
+      "max_authorization_latency": 17,
+      "mean_authorization_latency": 3,
+      "mean_final_window_reward_ppm": 949462,
+      "mean_primary_aulc_ppm": 922557,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {
+        "2": 8
+      },
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 24,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "final_depth_counts": {
+        "4": 8
+      },
+      "hidden_depth": 4,
+      "max_authorization_latency": 0,
+      "mean_authorization_latency": 0,
+      "mean_final_window_reward_ppm": 945312,
+      "mean_primary_aulc_ppm": 850285,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "final_depth_counts": {
+        "4": 8
+      },
+      "hidden_depth": 4,
+      "max_authorization_latency": 72,
+      "mean_authorization_latency": 57,
+      "mean_final_window_reward_ppm": 945312,
+      "mean_primary_aulc_ppm": 880262,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {},
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "final_depth_counts": {
+        "4": 8
+      },
+      "hidden_depth": 4,
+      "max_authorization_latency": 49,
+      "mean_authorization_latency": 32,
+      "mean_final_window_reward_ppm": 945312,
+      "mean_primary_aulc_ppm": 889407,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {
+        "4": 8
+      },
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.3",
+      "final_depth_counts": {
+        "4": 8
+      },
+      "hidden_depth": 4,
+      "max_authorization_latency": 13,
+      "mean_authorization_latency": 5,
+      "mean_final_window_reward_ppm": 945312,
+      "mean_primary_aulc_ppm": 901571,
+      "rejected_repairs": 0,
+      "selected_witness_counts": {
+        "4": 8
+      },
+      "world_count": 8
+    }
+  ],
+  "condition_summaries": {
+    "ADAPTIVE-NO-VERIFIER": {
+      "all_receipts_valid": true,
+      "max_authorization_latency": 0,
+      "mean_authorization_latency": 0,
+      "mean_cumulative_regret": 251,
+      "mean_final_window_reward_ppm": 948607,
+      "mean_primary_aulc_ppm": 906369,
+      "total_accepted_repairs": 48,
+      "total_proposed_repairs": 48,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    },
+    "FACTOR-WITNESS-CARRIER-COST": {
+      "all_receipts_valid": true,
+      "max_authorization_latency": 49,
+      "mean_authorization_latency": 13,
+      "mean_cumulative_regret": 233,
+      "mean_final_window_reward_ppm": 948607,
+      "mean_primary_aulc_ppm": 920596,
+      "total_accepted_repairs": 24,
+      "total_proposed_repairs": 24,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    },
+    "FULL-PRIME-V1.2-REFERENCE": {
+      "all_receipts_valid": true,
+      "max_authorization_latency": 72,
+      "mean_authorization_latency": 22,
+      "mean_cumulative_regret": 236,
+      "mean_final_window_reward_ppm": 948607,
+      "mean_primary_aulc_ppm": 918481,
+      "total_accepted_repairs": 24,
+      "total_proposed_repairs": 24,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    },
+    "FULL-PRIME-V1.3": {
+      "all_receipts_valid": true,
+      "max_authorization_latency": 17,
+      "mean_authorization_latency": 4,
+      "mean_cumulative_regret": 230,
+      "mean_final_window_reward_ppm": 948607,
+      "mean_primary_aulc_ppm": 923637,
+      "total_accepted_repairs": 24,
+      "total_proposed_repairs": 24,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    }
+  },
+  "development_seeds": [
+    300,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331
+  ],
+  "evaluation_seeds_run": false,
+  "fixed_h4_mean_primary_aulc_ppm": 917849,
+  "frozen_identities": {
+    "parent_v1_2_result_sha256": "6ce64dc7aa0bcc44ce1453788162a007ea79429d0283e69d6ba4e8c9e91028f0",
+    "v1_3_adaptive_rules_sha256": "bdd1d0484047715767fe227c46e95f1f66dcf1d44f9bc83bea3d5214bde79b2a",
+    "v1_3_contract_sha256": "c57358a6f4a7167c9d387df13a3a68e497a60fb60b8b384f7722c729627704d8",
+    "v1_3_fixed_comparator_sha256": "e31bf08632c4abeb9094e22f39667b2743bcc6afd6815bd80252ef810cf294e9",
+    "v1_3_lineage_sha256": "237b4cfbefa28fc627ace1d78d9bec1c784485c4f1a8684cbb307581d549b743"
+  },
+  "full_v13_exact_depth_recovery": 32,
+  "full_v13_exact_depth_total": 32,
+  "implementation_sha256": "3f8082ad340af46f786a773922ec4a5a49d42fda01f77fe658b911d44afe957e",
+  "paired_development_deltas": {
+    "factor_carrier_minus_v12_reference_ppm": 2114,
+    "v13_minus_factor_carrier_ppm": 3040,
+    "v13_minus_v12_reference_ppm": 5155
+  },
+  "rows": [
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 946286,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 300
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 946286,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 300
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 946286,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 300
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 946286,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 300
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 930116,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 301
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 928957,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 301
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        2
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 928957,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 301
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        2
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 928957,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 301
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 235,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 960937,
+      "primary_aulc_ppm": 911411,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 302
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        25
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 222,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 960937,
+      "primary_aulc_ppm": 923294,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 302
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        17
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 960937,
+      "primary_aulc_ppm": 925122,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 302
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        17
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 960937,
+      "primary_aulc_ppm": 925122,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 302
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 331,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 845897,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 303
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        58
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 298,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 872724,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 303
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        28
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 288,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 880623,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 303
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 276,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 890513,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 303
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 941194,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 304
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 941194,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 304
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 941194,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 304
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 941194,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 304
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 920721,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 305
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 920721,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 305
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 920721,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 305
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 920721,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 305
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 250,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 894613,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 306
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        2
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 915698,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 306
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 229,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 914540,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 306
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 229,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 914540,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 306
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 308,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 850186,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 307
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        54
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 265,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 882674,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 307
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        37
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 252,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 894068,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 307
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        13
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 240,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 904671,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 307
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 194,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 947887,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 308
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 194,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 947887,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 308
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 194,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 947887,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 308
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 194,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 947887,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 308
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 226,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 931018,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 309
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        8
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 229,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 927544,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 309
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        17
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 919436,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 309
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        17
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 939453,
+      "primary_aulc_ppm": 919436,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 309
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 269,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 937500,
+      "primary_aulc_ppm": 895752,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 310
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 242,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 937500,
+      "primary_aulc_ppm": 922750,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 310
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 242,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 937500,
+      "primary_aulc_ppm": 922750,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 310
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 242,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 937500,
+      "primary_aulc_ppm": 922750,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 310
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 332,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 849634,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 311
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        55
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 292,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 878456,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 311
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        29
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 278,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 889604,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 311
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        9
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 264,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 902502,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 311
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 945578,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 312
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 945578,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 312
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 945578,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 312
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 945578,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 312
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 921691,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 313
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 921691,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 313
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 238,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 920533,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 313
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 238,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "primary_aulc_ppm": 920533,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 313
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 240,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 953125,
+      "primary_aulc_ppm": 904239,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 314
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        4
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 953125,
+      "primary_aulc_ppm": 923008,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 314
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 217,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 953125,
+      "primary_aulc_ppm": 926482,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 314
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 217,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 953125,
+      "primary_aulc_ppm": 926482,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 314
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 310,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 859338,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 315
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        54
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 275,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 883150,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 315
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        35
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 268,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 888612,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 315
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        9
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 252,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 903766,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 315
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 223,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 941623,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 316
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 223,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 941623,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 316
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 223,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 941623,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 316
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 223,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 941623,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 316
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 232,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 930875,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 317
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 232,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 930875,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 317
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        2
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 233,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 929717,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 317
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        2
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 233,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 929717,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 317
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 241,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 906071,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 318
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        5
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 221,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 924108,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 318
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 221,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 924108,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 318
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 221,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 955078,
+      "primary_aulc_ppm": 924108,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 318
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 321,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 927734,
+      "primary_aulc_ppm": 845816,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 319
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        72
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 267,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 927734,
+      "primary_aulc_ppm": 886486,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 319
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        49
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 258,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 927734,
+      "primary_aulc_ppm": 893472,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 319
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        12
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 244,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 927734,
+      "primary_aulc_ppm": 904966,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 319
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 949834,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 320
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 949834,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 320
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 949834,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 320
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 949834,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 320
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 930730,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 321
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        5
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 227,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 928413,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 321
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        6
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 927255,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 321
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        6
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 228,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 927255,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 321
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 243,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 905131,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 322
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        4
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 922316,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 322
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 223,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 924267,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 322
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 223,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 941406,
+      "primary_aulc_ppm": 924267,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 322
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 326,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 842758,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 323
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        66
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 280,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 878545,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 323
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        32
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 269,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 886517,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 323
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        2
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 252,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "primary_aulc_ppm": 901811,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 323
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 947121,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 324
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 947121,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 324
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 947121,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 324
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 209,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 947121,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 324
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 215,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 964843,
+      "primary_aulc_ppm": 928517,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 325
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 215,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 964843,
+      "primary_aulc_ppm": 928517,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 325
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 216,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 964843,
+      "primary_aulc_ppm": 927359,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 325
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        1
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 216,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 964843,
+      "primary_aulc_ppm": 927359,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 325
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 257,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 896568,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 326
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 233,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 919116,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 326
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 233,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 919116,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 326
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 233,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 919116,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 326
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 320,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 845122,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 327
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        51
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 277,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 872638,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 327
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        28
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 266,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 882387,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 327
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 251,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "primary_aulc_ppm": 896505,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 327
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 212,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 946963,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 328
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 212,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 946963,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 328
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 212,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 946963,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 328
+    },
+    {
+      "accepted_repairs": 0,
+      "authorization_latencies": [],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 212,
+      "diagnostic_hidden_depth": 0,
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 958984,
+      "primary_aulc_ppm": 946963,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 328
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 233,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 926373,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 329
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        9
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 235,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 924057,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 329
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        10
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 922899,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 329
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        10
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 1,
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 943359,
+      "primary_aulc_ppm": 922899,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        1
+      ],
+      "source_dirty": false,
+      "world_seed": 329
+    },
+    {
+      "accepted_repairs": 2,
+      "authorization_latencies": [
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 259,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 901221,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 330
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        9
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 921755,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 330
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        5
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 234,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 924072,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 330
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        5
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 234,
+      "diagnostic_hidden_depth": 2,
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 949218,
+      "primary_aulc_ppm": 924072,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        2
+      ],
+      "source_dirty": false,
+      "world_seed": 330
+    },
+    {
+      "accepted_repairs": 3,
+      "authorization_latencies": [
+        0,
+        0,
+        0
+      ],
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 275,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 863529,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 331
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        51
+      ],
+      "condition": "FULL-PRIME-V1.2-REFERENCE",
+      "cumulative_regret": 244,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 887429,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [],
+      "source_dirty": false,
+      "world_seed": 331
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        25
+      ],
+      "condition": "FACTOR-WITNESS-CARRIER-COST",
+      "cumulative_regret": 229,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 899980,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 331
+    },
+    {
+      "accepted_repairs": 1,
+      "authorization_latencies": [
+        0
+      ],
+      "condition": "FULL-PRIME-V1.3",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 4,
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 957031,
+      "primary_aulc_ppm": 907840,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "selected_witness_lags": [
+        4
+      ],
+      "source_dirty": false,
+      "world_seed": 331
+    }
+  ],
+  "status": "DEVELOPMENT_ONLY_NOT_EVALUATION"
+}
