@@ -1,0 +1,2564 @@
+{
+  "benchmark": "prime-canonical-agent-benchmark-v1.2",
+  "by_hidden_depth_diagnostic": [
+    {
+      "accepted_repairs": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "diagnostic_hidden_depth": 0,
+      "final_depth_counts": {
+        "0": 8
+      },
+      "max_authorization_latency_scored_events": null,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": null,
+      "mean_final_window_reward_ppm": 947509,
+      "mean_primary_aulc_ppm": 947505,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "diagnostic_hidden_depth": 0,
+      "final_depth_counts": {
+        "0": 8
+      },
+      "max_authorization_latency_scored_events": null,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": null,
+      "mean_final_window_reward_ppm": 947509,
+      "mean_primary_aulc_ppm": 947505,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "diagnostic_hidden_depth": 0,
+      "final_depth_counts": {
+        "0": 8
+      },
+      "max_authorization_latency_scored_events": null,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": null,
+      "mean_final_window_reward_ppm": 947509,
+      "mean_primary_aulc_ppm": 947505,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "diagnostic_hidden_depth": 1,
+      "final_depth_counts": {
+        "1": 8
+      },
+      "max_authorization_latency_scored_events": 0,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": 0,
+      "mean_final_window_reward_ppm": 953368,
+      "mean_primary_aulc_ppm": 929784,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "diagnostic_hidden_depth": 1,
+      "final_depth_counts": {
+        "0": 8
+      },
+      "max_authorization_latency_scored_events": 19,
+      "mean_additional_discordant_after_obstruction": 2,
+      "mean_authorization_latency_scored_events": 6,
+      "mean_final_window_reward_ppm": 491942,
+      "mean_primary_aulc_ppm": 498799,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.2",
+      "diagnostic_hidden_depth": 1,
+      "final_depth_counts": {
+        "1": 8
+      },
+      "max_authorization_latency_scored_events": 19,
+      "mean_additional_discordant_after_obstruction": 2,
+      "mean_authorization_latency_scored_events": 6,
+      "mean_final_window_reward_ppm": 953368,
+      "mean_primary_aulc_ppm": 926309,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 16,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "diagnostic_hidden_depth": 2,
+      "final_depth_counts": {
+        "2": 8
+      },
+      "max_authorization_latency_scored_events": 0,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": 0,
+      "mean_final_window_reward_ppm": 948730,
+      "mean_primary_aulc_ppm": 898051,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "diagnostic_hidden_depth": 2,
+      "final_depth_counts": {
+        "0": 8
+      },
+      "max_authorization_latency_scored_events": 20,
+      "mean_additional_discordant_after_obstruction": 2,
+      "mean_authorization_latency_scored_events": 7,
+      "mean_final_window_reward_ppm": 507323,
+      "mean_primary_aulc_ppm": 495505,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.2",
+      "diagnostic_hidden_depth": 2,
+      "final_depth_counts": {
+        "2": 8
+      },
+      "max_authorization_latency_scored_events": 20,
+      "mean_additional_discordant_after_obstruction": 2,
+      "mean_authorization_latency_scored_events": 7,
+      "mean_final_window_reward_ppm": 948730,
+      "mean_primary_aulc_ppm": 920249,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 24,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "diagnostic_hidden_depth": 4,
+      "final_depth_counts": {
+        "4": 8
+      },
+      "max_authorization_latency_scored_events": 0,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": 0,
+      "mean_final_window_reward_ppm": 949706,
+      "mean_primary_aulc_ppm": 849967,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "diagnostic_hidden_depth": 4,
+      "final_depth_counts": {
+        "0": 8
+      },
+      "max_authorization_latency_scored_events": 78,
+      "mean_additional_discordant_after_obstruction": 28,
+      "mean_authorization_latency_scored_events": 57,
+      "mean_final_window_reward_ppm": 511718,
+      "mean_primary_aulc_ppm": 505484,
+      "rejected_repairs": 0,
+      "world_count": 8
+    },
+    {
+      "accepted_repairs": 8,
+      "condition": "FULL-PRIME-V1.2",
+      "diagnostic_hidden_depth": 4,
+      "final_depth_counts": {
+        "4": 8
+      },
+      "max_authorization_latency_scored_events": 78,
+      "mean_additional_discordant_after_obstruction": 28,
+      "mean_authorization_latency_scored_events": 57,
+      "mean_final_window_reward_ppm": 949706,
+      "mean_primary_aulc_ppm": 880253,
+      "rejected_repairs": 0,
+      "world_count": 8
+    }
+  ],
+  "condition_summaries": [
+    {
+      "all_receipt_chains_valid": true,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "immediate_authorizations": 48,
+      "max_authorization_latency_scored_events": 0,
+      "mean_additional_discordant_after_obstruction": null,
+      "mean_authorization_latency_scored_events": 0,
+      "mean_cumulative_regret": 249,
+      "mean_discordant_at_obstruction": null,
+      "mean_final_window_reward_ppm": 949828,
+      "mean_primary_aulc_ppm": 906327,
+      "total_accepted_repairs": 48,
+      "total_proposed_repairs": 48,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    },
+    {
+      "all_receipt_chains_valid": true,
+      "condition": "VERIFIER-NO-REPAIR",
+      "immediate_authorizations": 4,
+      "max_authorization_latency_scored_events": 78,
+      "mean_additional_discordant_after_obstruction": 11,
+      "mean_authorization_latency_scored_events": 23,
+      "mean_cumulative_regret": 1586,
+      "mean_discordant_at_obstruction": 13,
+      "mean_final_window_reward_ppm": 614623,
+      "mean_primary_aulc_ppm": 611823,
+      "total_accepted_repairs": 0,
+      "total_proposed_repairs": 24,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    },
+    {
+      "all_receipt_chains_valid": true,
+      "condition": "FULL-PRIME-V1.2",
+      "immediate_authorizations": 4,
+      "max_authorization_latency_scored_events": 78,
+      "mean_additional_discordant_after_obstruction": 11,
+      "mean_authorization_latency_scored_events": 23,
+      "mean_cumulative_regret": 234,
+      "mean_discordant_at_obstruction": 13,
+      "mean_final_window_reward_ppm": 949828,
+      "mean_primary_aulc_ppm": 918579,
+      "total_accepted_repairs": 24,
+      "total_proposed_repairs": 24,
+      "total_rejected_repairs": 0,
+      "world_count": 32
+    }
+  ],
+  "development_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131
+  ],
+  "evaluation_seeds_run": false,
+  "fixed_h4_mean_primary_aulc_ppm": 917666,
+  "frozen_identities": {
+    "parent_v1_1_result_sha256": "b58a51857864e61837168dbb5e36ef69d26a600b5775aa2dcc3cb17651962388",
+    "v1_2_adaptive_rules_sha256": "0348e77297037a168499290cb50b8e9d29695e88f5875c4f81b7cc663153b1b5",
+    "v1_2_contract_sha256": "558be9ee12a67f19bc5319cc262e7fbc61cb9ef8efb6a03f09ae376afd8f96b4",
+    "v1_2_fixed_comparator_sha256": "ed37e0dd9321e3ddbd129d987bc9d0ea3ad341326e9b8356dd9b29d941ebcb01",
+    "v1_2_lineage_sha256": "0a285ca80e99c1c7f8aa2cb38371b2398ab016c52012bd37f3a54e177bf28b8e"
+  },
+  "full_prime_exact_depth_recovery": 32,
+  "full_prime_exact_depth_total": 32,
+  "implementation_sha256": "bed64cbe558c928d3793c915e34260638c9c0ed3f7061c350695e769b5c3efc9",
+  "rows": [
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 196,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 921601,
+      "primary_aulc_ppm": 951711,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 100
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 196,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 921601,
+      "primary_aulc_ppm": 951711,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 100
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 196,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 921601,
+      "primary_aulc_ppm": 951711,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 100
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 215,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 920934,
+      "primary_aulc_ppm": 929323,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 101
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        2
+      ],
+      "authorization_latencies_scored_events": [
+        5
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2016,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 517578,
+      "fixed_h4_primary_aulc_ppm": 920934,
+      "primary_aulc_ppm": 507429,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 101
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        2
+      ],
+      "authorization_latencies_scored_events": [
+        5
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 219,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 920934,
+      "primary_aulc_ppm": 924690,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 101
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 252,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 917569,
+      "primary_aulc_ppm": 893861,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 102
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        3
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2074,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 513671,
+      "fixed_h4_primary_aulc_ppm": 917569,
+      "primary_aulc_ppm": 482995,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 102
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        3
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 222,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 917569,
+      "primary_aulc_ppm": 923845,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 102
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 311,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 935546,
+      "fixed_h4_primary_aulc_ppm": 917575,
+      "primary_aulc_ppm": 852845,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 103
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        26
+      ],
+      "authorization_latencies_scored_events": [
+        78
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2040,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        15
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 509765,
+      "fixed_h4_primary_aulc_ppm": 917575,
+      "primary_aulc_ppm": 508711,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 103
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        26
+      ],
+      "authorization_latencies_scored_events": [
+        78
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 280,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        15
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 935546,
+      "fixed_h4_primary_aulc_ppm": 917575,
+      "primary_aulc_ppm": 880651,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 103
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 218,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 915712,
+      "primary_aulc_ppm": 945049,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 104
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 218,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 915712,
+      "primary_aulc_ppm": 945049,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 104
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 218,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 915712,
+      "primary_aulc_ppm": 945049,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 104
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 953125,
+      "fixed_h4_primary_aulc_ppm": 918875,
+      "primary_aulc_ppm": 930576,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 105
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        2
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2111,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 478515,
+      "fixed_h4_primary_aulc_ppm": 918875,
+      "primary_aulc_ppm": 494063,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 105
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        2
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 953125,
+      "fixed_h4_primary_aulc_ppm": 918875,
+      "primary_aulc_ppm": 929417,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 105
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 260,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 945312,
+      "fixed_h4_primary_aulc_ppm": 919816,
+      "primary_aulc_ppm": 890927,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 106
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2061,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        19
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 476562,
+      "fixed_h4_primary_aulc_ppm": 919816,
+      "primary_aulc_ppm": 499546,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 106
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 229,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        19
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 945312,
+      "fixed_h4_primary_aulc_ppm": 919816,
+      "primary_aulc_ppm": 921337,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 106
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 307,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 957031,
+      "fixed_h4_primary_aulc_ppm": 918515,
+      "primary_aulc_ppm": 849687,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 107
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        33
+      ],
+      "authorization_latencies_scored_events": [
+        51
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2062,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        24
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 484375,
+      "fixed_h4_primary_aulc_ppm": 918515,
+      "primary_aulc_ppm": 501192,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 107
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        33
+      ],
+      "authorization_latencies_scored_events": [
+        51
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 266,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        24
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 957031,
+      "fixed_h4_primary_aulc_ppm": 918515,
+      "primary_aulc_ppm": 879822,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 107
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 213,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 939453,
+      "fixed_h4_primary_aulc_ppm": 921983,
+      "primary_aulc_ppm": 952459,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 108
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 213,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 939453,
+      "fixed_h4_primary_aulc_ppm": 921983,
+      "primary_aulc_ppm": 952459,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 108
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 213,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 939453,
+      "fixed_h4_primary_aulc_ppm": 921983,
+      "primary_aulc_ppm": 952459,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 108
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 218,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 916801,
+      "primary_aulc_ppm": 930330,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 109
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2034,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        20
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 496093,
+      "fixed_h4_primary_aulc_ppm": 916801,
+      "primary_aulc_ppm": 506478,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 109
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 218,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        20
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 916801,
+      "primary_aulc_ppm": 930330,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 109
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 236,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 918309,
+      "primary_aulc_ppm": 907460,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 110
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2041,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        15
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 507812,
+      "fixed_h4_primary_aulc_ppm": 918309,
+      "primary_aulc_ppm": 489492,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 110
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 219,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        15
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 918309,
+      "primary_aulc_ppm": 924463,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 110
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 331,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 958984,
+      "fixed_h4_primary_aulc_ppm": 913179,
+      "primary_aulc_ppm": 844515,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 111
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        31
+      ],
+      "authorization_latencies_scored_events": [
+        47
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2100,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 496093,
+      "fixed_h4_primary_aulc_ppm": 913179,
+      "primary_aulc_ppm": 491886,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 111
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        31
+      ],
+      "authorization_latencies_scored_events": [
+        47
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 286,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 958984,
+      "fixed_h4_primary_aulc_ppm": 913179,
+      "primary_aulc_ppm": 878587,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 111
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 204,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 941406,
+      "fixed_h4_primary_aulc_ppm": 916665,
+      "primary_aulc_ppm": 948299,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 112
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 204,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 941406,
+      "fixed_h4_primary_aulc_ppm": 916665,
+      "primary_aulc_ppm": 948299,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 112
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 204,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 941406,
+      "fixed_h4_primary_aulc_ppm": 916665,
+      "primary_aulc_ppm": 948299,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 112
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 215,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 964843,
+      "fixed_h4_primary_aulc_ppm": 921595,
+      "primary_aulc_ppm": 925411,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 113
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        2
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2067,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 511718,
+      "fixed_h4_primary_aulc_ppm": 921595,
+      "primary_aulc_ppm": 480530,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 113
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        2
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 216,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 964843,
+      "fixed_h4_primary_aulc_ppm": 921595,
+      "primary_aulc_ppm": 924252,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 113
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 243,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 953125,
+      "fixed_h4_primary_aulc_ppm": 917056,
+      "primary_aulc_ppm": 904885,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 114
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        7
+      ],
+      "authorization_latencies_scored_events": [
+        17
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2065,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        8
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 525390,
+      "fixed_h4_primary_aulc_ppm": 917056,
+      "primary_aulc_ppm": 493053,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 114
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        7
+      ],
+      "authorization_latencies_scored_events": [
+        17
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 227,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        8
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 953125,
+      "fixed_h4_primary_aulc_ppm": 917056,
+      "primary_aulc_ppm": 920486,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 114
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 335,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "fixed_h4_primary_aulc_ppm": 914872,
+      "primary_aulc_ppm": 844862,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 115
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        27
+      ],
+      "authorization_latencies_scored_events": [
+        48
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2012,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        18
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 513671,
+      "fixed_h4_primary_aulc_ppm": 914872,
+      "primary_aulc_ppm": 518021,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 115
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        27
+      ],
+      "authorization_latencies_scored_events": [
+        48
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 283,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        18
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 945312,
+      "fixed_h4_primary_aulc_ppm": 914872,
+      "primary_aulc_ppm": 880751,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 115
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 917140,
+      "primary_aulc_ppm": 945544,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 116
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 917140,
+      "primary_aulc_ppm": 945544,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 116
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 200,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 917140,
+      "primary_aulc_ppm": 945544,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 116
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 215,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 960937,
+      "fixed_h4_primary_aulc_ppm": 917110,
+      "primary_aulc_ppm": 934479,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 117
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        8
+      ],
+      "authorization_latencies_scored_events": [
+        19
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2047,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        7
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 480468,
+      "fixed_h4_primary_aulc_ppm": 917110,
+      "primary_aulc_ppm": 494765,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 117
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        8
+      ],
+      "authorization_latencies_scored_events": [
+        19
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 224,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        7
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 960937,
+      "fixed_h4_primary_aulc_ppm": 917110,
+      "primary_aulc_ppm": 924056,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 117
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 272,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 914813,
+      "primary_aulc_ppm": 885739,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 118
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2059,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        16
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 496093,
+      "fixed_h4_primary_aulc_ppm": 914813,
+      "primary_aulc_ppm": 486445,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 118
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        0
+      ],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 246,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        16
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 943359,
+      "fixed_h4_primary_aulc_ppm": 914813,
+      "primary_aulc_ppm": 911335,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 118
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 297,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 919279,
+      "primary_aulc_ppm": 863481,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 119
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        31
+      ],
+      "authorization_latencies_scored_events": [
+        64
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2013,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        2
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 523437,
+      "fixed_h4_primary_aulc_ppm": 919279,
+      "primary_aulc_ppm": 509634,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 119
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        31
+      ],
+      "authorization_latencies_scored_events": [
+        64
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 267,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        2
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 919279,
+      "primary_aulc_ppm": 886194,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 119
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 190,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 920079,
+      "primary_aulc_ppm": 948401,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 120
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 190,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 920079,
+      "primary_aulc_ppm": 948401,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 120
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 190,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 920079,
+      "primary_aulc_ppm": 948401,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 120
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 219,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 953125,
+      "fixed_h4_primary_aulc_ppm": 916318,
+      "primary_aulc_ppm": 930376,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 121
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        4
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2043,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 496093,
+      "fixed_h4_primary_aulc_ppm": 916318,
+      "primary_aulc_ppm": 500087,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 121
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        1
+      ],
+      "authorization_latencies_scored_events": [
+        4
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 220,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        14
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 953125,
+      "fixed_h4_primary_aulc_ppm": 916318,
+      "primary_aulc_ppm": 929218,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 121
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 263,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 949218,
+      "fixed_h4_primary_aulc_ppm": 914918,
+      "primary_aulc_ppm": 899743,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 122
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        2
+      ],
+      "authorization_latencies_scored_events": [
+        6
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2089,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 500000,
+      "fixed_h4_primary_aulc_ppm": 914918,
+      "primary_aulc_ppm": 487125,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 122
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        2
+      ],
+      "authorization_latencies_scored_events": [
+        6
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 240,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 949218,
+      "fixed_h4_primary_aulc_ppm": 914918,
+      "primary_aulc_ppm": 921986,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 122
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 311,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 919847,
+      "primary_aulc_ppm": 853070,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 123
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        22
+      ],
+      "authorization_latencies_scored_events": [
+        61
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2022,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 517578,
+      "fixed_h4_primary_aulc_ppm": 919847,
+      "primary_aulc_ppm": 508632,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 123
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        22
+      ],
+      "authorization_latencies_scored_events": [
+        61
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 270,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 919847,
+      "primary_aulc_ppm": 883104,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 123
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 216,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 911081,
+      "primary_aulc_ppm": 941394,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 124
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 216,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 911081,
+      "primary_aulc_ppm": 941394,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 124
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 216,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 911081,
+      "primary_aulc_ppm": 941394,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 124
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 226,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 941406,
+      "fixed_h4_primary_aulc_ppm": 917639,
+      "primary_aulc_ppm": 934887,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 125
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        7
+      ],
+      "authorization_latencies_scored_events": [
+        15
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2111,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        8
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 466796,
+      "fixed_h4_primary_aulc_ppm": 917639,
+      "primary_aulc_ppm": 504893,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 125
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        7
+      ],
+      "authorization_latencies_scored_events": [
+        15
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 232,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        8
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 941406,
+      "fixed_h4_primary_aulc_ppm": 917639,
+      "primary_aulc_ppm": 927938,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 125
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 250,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 957031,
+      "fixed_h4_primary_aulc_ppm": 916824,
+      "primary_aulc_ppm": 892567,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 126
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        4
+      ],
+      "authorization_latencies_scored_events": [
+        10
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 1999,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        11
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 546875,
+      "fixed_h4_primary_aulc_ppm": 916824,
+      "primary_aulc_ppm": 507930,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 126
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        4
+      ],
+      "authorization_latencies_scored_events": [
+        10
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        11
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 957031,
+      "fixed_h4_primary_aulc_ppm": 916824,
+      "primary_aulc_ppm": 916151,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 126
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 317,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 962890,
+      "fixed_h4_primary_aulc_ppm": 918278,
+      "primary_aulc_ppm": 847314,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 127
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        24
+      ],
+      "authorization_latencies_scored_events": [
+        48
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2001,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        9
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 544921,
+      "fixed_h4_primary_aulc_ppm": 918278,
+      "primary_aulc_ppm": 497064,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 127
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        24
+      ],
+      "authorization_latencies_scored_events": [
+        48
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 268,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        9
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 962890,
+      "fixed_h4_primary_aulc_ppm": 918278,
+      "primary_aulc_ppm": 881103,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 127
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 206,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 918965,
+      "primary_aulc_ppm": 947187,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 128
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 206,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 918965,
+      "primary_aulc_ppm": 947187,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 128
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [],
+      "canonical_receipt_count": 0,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 206,
+      "diagnostic_hidden_depth": 0,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 955078,
+      "fixed_h4_primary_aulc_ppm": 918965,
+      "primary_aulc_ppm": 947187,
+      "proposed_repairs": 0,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 128
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 235,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 914856,
+      "primary_aulc_ppm": 922891,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 129
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        2
+      ],
+      "authorization_latencies_scored_events": [
+        4
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2043,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 488281,
+      "fixed_h4_primary_aulc_ppm": 914856,
+      "primary_aulc_ppm": 502148,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 129
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        2
+      ],
+      "authorization_latencies_scored_events": [
+        4
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 237,
+      "diagnostic_hidden_depth": 1,
+      "discordant_at_obstruction": [
+        13
+      ],
+      "final_representation_depth": 1,
+      "final_window_reward_ppm": 951171,
+      "fixed_h4_primary_aulc_ppm": 914856,
+      "primary_aulc_ppm": 920575,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 129
+    },
+    {
+      "accepted_repairs": 2,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0
+      ],
+      "canonical_receipt_count": 2,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 239,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 921661,
+      "primary_aulc_ppm": 909228,
+      "proposed_repairs": 2,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 130
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        8
+      ],
+      "authorization_latencies_scored_events": [
+        20
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 1993,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        10
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 492187,
+      "fixed_h4_primary_aulc_ppm": 921661,
+      "primary_aulc_ppm": 517461,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 130
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        8
+      ],
+      "authorization_latencies_scored_events": [
+        20
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 225,
+      "diagnostic_hidden_depth": 2,
+      "discordant_at_obstruction": [
+        10
+      ],
+      "final_representation_depth": 2,
+      "final_window_reward_ppm": 947265,
+      "fixed_h4_primary_aulc_ppm": 921661,
+      "primary_aulc_ppm": 922390,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 130
+    },
+    {
+      "accepted_repairs": 3,
+      "additional_discordant_after_obstruction": [],
+      "authorization_latencies_scored_events": [
+        0,
+        0,
+        0
+      ],
+      "canonical_receipt_count": 3,
+      "condition": "ADAPTIVE-NO-VERIFIER",
+      "cumulative_regret": 337,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 935546,
+      "fixed_h4_primary_aulc_ppm": 915447,
+      "primary_aulc_ppm": 843963,
+      "proposed_repairs": 3,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 0,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 131
+    },
+    {
+      "accepted_repairs": 0,
+      "additional_discordant_after_obstruction": [
+        32
+      ],
+      "authorization_latencies_scored_events": [
+        61
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "VERIFIER-NO-REPAIR",
+      "cumulative_regret": 2013,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        17
+      ],
+      "final_representation_depth": 0,
+      "final_window_reward_ppm": 503906,
+      "fixed_h4_primary_aulc_ppm": 915447,
+      "primary_aulc_ppm": 508734,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 1,
+      "world_seed": 131
+    },
+    {
+      "accepted_repairs": 1,
+      "additional_discordant_after_obstruction": [
+        32
+      ],
+      "authorization_latencies_scored_events": [
+        61
+      ],
+      "canonical_receipt_count": 1,
+      "condition": "FULL-PRIME-V1.2",
+      "cumulative_regret": 298,
+      "diagnostic_hidden_depth": 4,
+      "discordant_at_obstruction": [
+        17
+      ],
+      "final_representation_depth": 4,
+      "final_window_reward_ppm": 935546,
+      "fixed_h4_primary_aulc_ppm": 915447,
+      "primary_aulc_ppm": 871818,
+      "proposed_repairs": 1,
+      "receipt_chain_valid": true,
+      "rejected_repairs": 0,
+      "verifier_supported_repairs": 1,
+      "verifier_suppressed_repairs": 0,
+      "world_seed": 131
+    }
+  ],
+  "status": "DEVELOPMENT_ONLY_NOT_EVALUATION"
+}
