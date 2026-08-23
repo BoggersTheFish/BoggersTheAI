@@ -42,6 +42,7 @@ class CandidateFieldSnapshot:
     scaffold_candidate_count: int
     composed_candidate_count: int
     active_construction_count: int
+    alpha_denominator: int
     threshold: int
 
 
@@ -225,7 +226,10 @@ class CompositionalAdaptiveConstructionEngine:
         )
 
         return EvidenceEpoch(
-            candidates
+            candidates,
+            epoch_index=(
+                self._epoch_index
+            ),
         )
 
     def begin_episode(
@@ -441,6 +445,9 @@ class CompositionalAdaptiveConstructionEngine:
             ),
             active_construction_count=len(
                 self.registry.active_ids()
+            ),
+            alpha_denominator=(
+                self._epoch.alpha_denominator
             ),
             threshold=(
                 self._epoch.threshold

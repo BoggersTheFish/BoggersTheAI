@@ -18,6 +18,29 @@ OBSTRUCTION_MIN_PER_TARGET = 8
 RUN_LEVEL_ALPHA_DENOMINATOR = 64
 
 
+def global_epoch_alpha_denominator(
+    epoch_index: int,
+) -> int:
+    """Return the denominator for the epoch-level alpha budget.
+
+    The schedule is
+
+        alpha_e = 1 / (64 * 2**(e + 1))
+
+    so the infinite sum over zero-indexed epochs is exactly 1/64.
+    """
+
+    if epoch_index < 0:
+        raise ValueError(
+            "epoch_index must be non-negative"
+        )
+
+    return (
+        RUN_LEVEL_ALPHA_DENOMINATOR
+        * (1 << (epoch_index + 1))
+    )
+
+
 class BinaryMajorityPredictor:
     def __init__(self) -> None:
         self._counts: dict[
@@ -147,11 +170,33 @@ class EvidenceEpoch:
             ConstructionSpec,
             ...,
         ],
+        *,
+        epoch_index: int | None = None,
     ) -> None:
         self.candidates = candidates
 
+        # None preserves the original single-epoch M20-A semantics.
+        #
+        # Adaptive compositional engines MUST supply epoch_index so the
+        # candidate-family error budget is alpha-spent across every
+        # representation epoch in the run.
+        self.epoch_index = (
+            epoch_index
+        )
+
+        if epoch_index is None:
+            self.alpha_denominator = (
+                RUN_LEVEL_ALPHA_DENOMINATOR
+            )
+        else:
+            self.alpha_denominator = (
+                global_epoch_alpha_denominator(
+                    epoch_index
+                )
+            )
+
         self.threshold = (
-            RUN_LEVEL_ALPHA_DENOMINATOR
+            self.alpha_denominator
             * max(
                 1,
                 len(candidates),
