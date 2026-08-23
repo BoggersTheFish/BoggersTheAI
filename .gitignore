@@ -46,3 +46,5 @@ Thumbs.db
 
 .venv-m26/
 artifacts/
+
+data/native_cortex/tokens/*.bin

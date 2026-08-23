@@ -25,3 +25,9 @@ __all__ = [
     "TernaryLinear",
     "append_jsonl",
 ]
+
+from .bpe_tokenizer import BPETokenizer
+
+if "BPETokenizer" not in __all__:
+    __all__.append("BPETokenizer")
+
