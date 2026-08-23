@@ -332,6 +332,29 @@ class ProgramLab:
 
         return self.probe()
 
+    def cost_to_probe(
+        self,
+        configuration,
+    ) -> int:
+        """Primitive action cost of running an intervention now."""
+
+        clone = self.clone()
+
+        start_steps = (
+            clone.state.steps
+        )
+
+        clone.set_configuration(
+            configuration
+        )
+
+        clone.probe()
+
+        return (
+            clone.state.steps
+            - start_steps
+        )
+
     def cost_to_goal(
         self,
         configuration,
