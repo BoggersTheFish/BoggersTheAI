@@ -48,3 +48,8 @@ Thumbs.db
 artifacts/
 
 data/native_cortex/tokens/*.bin
+
+.venv-m26/
+artifacts/
+data/native_cortex/splits/*.jsonl
+data/native_cortex/tokens/*.bin
