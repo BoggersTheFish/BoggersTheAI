@@ -207,20 +207,34 @@ def evaluate_mode(
                 len(ids) - 1,
                 chunk_length,
             ):
+                remaining = (
+                    len(ids)
+                    - 1
+                    - start
+                )
+
+                take = min(
+                    chunk_length,
+                    remaining,
+                )
+
                 source_ids = ids[
                     start:
-                    start
-                    + chunk_length
+                    start + take
                 ]
 
                 target_ids = ids[
                     start + 1:
-                    start
-                    + 1
-                    + len(
-                        source_ids
-                    )
+                    start + 1 + take
                 ]
+
+                if (
+                    len(source_ids)
+                    != len(target_ids)
+                ):
+                    raise RuntimeError(
+                        "source/target alignment failure"
+                    )
 
                 source = torch.tensor(
                     source_ids,
