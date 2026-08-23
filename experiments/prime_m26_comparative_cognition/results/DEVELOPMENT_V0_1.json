@@ -1,0 +1,6657 @@
+{
+  "benchmark": "prime-m26-comparative-cognition-v0.1",
+  "condition_summaries": {
+    "GRU32": {
+      "mean_accuracy_ppm": 605070,
+      "mean_aulc_ppm": 575721,
+      "mean_final_accuracy_ppm": 628688,
+      "mean_mistakes": 606,
+      "world_count": 108
+    },
+    "H16": {
+      "mean_accuracy_ppm": 503761,
+      "mean_aulc_ppm": 502811,
+      "mean_final_accuracy_ppm": 511248,
+      "mean_mistakes": 762,
+      "world_count": 108
+    },
+    "H8": {
+      "mean_accuracy_ppm": 729322,
+      "mean_aulc_ppm": 670708,
+      "mean_final_accuracy_ppm": 769675,
+      "mean_mistakes": 415,
+      "world_count": 108
+    },
+    "PRIME": {
+      "mean_accuracy_ppm": 803951,
+      "mean_aulc_ppm": 776370,
+      "mean_final_accuracy_ppm": 808955,
+      "mean_mistakes": 301,
+      "world_count": 108
+    },
+    "REACTIVE": {
+      "mean_accuracy_ppm": 580813,
+      "mean_aulc_ppm": 579852,
+      "mean_final_accuracy_ppm": 583079,
+      "mean_mistakes": 643,
+      "world_count": 108
+    }
+  },
+  "development_seed_count": 6,
+  "family_summaries": {
+    "explicit-relational": {
+      "GRU32": {
+        "aulc_ppm": 619531,
+        "final_accuracy_ppm": 711262
+      },
+      "H16": {
+        "aulc_ppm": 502376,
+        "final_accuracy_ppm": 523274
+      },
+      "H8": {
+        "aulc_ppm": 797423,
+        "final_accuracy_ppm": 998616
+      },
+      "PRIME": {
+        "aulc_ppm": 921795,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 625532,
+        "final_accuracy_ppm": 618407
+      }
+    },
+    "nonstationary": {
+      "GRU32": {
+        "aulc_ppm": 506934,
+        "final_accuracy_ppm": 744791
+      },
+      "H16": {
+        "aulc_ppm": 496167,
+        "final_accuracy_ppm": 498697
+      },
+      "H8": {
+        "aulc_ppm": 702210,
+        "final_accuracy_ppm": 541666
+      },
+      "PRIME": {
+        "aulc_ppm": 794830,
+        "final_accuracy_ppm": 449218
+      },
+      "REACTIVE": {
+        "aulc_ppm": 537026,
+        "final_accuracy_ppm": 744791
+      }
+    },
+    "recurrent-state": {
+      "GRU32": {
+        "aulc_ppm": 572031,
+        "final_accuracy_ppm": 575683
+      },
+      "H16": {
+        "aulc_ppm": 500092,
+        "final_accuracy_ppm": 497558
+      },
+      "H8": {
+        "aulc_ppm": 588187,
+        "final_accuracy_ppm": 648600
+      },
+      "PRIME": {
+        "aulc_ppm": 586761,
+        "final_accuracy_ppm": 624185
+      },
+      "REACTIVE": {
+        "aulc_ppm": 558848,
+        "final_accuracy_ppm": 555012
+      }
+    },
+    "scaling": {
+      "GRU32": {
+        "aulc_ppm": 522335,
+        "final_accuracy_ppm": 515754
+      },
+      "H16": {
+        "aulc_ppm": 507010,
+        "final_accuracy_ppm": 505468
+      },
+      "H8": {
+        "aulc_ppm": 527682,
+        "final_accuracy_ppm": 545832
+      },
+      "PRIME": {
+        "aulc_ppm": 691686,
+        "final_accuracy_ppm": 723046
+      },
+      "REACTIVE": {
+        "aulc_ppm": 532133,
+        "final_accuracy_ppm": 516666
+      }
+    }
+  },
+  "gru_parameter_count": 3393,
+  "prime_receipt_integrity": true,
+  "row_count": 540,
+  "rows": [
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 995497,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "seed": 26000,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 920572,
+      "aulc_ppm": 820699,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 122,
+      "seed": 26000,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 500000,
+      "aulc_ppm": 518936,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 768,
+      "seed": 26000,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 926432,
+      "aulc_ppm": 789090,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.05511694401502609,
+      "gru_parameter_count": 3393,
+      "mistakes": 113,
+      "seed": 26000,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 995497,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 994846,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "seed": 26001,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 912760,
+      "aulc_ppm": 791853,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 134,
+      "seed": 26001,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 519531,
+      "aulc_ppm": 513260,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 738,
+      "seed": 26001,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 875651,
+      "aulc_ppm": 724693,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.06507036089897156,
+      "gru_parameter_count": 3393,
+      "mistakes": 191,
+      "seed": 26001,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 994846,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 994846,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "seed": 26002,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 919270,
+      "aulc_ppm": 815119,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 124,
+      "seed": 26002,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 492410,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 519531,
+      "mistakes": 775,
+      "seed": 26002,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 903645,
+      "aulc_ppm": 778911,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.05293895676732063,
+      "gru_parameter_count": 3393,
+      "mistakes": 148,
+      "seed": 26002,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 994846,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 998697,
+      "aulc_ppm": 991050,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 2,
+      "seed": 26003,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 919270,
+      "aulc_ppm": 800413,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 124,
+      "seed": 26003,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 500263,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 445312,
+      "mistakes": 782,
+      "seed": 26003,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 947265,
+      "aulc_ppm": 832038,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.07344500720500946,
+      "gru_parameter_count": 3393,
+      "mistakes": 81,
+      "seed": 26003,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 998697,
+      "aulc_ppm": 991050,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 2,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 998697,
+      "aulc_ppm": 990345,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 2,
+      "seed": 26004,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 917317,
+      "aulc_ppm": 788598,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 127,
+      "seed": 26004,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 487630,
+      "aulc_ppm": 474901,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 787,
+      "seed": 26004,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 923177,
+      "aulc_ppm": 796704,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.05317782610654831,
+      "gru_parameter_count": 3393,
+      "mistakes": 118,
+      "seed": 26004,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 998697,
+      "aulc_ppm": 990345,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 2,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 994846,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "seed": 26005,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 910807,
+      "aulc_ppm": 787242,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 137,
+      "seed": 26005,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 490234,
+      "aulc_ppm": 486398,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 783,
+      "seed": 26005,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 944010,
+      "aulc_ppm": 826053,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.06108067184686661,
+      "gru_parameter_count": 3393,
+      "mistakes": 86,
+      "seed": 26005,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 999348,
+      "aulc_ppm": 994846,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 1,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "CURRENT"
+    },
+    {
+      "accuracy_ppm": 493489,
+      "aulc_ppm": 497565,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 519531,
+      "mistakes": 778,
+      "seed": 26000,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 917968,
+      "aulc_ppm": 804998,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 126,
+      "seed": 26000,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 520833,
+      "aulc_ppm": 518322,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 736,
+      "seed": 26000,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 850260,
+      "aulc_ppm": 678344,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.008030925877392292,
+      "gru_parameter_count": 3393,
+      "mistakes": 230,
+      "seed": 26000,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 981119,
+      "aulc_ppm": 921879,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 29,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 62,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 489583,
+      "aulc_ppm": 489502,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 784,
+      "seed": 26001,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 920572,
+      "aulc_ppm": 807453,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 122,
+      "seed": 26001,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 515477,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 756,
+      "seed": 26001,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 805989,
+      "aulc_ppm": 635193,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.00790573749691248,
+      "gru_parameter_count": 3393,
+      "mistakes": 298,
+      "seed": 26001,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 977864,
+      "aulc_ppm": 907379,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 34,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 63,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 475260,
+      "aulc_ppm": 482629,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 806,
+      "seed": 26002,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 920572,
+      "aulc_ppm": 796669,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 122,
+      "seed": 26002,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 513020,
+      "aulc_ppm": 509156,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 748,
+      "seed": 26002,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 854817,
+      "aulc_ppm": 709944,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.0035449452698230743,
+      "gru_parameter_count": 3393,
+      "mistakes": 223,
+      "seed": 26002,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 978515,
+      "aulc_ppm": 911701,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 33,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 70,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 497571,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 756,
+      "seed": 26003,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 911458,
+      "aulc_ppm": 785241,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 136,
+      "seed": 26003,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 494791,
+      "aulc_ppm": 482267,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 776,
+      "seed": 26003,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 843098,
+      "aulc_ppm": 660170,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.009472605772316456,
+      "gru_parameter_count": 3393,
+      "mistakes": 241,
+      "seed": 26003,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 910720,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 60,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 518979,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 756,
+      "seed": 26004,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 914713,
+      "aulc_ppm": 797113,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 131,
+      "seed": 26004,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 505859,
+      "aulc_ppm": 499381,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 759,
+      "seed": 26004,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 837239,
+      "aulc_ppm": 658353,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.011074711568653584,
+      "gru_parameter_count": 3393,
+      "mistakes": 250,
+      "seed": 26004,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 906486,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 65,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 502604,
+      "aulc_ppm": 497521,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 764,
+      "seed": 26005,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 915364,
+      "aulc_ppm": 803837,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 130,
+      "seed": 26005,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 514973,
+      "aulc_ppm": 512498,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 539062,
+      "mistakes": 745,
+      "seed": 26005,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 859375,
+      "aulc_ppm": 698961,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "gru_last_loss": 0.005418999120593071,
+      "gru_parameter_count": 3393,
+      "mistakes": 216,
+      "seed": 26005,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 978515,
+      "aulc_ppm": 909917,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 33,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 68,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "LAG-1"
+    },
+    {
+      "accuracy_ppm": 524739,
+      "aulc_ppm": 540187,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 730,
+      "seed": 26000,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 918619,
+      "aulc_ppm": 810898,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 125,
+      "seed": 26000,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 509114,
+      "aulc_ppm": 502040,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 554687,
+      "mistakes": 754,
+      "seed": 26000,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 630208,
+      "aulc_ppm": 577917,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 687500,
+      "gru_last_loss": 0.6391139030456543,
+      "gru_parameter_count": 3393,
+      "mistakes": 568,
+      "seed": 26000,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 979166,
+      "aulc_ppm": 917621,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 32,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 53,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 508463,
+      "aulc_ppm": 522388,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 755,
+      "seed": 26001,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 916666,
+      "aulc_ppm": 785159,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 128,
+      "seed": 26001,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 511718,
+      "aulc_ppm": 505871,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 750,
+      "seed": 26001,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 559895,
+      "aulc_ppm": 492472,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 664062,
+      "gru_last_loss": 0.6412868499755859,
+      "gru_parameter_count": 3393,
+      "mistakes": 676,
+      "seed": 26001,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 978515,
+      "aulc_ppm": 915497,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 33,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 81,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 511067,
+      "aulc_ppm": 522316,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 751,
+      "seed": 26002,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 919270,
+      "aulc_ppm": 803708,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 124,
+      "seed": 26002,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 530598,
+      "aulc_ppm": 517185,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 539062,
+      "mistakes": 721,
+      "seed": 26002,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 625000,
+      "aulc_ppm": 555369,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 753906,
+      "gru_last_loss": 0.5602039098739624,
+      "gru_parameter_count": 3393,
+      "mistakes": 576,
+      "seed": 26002,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 973958,
+      "aulc_ppm": 896219,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 40,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 66,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 503118,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 758,
+      "seed": 26003,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 919270,
+      "aulc_ppm": 816497,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 124,
+      "seed": 26003,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 513671,
+      "aulc_ppm": 513419,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 558593,
+      "mistakes": 747,
+      "seed": 26003,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 564453,
+      "aulc_ppm": 531455,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 628906,
+      "gru_last_loss": 0.6285144090652466,
+      "gru_parameter_count": 3393,
+      "mistakes": 669,
+      "seed": 26003,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 978515,
+      "aulc_ppm": 911625,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 33,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 53,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 494791,
+      "aulc_ppm": 494480,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 776,
+      "seed": 26004,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 920572,
+      "aulc_ppm": 821122,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 992187,
+      "mistakes": 122,
+      "seed": 26004,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 492838,
+      "aulc_ppm": 507264,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 779,
+      "seed": 26004,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 630859,
+      "aulc_ppm": 568199,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 703125,
+      "gru_last_loss": 0.579215943813324,
+      "gru_parameter_count": 3393,
+      "mistakes": 567,
+      "seed": 26004,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 910568,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 63,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 503802,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 500000,
+      "mistakes": 772,
+      "seed": 26005,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 908854,
+      "aulc_ppm": 788956,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 140,
+      "seed": 26005,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 481624,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 772,
+      "seed": 26005,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 628906,
+      "aulc_ppm": 583362,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 707031,
+      "gru_last_loss": 0.5030885934829712,
+      "gru_parameter_count": 3393,
+      "mistakes": 570,
+      "seed": 26005,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 974609,
+      "aulc_ppm": 902535,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 39,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 83,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "LAG-4"
+    },
+    {
+      "accuracy_ppm": 515625,
+      "aulc_ppm": 509312,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 539062,
+      "mistakes": 744,
+      "seed": 26000,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 914062,
+      "aulc_ppm": 803342,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 132,
+      "seed": 26000,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 505859,
+      "aulc_ppm": 516469,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 759,
+      "seed": 26000,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 512369,
+      "aulc_ppm": 527038,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "gru_last_loss": 0.6851980686187744,
+      "gru_parameter_count": 3393,
+      "mistakes": 749,
+      "seed": 26000,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 979166,
+      "aulc_ppm": 913465,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 32,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 67,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 489583,
+      "aulc_ppm": 509417,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 457031,
+      "mistakes": 784,
+      "seed": 26001,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 919270,
+      "aulc_ppm": 809221,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 124,
+      "seed": 26001,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 510416,
+      "aulc_ppm": 518925,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 554687,
+      "mistakes": 752,
+      "seed": 26001,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 479817,
+      "aulc_ppm": 480086,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 480468,
+      "gru_last_loss": 0.6945158839225769,
+      "gru_parameter_count": 3393,
+      "mistakes": 799,
+      "seed": 26001,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 976562,
+      "aulc_ppm": 910021,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 36,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 72,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 494791,
+      "aulc_ppm": 498370,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 776,
+      "seed": 26002,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 901041,
+      "aulc_ppm": 772499,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 152,
+      "seed": 26002,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 481119,
+      "aulc_ppm": 458123,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 797,
+      "seed": 26002,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 502966,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 523437,
+      "gru_last_loss": 0.6763046979904175,
+      "gru_parameter_count": 3393,
+      "mistakes": 763,
+      "seed": 26002,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 972656,
+      "aulc_ppm": 892118,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 42,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 70,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 491536,
+      "aulc_ppm": 501457,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 781,
+      "seed": 26003,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 910807,
+      "aulc_ppm": 793850,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 137,
+      "seed": 26003,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 484356,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 760,
+      "seed": 26003,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 505788,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6832906007766724,
+      "gru_parameter_count": 3393,
+      "mistakes": 756,
+      "seed": 26003,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 975260,
+      "aulc_ppm": 903215,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 38,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 70,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 511399,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 756,
+      "seed": 26004,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 917317,
+      "aulc_ppm": 803018,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 127,
+      "seed": 26004,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 511067,
+      "aulc_ppm": 508141,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 751,
+      "seed": 26004,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 511718,
+      "aulc_ppm": 520751,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 539062,
+      "gru_last_loss": 0.6816064715385437,
+      "gru_parameter_count": 3393,
+      "mistakes": 750,
+      "seed": 26004,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 977864,
+      "aulc_ppm": 906166,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 34,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 52,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 480030,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 782,
+      "seed": 26005,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 914062,
+      "aulc_ppm": 804755,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 132,
+      "seed": 26005,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 522135,
+      "aulc_ppm": 520646,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 589843,
+      "mistakes": 734,
+      "seed": 26005,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 492886,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 511718,
+      "gru_last_loss": 0.6935739517211914,
+      "gru_parameter_count": 3393,
+      "mistakes": 780,
+      "seed": 26005,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 977864,
+      "aulc_ppm": 905238,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 34,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 53,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "XOR-1-4"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 502064,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 460937,
+      "mistakes": 763,
+      "seed": 26000,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 915364,
+      "aulc_ppm": 789869,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 130,
+      "seed": 26000,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 478946,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 769,
+      "seed": 26000,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 500651,
+      "aulc_ppm": 483270,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 562500,
+      "gru_last_loss": 0.6931259036064148,
+      "gru_parameter_count": 3393,
+      "mistakes": 767,
+      "seed": 26000,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 975260,
+      "aulc_ppm": 895169,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 38,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 54,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 512162,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 445312,
+      "mistakes": 775,
+      "seed": 26001,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 915364,
+      "aulc_ppm": 801469,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 130,
+      "seed": 26001,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 509114,
+      "aulc_ppm": 505745,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 476562,
+      "mistakes": 754,
+      "seed": 26001,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 495572,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 441406,
+      "gru_last_loss": 0.6999094486236572,
+      "gru_parameter_count": 3393,
+      "mistakes": 782,
+      "seed": 26001,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 908775,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 67,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 511146,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 773,
+      "seed": 26002,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 910156,
+      "aulc_ppm": 784508,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 138,
+      "seed": 26002,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 486687,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 763,
+      "seed": 26002,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 509765,
+      "aulc_ppm": 511729,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 523437,
+      "gru_last_loss": 0.6934194564819336,
+      "gru_parameter_count": 3393,
+      "mistakes": 753,
+      "seed": 26002,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 909507,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 64,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 493489,
+      "aulc_ppm": 500698,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 778,
+      "seed": 26003,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 917317,
+      "aulc_ppm": 789649,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 127,
+      "seed": 26003,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 537109,
+      "aulc_ppm": 513600,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 554687,
+      "mistakes": 711,
+      "seed": 26003,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 498697,
+      "aulc_ppm": 514631,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 546875,
+      "gru_last_loss": 0.6919170618057251,
+      "gru_parameter_count": 3393,
+      "mistakes": 770,
+      "seed": 26003,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 979166,
+      "aulc_ppm": 917874,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 32,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 62,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 510458,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 445312,
+      "mistakes": 774,
+      "seed": 26004,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 911458,
+      "aulc_ppm": 776454,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 136,
+      "seed": 26004,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 494140,
+      "aulc_ppm": 479768,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 777,
+      "seed": 26004,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 505859,
+      "aulc_ppm": 491422,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "gru_last_loss": 0.7154170274734497,
+      "gru_parameter_count": 3393,
+      "mistakes": 759,
+      "seed": 26004,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 975911,
+      "aulc_ppm": 906382,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 37,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 67,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 489583,
+      "aulc_ppm": 493397,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 784,
+      "seed": 26005,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 910807,
+      "aulc_ppm": 799868,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 137,
+      "seed": 26005,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 511718,
+      "aulc_ppm": 517744,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 750,
+      "seed": 26005,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 503132,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 527343,
+      "gru_last_loss": 0.7101403474807739,
+      "gru_parameter_count": 3393,
+      "mistakes": 760,
+      "seed": 26005,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 976562,
+      "aulc_ppm": 906990,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 36,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 59,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "EQ-1-4"
+    },
+    {
+      "accuracy_ppm": 774088,
+      "aulc_ppm": 807239,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 750000,
+      "mistakes": 347,
+      "seed": 26000,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 919270,
+      "aulc_ppm": 820507,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 124,
+      "seed": 26000,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 498697,
+      "aulc_ppm": 513354,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 476562,
+      "mistakes": 770,
+      "seed": 26000,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 774088,
+      "aulc_ppm": 807239,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 750000,
+      "gru_last_loss": 0.5428681373596191,
+      "gru_parameter_count": 3393,
+      "mistakes": 347,
+      "seed": 26000,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 979166,
+      "aulc_ppm": 943682,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 32,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 201,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 748697,
+      "aulc_ppm": 730742,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 679687,
+      "mistakes": 386,
+      "seed": 26001,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 907552,
+      "aulc_ppm": 786948,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 142,
+      "seed": 26001,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 493459,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 546875,
+      "mistakes": 758,
+      "seed": 26001,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 762369,
+      "aulc_ppm": 745488,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 746093,
+      "gru_last_loss": 0.3778325915336609,
+      "gru_parameter_count": 3393,
+      "mistakes": 365,
+      "seed": 26001,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 976562,
+      "aulc_ppm": 908169,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 36,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 71,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 747395,
+      "aulc_ppm": 723159,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 812500,
+      "mistakes": 388,
+      "seed": 26002,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 917317,
+      "aulc_ppm": 802452,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 127,
+      "seed": 26002,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 492838,
+      "aulc_ppm": 515411,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 500000,
+      "mistakes": 779,
+      "seed": 26002,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 742187,
+      "aulc_ppm": 698994,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 812500,
+      "gru_last_loss": 0.21734493970870972,
+      "gru_parameter_count": 3393,
+      "mistakes": 396,
+      "seed": 26002,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 979817,
+      "aulc_ppm": 926280,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 31,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 100,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 724609,
+      "aulc_ppm": 735793,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 742187,
+      "mistakes": 423,
+      "seed": 26003,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 908203,
+      "aulc_ppm": 785359,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 988281,
+      "mistakes": 141,
+      "seed": 26003,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 513020,
+      "aulc_ppm": 512985,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 748,
+      "seed": 26003,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 701171,
+      "aulc_ppm": 635309,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 742187,
+      "gru_last_loss": 0.3800061345100403,
+      "gru_parameter_count": 3393,
+      "mistakes": 459,
+      "seed": 26003,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 978515,
+      "aulc_ppm": 930562,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 33,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 140,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 738281,
+      "aulc_ppm": 730544,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 742187,
+      "mistakes": 402,
+      "seed": 26004,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 907552,
+      "aulc_ppm": 784140,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 142,
+      "seed": 26004,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 488281,
+      "aulc_ppm": 479113,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 786,
+      "seed": 26004,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 745442,
+      "aulc_ppm": 735243,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 781250,
+      "gru_last_loss": 0.5731300115585327,
+      "gru_parameter_count": 3393,
+      "mistakes": 391,
+      "seed": 26004,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 977864,
+      "aulc_ppm": 926548,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 34,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 122,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 751953,
+      "aulc_ppm": 775647,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 707031,
+      "mistakes": 381,
+      "seed": 26005,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 920572,
+      "aulc_ppm": 794645,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 122,
+      "seed": 26005,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 510416,
+      "aulc_ppm": 507589,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 752,
+      "seed": 26005,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 738932,
+      "aulc_ppm": 703199,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 718750,
+      "gru_last_loss": 0.536264181137085,
+      "gru_parameter_count": 3393,
+      "mistakes": 401,
+      "seed": 26005,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 975260,
+      "aulc_ppm": 922534,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 38,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 155,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "AND-1-4"
+    },
+    {
+      "accuracy_ppm": 748046,
+      "aulc_ppm": 718359,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 746093,
+      "mistakes": 387,
+      "seed": 26000,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 915364,
+      "aulc_ppm": 805304,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 130,
+      "seed": 26000,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 524739,
+      "aulc_ppm": 520178,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 730,
+      "seed": 26000,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 736979,
+      "aulc_ppm": 679856,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 746093,
+      "gru_last_loss": 0.4597169756889343,
+      "gru_parameter_count": 3393,
+      "mistakes": 404,
+      "seed": 26000,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 977864,
+      "aulc_ppm": 915211,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 34,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 75,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 733723,
+      "aulc_ppm": 743678,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 703125,
+      "mistakes": 409,
+      "seed": 26001,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 923828,
+      "aulc_ppm": 834299,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 117,
+      "seed": 26001,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 514322,
+      "aulc_ppm": 528943,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 746,
+      "seed": 26001,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 705078,
+      "aulc_ppm": 638932,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 703125,
+      "gru_last_loss": 0.5785590410232544,
+      "gru_parameter_count": 3393,
+      "mistakes": 453,
+      "seed": 26001,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 975911,
+      "aulc_ppm": 913921,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 37,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 104,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 746744,
+      "aulc_ppm": 716486,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 804687,
+      "mistakes": 389,
+      "seed": 26002,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 916666,
+      "aulc_ppm": 805089,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 988281,
+      "mistakes": 128,
+      "seed": 26002,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 520833,
+      "aulc_ppm": 519986,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 736,
+      "seed": 26002,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 748046,
+      "aulc_ppm": 720827,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 804687,
+      "gru_last_loss": 0.44849705696105957,
+      "gru_parameter_count": 3393,
+      "mistakes": 387,
+      "seed": 26002,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 975911,
+      "aulc_ppm": 910015,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 37,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 96,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 715494,
+      "aulc_ppm": 731358,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 648437,
+      "mistakes": 437,
+      "seed": 26003,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 914713,
+      "aulc_ppm": 806418,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 131,
+      "seed": 26003,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 494791,
+      "aulc_ppm": 503077,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 776,
+      "seed": 26003,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 707031,
+      "aulc_ppm": 692488,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 648437,
+      "gru_last_loss": 0.5625674724578857,
+      "gru_parameter_count": 3393,
+      "mistakes": 450,
+      "seed": 26003,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 978515,
+      "aulc_ppm": 920712,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 33,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 87,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 748046,
+      "aulc_ppm": 751278,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 722656,
+      "mistakes": 387,
+      "seed": 26004,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 905598,
+      "aulc_ppm": 775619,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 145,
+      "seed": 26004,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 516927,
+      "aulc_ppm": 498062,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 582031,
+      "mistakes": 742,
+      "seed": 26004,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 742838,
+      "aulc_ppm": 730550,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 722656,
+      "gru_last_loss": 0.7321702241897583,
+      "gru_parameter_count": 3393,
+      "mistakes": 395,
+      "seed": 26004,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 975911,
+      "aulc_ppm": 913451,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 37,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 118,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 750000,
+      "aulc_ppm": 743276,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 734375,
+      "mistakes": 384,
+      "seed": 26005,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 910156,
+      "aulc_ppm": 771877,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 138,
+      "seed": 26005,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 484062,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 766,
+      "seed": 26005,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 753255,
+      "aulc_ppm": 755460,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 734375,
+      "gru_last_loss": 0.5739125609397888,
+      "gru_parameter_count": 3393,
+      "mistakes": 379,
+      "seed": 26005,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 914034,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 110,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "OR-2-7"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 526112,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 758,
+      "seed": 26000,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 916015,
+      "aulc_ppm": 792079,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 129,
+      "seed": 26000,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 496463,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 554687,
+      "mistakes": 773,
+      "seed": 26000,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 509765,
+      "aulc_ppm": 542202,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 457031,
+      "gru_last_loss": 0.7020281553268433,
+      "gru_parameter_count": 3393,
+      "mistakes": 753,
+      "seed": 26000,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 977864,
+      "aulc_ppm": 912385,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 34,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 54,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 512369,
+      "aulc_ppm": 533236,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 749,
+      "seed": 26001,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 910807,
+      "aulc_ppm": 788150,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 137,
+      "seed": 26001,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 489350,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 546875,
+      "mistakes": 772,
+      "seed": 26001,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 512369,
+      "aulc_ppm": 528990,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 468750,
+      "gru_last_loss": 0.692335844039917,
+      "gru_parameter_count": 3393,
+      "mistakes": 749,
+      "seed": 26001,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 976562,
+      "aulc_ppm": 908795,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 36,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 76,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 501953,
+      "aulc_ppm": 511857,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 765,
+      "seed": 26002,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 914713,
+      "aulc_ppm": 792073,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 131,
+      "seed": 26002,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 511343,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 763,
+      "seed": 26002,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 513020,
+      "aulc_ppm": 520827,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6934974789619446,
+      "gru_parameter_count": 3393,
+      "mistakes": 748,
+      "seed": 26002,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 911131,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 67,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 507049,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 760,
+      "seed": 26003,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 914713,
+      "aulc_ppm": 791702,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 131,
+      "seed": 26003,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 502341,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 773,
+      "seed": 26003,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 501953,
+      "aulc_ppm": 512140,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 457031,
+      "gru_last_loss": 0.6993427276611328,
+      "gru_parameter_count": 3393,
+      "mistakes": 765,
+      "seed": 26003,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 979817,
+      "aulc_ppm": 918164,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 31,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 62,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 470703,
+      "aulc_ppm": 455799,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 813,
+      "seed": 26004,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 914713,
+      "aulc_ppm": 779476,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 131,
+      "seed": 26004,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 507161,
+      "aulc_ppm": 492880,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 500000,
+      "mistakes": 757,
+      "seed": 26004,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 485677,
+      "aulc_ppm": 479866,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6964246034622192,
+      "gru_parameter_count": 3393,
+      "mistakes": 790,
+      "seed": 26004,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 975911,
+      "aulc_ppm": 899730,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 37,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 54,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 512557,
+      "condition": "REACTIVE",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 772,
+      "seed": 26005,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 916015,
+      "aulc_ppm": 806136,
+      "condition": "H8",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 129,
+      "seed": 26005,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 505673,
+      "condition": "H16",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 769,
+      "seed": 26005,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 487630,
+      "aulc_ppm": 483412,
+      "condition": "GRU32",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6921601891517639,
+      "gru_parameter_count": 3393,
+      "mistakes": 787,
+      "seed": 26005,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 973307,
+      "aulc_ppm": 892355,
+      "condition": "PRIME",
+      "family": "explicit-relational",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 41,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 66,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "accuracy_ppm": 502604,
+      "aulc_ppm": 512413,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 764,
+      "seed": 26000,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 536805,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 760,
+      "seed": 26000,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 530598,
+      "aulc_ppm": 556292,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 721,
+      "seed": 26000,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 500651,
+      "aulc_ppm": 490297,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.685104489326477,
+      "gru_parameter_count": 3393,
+      "mistakes": 767,
+      "seed": 26000,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 914169,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 63,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 512369,
+      "aulc_ppm": 516423,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 749,
+      "seed": 26001,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 499058,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 774,
+      "seed": 26001,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 513671,
+      "aulc_ppm": 524803,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 747,
+      "seed": 26001,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 506542,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "gru_last_loss": 0.6921662092208862,
+      "gru_parameter_count": 3393,
+      "mistakes": 760,
+      "seed": 26001,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 908095,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 61,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 504557,
+      "aulc_ppm": 495039,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 546875,
+      "mistakes": 761,
+      "seed": 26002,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 483723,
+      "aulc_ppm": 476497,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 793,
+      "seed": 26002,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 483567,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 515625,
+      "mistakes": 766,
+      "seed": 26002,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 514322,
+      "aulc_ppm": 490306,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 523437,
+      "gru_last_loss": 0.6822715997695923,
+      "gru_parameter_count": 3393,
+      "mistakes": 746,
+      "seed": 26002,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 972656,
+      "aulc_ppm": 898626,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 42,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 68,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 498046,
+      "aulc_ppm": 536715,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 771,
+      "seed": 26003,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 500651,
+      "aulc_ppm": 510271,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 476562,
+      "mistakes": 767,
+      "seed": 26003,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 515625,
+      "aulc_ppm": 531738,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 744,
+      "seed": 26003,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 487630,
+      "aulc_ppm": 465023,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 476562,
+      "gru_last_loss": 0.69325852394104,
+      "gru_parameter_count": 3393,
+      "mistakes": 787,
+      "seed": 26003,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 973307,
+      "aulc_ppm": 909452,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 41,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 85,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 522786,
+      "aulc_ppm": 513127,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 558593,
+      "mistakes": 733,
+      "seed": 26004,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 491536,
+      "aulc_ppm": 501840,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 781,
+      "seed": 26004,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 475260,
+      "aulc_ppm": 490398,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 806,
+      "seed": 26004,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 526041,
+      "aulc_ppm": 531162,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "gru_last_loss": 0.6926778554916382,
+      "gru_parameter_count": 3393,
+      "mistakes": 728,
+      "seed": 26004,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 976562,
+      "aulc_ppm": 907514,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 36,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 54,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 513020,
+      "aulc_ppm": 494673,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 748,
+      "seed": 26005,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 509904,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 775,
+      "seed": 26005,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 486328,
+      "aulc_ppm": 480387,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 789,
+      "seed": 26005,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 530598,
+      "aulc_ppm": 493376,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 585937,
+      "gru_last_loss": 0.6280818581581116,
+      "gru_parameter_count": 3393,
+      "mistakes": 721,
+      "seed": 26005,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 975911,
+      "aulc_ppm": 902383,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 37,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 59,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "LAG-8"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 530107,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 480468,
+      "mistakes": 766,
+      "seed": 26000,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 485026,
+      "aulc_ppm": 492237,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 791,
+      "seed": 26000,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 483072,
+      "aulc_ppm": 482356,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 794,
+      "seed": 26000,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 530380,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 468750,
+      "gru_last_loss": 0.6947863101959229,
+      "gru_parameter_count": 3393,
+      "mistakes": 756,
+      "seed": 26000,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 515054,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 500000,
+      "mistakes": 782,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 68,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 523057,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 774,
+      "seed": 26001,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 513020,
+      "aulc_ppm": 505002,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 748,
+      "seed": 26001,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 517578,
+      "aulc_ppm": 479871,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 578125,
+      "mistakes": 741,
+      "seed": 26001,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 514973,
+      "aulc_ppm": 496808,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "gru_last_loss": 0.7048527002334595,
+      "gru_parameter_count": 3393,
+      "mistakes": 745,
+      "seed": 26001,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 520182,
+      "aulc_ppm": 536767,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 737,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 78,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 537655,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 756,
+      "seed": 26002,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 503906,
+      "aulc_ppm": 513260,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 762,
+      "seed": 26002,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 504878,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 769,
+      "seed": 26002,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 541449,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 453125,
+      "gru_last_loss": 0.7094453573226929,
+      "gru_parameter_count": 3393,
+      "mistakes": 766,
+      "seed": 26002,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 529241,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 769,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 70,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 509786,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 772,
+      "seed": 26003,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 520833,
+      "aulc_ppm": 493611,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 562500,
+      "mistakes": 736,
+      "seed": 26003,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 502604,
+      "aulc_ppm": 494714,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 764,
+      "seed": 26003,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 509114,
+      "aulc_ppm": 526010,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "gru_last_loss": 0.6996893286705017,
+      "gru_parameter_count": 3393,
+      "mistakes": 754,
+      "seed": 26003,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 501035,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 780,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 73,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 508463,
+      "aulc_ppm": 535621,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 539062,
+      "mistakes": 755,
+      "seed": 26004,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 503906,
+      "aulc_ppm": 491764,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 585937,
+      "mistakes": 762,
+      "seed": 26004,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 482421,
+      "aulc_ppm": 490942,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 795,
+      "seed": 26004,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 454252,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "gru_last_loss": 0.6943430304527283,
+      "gru_parameter_count": 3393,
+      "mistakes": 782,
+      "seed": 26004,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 516504,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 500000,
+      "mistakes": 775,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 71,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 492838,
+      "aulc_ppm": 498234,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 779,
+      "seed": 26005,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 484703,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 775,
+      "seed": 26005,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 503124,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 769,
+      "seed": 26005,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 485026,
+      "aulc_ppm": 511298,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "gru_last_loss": 0.7062355279922485,
+      "gru_parameter_count": 3393,
+      "mistakes": 791,
+      "seed": 26005,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 477213,
+      "aulc_ppm": 475206,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 803,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 70,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "LAG-16"
+    },
+    {
+      "accuracy_ppm": 493489,
+      "aulc_ppm": 490146,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 778,
+      "seed": 26000,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 515644,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 772,
+      "seed": 26000,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 502604,
+      "aulc_ppm": 518511,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 764,
+      "seed": 26000,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 504195,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 550781,
+      "gru_last_loss": 0.7009018063545227,
+      "gru_parameter_count": 3393,
+      "mistakes": 763,
+      "seed": 26000,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 977213,
+      "aulc_ppm": 912362,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 35,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 60,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 511067,
+      "aulc_ppm": 513753,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 515625,
+      "mistakes": 751,
+      "seed": 26001,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 527343,
+      "aulc_ppm": 526543,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 726,
+      "seed": 26001,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 521484,
+      "aulc_ppm": 515097,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 554687,
+      "mistakes": 735,
+      "seed": 26001,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 499134,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "gru_last_loss": 0.6901646256446838,
+      "gru_parameter_count": 3393,
+      "mistakes": 773,
+      "seed": 26001,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 974609,
+      "aulc_ppm": 899277,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 39,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 57,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 486979,
+      "aulc_ppm": 468089,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 788,
+      "seed": 26002,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 503906,
+      "aulc_ppm": 496413,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 472656,
+      "mistakes": 762,
+      "seed": 26002,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 520182,
+      "aulc_ppm": 500936,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 737,
+      "seed": 26002,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 494791,
+      "aulc_ppm": 500559,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6993247866630554,
+      "gru_parameter_count": 3393,
+      "mistakes": 776,
+      "seed": 26002,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 973307,
+      "aulc_ppm": 886527,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 41,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 48,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 505332,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 472656,
+      "mistakes": 763,
+      "seed": 26003,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 501953,
+      "aulc_ppm": 499366,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 765,
+      "seed": 26003,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 514322,
+      "aulc_ppm": 502620,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 746,
+      "seed": 26003,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 498639,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 472656,
+      "gru_last_loss": 0.694564700126648,
+      "gru_parameter_count": 3393,
+      "mistakes": 760,
+      "seed": 26003,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 975260,
+      "aulc_ppm": 901465,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 38,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 57,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 491536,
+      "aulc_ppm": 508239,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 781,
+      "seed": 26004,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 485438,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 780,
+      "seed": 26004,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 489475,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 775,
+      "seed": 26004,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 509114,
+      "aulc_ppm": 512845,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "gru_last_loss": 0.6953556537628174,
+      "gru_parameter_count": 3393,
+      "mistakes": 754,
+      "seed": 26004,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 976562,
+      "aulc_ppm": 908627,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 36,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 56,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 497607,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 772,
+      "seed": 26005,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 513671,
+      "aulc_ppm": 503969,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 519531,
+      "mistakes": 747,
+      "seed": 26005,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 518229,
+      "aulc_ppm": 518491,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 740,
+      "seed": 26005,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 520833,
+      "aulc_ppm": 532169,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 457031,
+      "gru_last_loss": 0.6996985673904419,
+      "gru_parameter_count": 3393,
+      "mistakes": 736,
+      "seed": 26005,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 974609,
+      "aulc_ppm": 893771,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 39,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 57,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "XOR-1-8"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 512899,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 763,
+      "seed": 26000,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 516927,
+      "aulc_ppm": 531221,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 742,
+      "seed": 26000,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 506497,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 780,
+      "seed": 26000,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 518229,
+      "aulc_ppm": 500620,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 542968,
+      "gru_last_loss": 0.6993910670280457,
+      "gru_parameter_count": 3393,
+      "mistakes": 740,
+      "seed": 26000,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 508463,
+      "aulc_ppm": 506832,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 755,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 61,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 489598,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 480468,
+      "mistakes": 766,
+      "seed": 26001,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 502390,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 769,
+      "seed": 26001,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 517578,
+      "aulc_ppm": 506826,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 558593,
+      "mistakes": 741,
+      "seed": 26001,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 505859,
+      "aulc_ppm": 514408,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "gru_last_loss": 0.6880536079406738,
+      "gru_parameter_count": 3393,
+      "mistakes": 759,
+      "seed": 26001,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 504557,
+      "aulc_ppm": 517304,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 761,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 55,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 499732,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 758,
+      "seed": 26002,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 485677,
+      "aulc_ppm": 463975,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 790,
+      "seed": 26002,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 498046,
+      "aulc_ppm": 482738,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 771,
+      "seed": 26002,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 488281,
+      "aulc_ppm": 503470,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 515625,
+      "gru_last_loss": 0.6940688490867615,
+      "gru_parameter_count": 3393,
+      "mistakes": 786,
+      "seed": 26002,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 500307,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 457031,
+      "mistakes": 775,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 62,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 512369,
+      "aulc_ppm": 502275,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 749,
+      "seed": 26003,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 516276,
+      "aulc_ppm": 516158,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 554687,
+      "mistakes": 743,
+      "seed": 26003,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 513986,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 472656,
+      "mistakes": 782,
+      "seed": 26003,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 484707,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 550781,
+      "gru_last_loss": 0.708591103553772,
+      "gru_parameter_count": 3393,
+      "mistakes": 766,
+      "seed": 26003,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 493676,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 546875,
+      "mistakes": 758,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 54,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 503906,
+      "aulc_ppm": 490201,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 762,
+      "seed": 26004,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 497395,
+      "aulc_ppm": 501375,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 449218,
+      "mistakes": 772,
+      "seed": 26004,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 502604,
+      "aulc_ppm": 495858,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 764,
+      "seed": 26004,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 498046,
+      "aulc_ppm": 498877,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 492187,
+      "gru_last_loss": 0.6953794956207275,
+      "gru_parameter_count": 3393,
+      "mistakes": 771,
+      "seed": 26004,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 509114,
+      "aulc_ppm": 499080,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 754,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 62,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 518229,
+      "aulc_ppm": 515905,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 740,
+      "seed": 26005,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 520182,
+      "aulc_ppm": 512499,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 515625,
+      "mistakes": 737,
+      "seed": 26005,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 499671,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 763,
+      "seed": 26005,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 517578,
+      "aulc_ppm": 504487,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6913617253303528,
+      "gru_parameter_count": 3393,
+      "mistakes": 741,
+      "seed": 26005,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 524739,
+      "aulc_ppm": 526235,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 730,
+      "prime_active_constructions": 5,
+      "prime_explicit_recovery": true,
+      "prime_first_authorization": 59,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "XOR-1-16"
+    },
+    {
+      "accuracy_ppm": 690755,
+      "aulc_ppm": 657551,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 808593,
+      "mistakes": 475,
+      "seed": 26000,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 713541,
+      "aulc_ppm": 653446,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 843750,
+      "mistakes": 440,
+      "seed": 26000,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 538411,
+      "aulc_ppm": 540652,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 709,
+      "seed": 26000,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 640625,
+      "aulc_ppm": 489120,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 808593,
+      "gru_last_loss": 0.45838749408721924,
+      "gru_parameter_count": 3393,
+      "mistakes": 552,
+      "seed": 26000,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 689453,
+      "aulc_ppm": 658859,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 808593,
+      "mistakes": 477,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 272,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 602213,
+      "aulc_ppm": 600631,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 601562,
+      "mistakes": 611,
+      "seed": 26001,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 685546,
+      "aulc_ppm": 645667,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 734375,
+      "mistakes": 483,
+      "seed": 26001,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 514322,
+      "aulc_ppm": 539549,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 746,
+      "seed": 26001,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 569661,
+      "aulc_ppm": 548934,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 582031,
+      "gru_last_loss": 0.6950668096542358,
+      "gru_parameter_count": 3393,
+      "mistakes": 661,
+      "seed": 26001,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 605468,
+      "aulc_ppm": 604347,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 582031,
+      "mistakes": 606,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 442,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 628906,
+      "aulc_ppm": 638083,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 382812,
+      "mistakes": 570,
+      "seed": 26002,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 676432,
+      "aulc_ppm": 616712,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 613281,
+      "mistakes": 497,
+      "seed": 26002,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 513020,
+      "aulc_ppm": 512047,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 472656,
+      "mistakes": 748,
+      "seed": 26002,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 635416,
+      "aulc_ppm": 624826,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 394531,
+      "gru_last_loss": 0.6658110022544861,
+      "gru_parameter_count": 3393,
+      "mistakes": 560,
+      "seed": 26002,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 628255,
+      "aulc_ppm": 637379,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 382812,
+      "mistakes": 571,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 423,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 582031,
+      "aulc_ppm": 571039,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 585937,
+      "mistakes": 642,
+      "seed": 26003,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 651692,
+      "aulc_ppm": 598421,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 675781,
+      "mistakes": 535,
+      "seed": 26003,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 488233,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 480468,
+      "mistakes": 774,
+      "seed": 26003,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 555338,
+      "aulc_ppm": 609308,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 417968,
+      "gru_last_loss": 0.7081676721572876,
+      "gru_parameter_count": 3393,
+      "mistakes": 683,
+      "seed": 26003,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 600911,
+      "aulc_ppm": 577827,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 605468,
+      "mistakes": 613,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 686,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 627604,
+      "aulc_ppm": 662580,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 572,
+      "seed": 26004,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 643229,
+      "aulc_ppm": 610071,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 605468,
+      "mistakes": 548,
+      "seed": 26004,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 521484,
+      "aulc_ppm": 516350,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 735,
+      "seed": 26004,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 632812,
+      "aulc_ppm": 663936,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 574218,
+      "gru_last_loss": 0.6851438879966736,
+      "gru_parameter_count": 3393,
+      "mistakes": 564,
+      "seed": 26004,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 625000,
+      "aulc_ppm": 660882,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 542968,
+      "mistakes": 576,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 723,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 595052,
+      "aulc_ppm": 637509,
+      "condition": "REACTIVE",
+      "family": "scaling",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 622,
+      "seed": 26005,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 696614,
+      "aulc_ppm": 636206,
+      "condition": "H8",
+      "family": "scaling",
+      "final_accuracy_ppm": 785156,
+      "mistakes": 466,
+      "seed": 26005,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 518229,
+      "aulc_ppm": 539694,
+      "condition": "H16",
+      "family": "scaling",
+      "final_accuracy_ppm": 445312,
+      "mistakes": 740,
+      "seed": 26005,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 606119,
+      "aulc_ppm": 642928,
+      "condition": "GRU32",
+      "family": "scaling",
+      "final_accuracy_ppm": 605468,
+      "gru_last_loss": 0.558176577091217,
+      "gru_parameter_count": 3393,
+      "mistakes": 605,
+      "seed": 26005,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 632812,
+      "aulc_ppm": 651787,
+      "condition": "PRIME",
+      "family": "scaling",
+      "final_accuracy_ppm": 632812,
+      "mistakes": 564,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 778,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "MAJORITY-16"
+    },
+    {
+      "accuracy_ppm": 361328,
+      "aulc_ppm": 363746,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 359375,
+      "mistakes": 981,
+      "seed": 26000,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 507812,
+      "aulc_ppm": 483010,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 515625,
+      "mistakes": 756,
+      "seed": 26000,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 482421,
+      "aulc_ppm": 466261,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 795,
+      "seed": 26000,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 495733,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 468750,
+      "gru_last_loss": 0.694440484046936,
+      "gru_parameter_count": 3393,
+      "mistakes": 773,
+      "seed": 26000,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 483108,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 449218,
+      "mistakes": 760,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 83,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 385416,
+      "aulc_ppm": 399267,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 375000,
+      "mistakes": 944,
+      "seed": 26001,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 489583,
+      "aulc_ppm": 497453,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 784,
+      "seed": 26001,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 509765,
+      "aulc_ppm": 515560,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 753,
+      "seed": 26001,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 479166,
+      "aulc_ppm": 484459,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 425781,
+      "gru_last_loss": 0.6957749128341675,
+      "gru_parameter_count": 3393,
+      "mistakes": 800,
+      "seed": 26001,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 464192,
+      "aulc_ppm": 458992,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 429687,
+      "mistakes": 823,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 93,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 382812,
+      "aulc_ppm": 384723,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 406250,
+      "mistakes": 948,
+      "seed": 26002,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 501953,
+      "aulc_ppm": 486122,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 539062,
+      "mistakes": 765,
+      "seed": 26002,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 498046,
+      "aulc_ppm": 482979,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 771,
+      "seed": 26002,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 509813,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 480468,
+      "gru_last_loss": 0.6981302499771118,
+      "gru_parameter_count": 3393,
+      "mistakes": 773,
+      "seed": 26002,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 481360,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 774,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 86,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 376953,
+      "aulc_ppm": 386222,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 410156,
+      "mistakes": 957,
+      "seed": 26003,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 514322,
+      "aulc_ppm": 524714,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 562500,
+      "mistakes": 746,
+      "seed": 26003,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 491035,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 775,
+      "seed": 26003,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 490234,
+      "aulc_ppm": 489591,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 437500,
+      "gru_last_loss": 0.7017059326171875,
+      "gru_parameter_count": 3393,
+      "mistakes": 783,
+      "seed": 26003,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 496744,
+      "aulc_ppm": 469111,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 773,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 109,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 397786,
+      "aulc_ppm": 387873,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 410156,
+      "mistakes": 925,
+      "seed": 26004,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 510416,
+      "aulc_ppm": 509265,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 500000,
+      "mistakes": 752,
+      "seed": 26004,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 509114,
+      "aulc_ppm": 508053,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 754,
+      "seed": 26004,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 512369,
+      "aulc_ppm": 515479,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 507812,
+      "gru_last_loss": 0.6724830865859985,
+      "gru_parameter_count": 3393,
+      "mistakes": 749,
+      "seed": 26004,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 382812,
+      "aulc_ppm": 370020,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 367187,
+      "mistakes": 948,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 62,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 390625,
+      "aulc_ppm": 401974,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 351562,
+      "mistakes": 936,
+      "seed": 26005,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 513671,
+      "aulc_ppm": 507550,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 445312,
+      "mistakes": 747,
+      "seed": 26005,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 509999,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 449218,
+      "mistakes": 763,
+      "seed": 26005,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 513671,
+      "aulc_ppm": 515036,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 484375,
+      "gru_last_loss": 0.696945309638977,
+      "gru_parameter_count": 3393,
+      "mistakes": 747,
+      "seed": 26005,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 526692,
+      "aulc_ppm": 529966,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 727,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 76,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "accuracy_ppm": 666015,
+      "aulc_ppm": 662455,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 703125,
+      "mistakes": 513,
+      "seed": 26000,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 550781,
+      "aulc_ppm": 511570,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 593750,
+      "mistakes": 690,
+      "seed": 26000,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 479166,
+      "aulc_ppm": 481628,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 476562,
+      "mistakes": 800,
+      "seed": 26000,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 654296,
+      "aulc_ppm": 603505,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 703125,
+      "gru_last_loss": 0.6352918744087219,
+      "gru_parameter_count": 3393,
+      "mistakes": 531,
+      "seed": 26000,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 666015,
+      "aulc_ppm": 662455,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 703125,
+      "mistakes": 513,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 638671,
+      "aulc_ppm": 632762,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "mistakes": 555,
+      "seed": 26001,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 559895,
+      "aulc_ppm": 548394,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 676,
+      "seed": 26001,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 486658,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 775,
+      "seed": 26001,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 632161,
+      "aulc_ppm": 604953,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "gru_last_loss": 0.6794046759605408,
+      "gru_parameter_count": 3393,
+      "mistakes": 565,
+      "seed": 26001,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 638671,
+      "aulc_ppm": 632762,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "mistakes": 555,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 669270,
+      "aulc_ppm": 677056,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 644531,
+      "mistakes": 508,
+      "seed": 26002,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 576171,
+      "aulc_ppm": 556653,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 566406,
+      "mistakes": 651,
+      "seed": 26002,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 501302,
+      "aulc_ppm": 506036,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 766,
+      "seed": 26002,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 662109,
+      "aulc_ppm": 641188,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 644531,
+      "gru_last_loss": 0.6191781759262085,
+      "gru_parameter_count": 3393,
+      "mistakes": 519,
+      "seed": 26002,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 669270,
+      "aulc_ppm": 677056,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 644531,
+      "mistakes": 508,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 651692,
+      "aulc_ppm": 641219,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 679687,
+      "mistakes": 535,
+      "seed": 26003,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 565755,
+      "aulc_ppm": 552324,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 582031,
+      "mistakes": 667,
+      "seed": 26003,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 503255,
+      "aulc_ppm": 514852,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 763,
+      "seed": 26003,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 651692,
+      "aulc_ppm": 639234,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 679687,
+      "gru_last_loss": 0.5699496269226074,
+      "gru_parameter_count": 3393,
+      "mistakes": 535,
+      "seed": 26003,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 651692,
+      "aulc_ppm": 641219,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 679687,
+      "mistakes": 535,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 658854,
+      "aulc_ppm": 666742,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 636718,
+      "mistakes": 524,
+      "seed": 26004,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 555989,
+      "aulc_ppm": 540703,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 585937,
+      "mistakes": 682,
+      "seed": 26004,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 514242,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 774,
+      "seed": 26004,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 656250,
+      "aulc_ppm": 651677,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 636718,
+      "gru_last_loss": 0.6244702935218811,
+      "gru_parameter_count": 3393,
+      "mistakes": 528,
+      "seed": 26004,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 658854,
+      "aulc_ppm": 666742,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 636718,
+      "mistakes": 524,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 678385,
+      "aulc_ppm": 671598,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 714843,
+      "mistakes": 494,
+      "seed": 26005,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 578776,
+      "aulc_ppm": 547742,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 656250,
+      "mistakes": 647,
+      "seed": 26005,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 505859,
+      "aulc_ppm": 504067,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 759,
+      "seed": 26005,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 671875,
+      "aulc_ppm": 645129,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 714843,
+      "gru_last_loss": 0.7092258334159851,
+      "gru_parameter_count": 3393,
+      "mistakes": 504,
+      "seed": 26005,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 678385,
+      "aulc_ppm": 671598,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 714843,
+      "mistakes": 494,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "MOD3-ONES"
+    },
+    {
+      "accuracy_ppm": 530598,
+      "aulc_ppm": 559347,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 721,
+      "seed": 26000,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 506078,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 441406,
+      "mistakes": 780,
+      "seed": 26000,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 484375,
+      "aulc_ppm": 497837,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 410156,
+      "mistakes": 792,
+      "seed": 26000,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 526041,
+      "aulc_ppm": 539733,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 492187,
+      "gru_last_loss": 0.7219876646995544,
+      "gru_parameter_count": 3393,
+      "mistakes": 728,
+      "seed": 26000,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 530598,
+      "aulc_ppm": 559347,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 721,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 510416,
+      "aulc_ppm": 518855,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 752,
+      "seed": 26001,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 508096,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 515625,
+      "mistakes": 760,
+      "seed": 26001,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 500651,
+      "aulc_ppm": 506478,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 767,
+      "seed": 26001,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 495442,
+      "aulc_ppm": 491614,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 480468,
+      "gru_last_loss": 0.6918712258338928,
+      "gru_parameter_count": 3393,
+      "mistakes": 775,
+      "seed": 26001,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 510416,
+      "aulc_ppm": 518855,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 523437,
+      "mistakes": 752,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 511067,
+      "aulc_ppm": 515523,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 519531,
+      "mistakes": 751,
+      "seed": 26002,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 489583,
+      "aulc_ppm": 479924,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 784,
+      "seed": 26002,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 495682,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 780,
+      "seed": 26002,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 504557,
+      "aulc_ppm": 491815,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 535156,
+      "gru_last_loss": 0.7026073932647705,
+      "gru_parameter_count": 3393,
+      "mistakes": 761,
+      "seed": 26002,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 511067,
+      "aulc_ppm": 515523,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 519531,
+      "mistakes": 751,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 518229,
+      "aulc_ppm": 534621,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 740,
+      "seed": 26003,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 522786,
+      "aulc_ppm": 528043,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 733,
+      "seed": 26003,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 514322,
+      "aulc_ppm": 510466,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 746,
+      "seed": 26003,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 488932,
+      "aulc_ppm": 442492,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 464843,
+      "gru_last_loss": 0.691375195980072,
+      "gru_parameter_count": 3393,
+      "mistakes": 785,
+      "seed": 26003,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 518229,
+      "aulc_ppm": 534621,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 464843,
+      "mistakes": 740,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 522135,
+      "aulc_ppm": 526624,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 734,
+      "seed": 26004,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 524509,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 760,
+      "seed": 26004,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 492187,
+      "aulc_ppm": 496576,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 515625,
+      "mistakes": 780,
+      "seed": 26004,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 516927,
+      "aulc_ppm": 491693,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 523437,
+      "gru_last_loss": 0.6831467747688293,
+      "gru_parameter_count": 3393,
+      "mistakes": 742,
+      "seed": 26004,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 522135,
+      "aulc_ppm": 526624,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 734,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 492940,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 758,
+      "seed": 26005,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 520182,
+      "aulc_ppm": 527762,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 737,
+      "seed": 26005,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 485677,
+      "aulc_ppm": 486625,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 790,
+      "seed": 26005,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 489583,
+      "aulc_ppm": 495208,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 539062,
+      "gru_last_loss": 0.6915476322174072,
+      "gru_parameter_count": 3393,
+      "mistakes": 784,
+      "seed": 26005,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 506510,
+      "aulc_ppm": 492940,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 758,
+      "prime_active_constructions": 0,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": null,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "accuracy_ppm": 664713,
+      "aulc_ppm": 655327,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "mistakes": 515,
+      "seed": 26000,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 897135,
+      "aulc_ppm": 760283,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 992187,
+      "mistakes": 158,
+      "seed": 26000,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 500000,
+      "aulc_ppm": 479937,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 768,
+      "seed": 26000,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 662109,
+      "aulc_ppm": 645861,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "gru_last_loss": 0.6316242218017578,
+      "gru_parameter_count": 3393,
+      "mistakes": 519,
+      "seed": 26000,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 764973,
+      "aulc_ppm": 683155,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 945312,
+      "mistakes": 361,
+      "prime_active_constructions": 3,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 495,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 670572,
+      "aulc_ppm": 665000,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 656250,
+      "mistakes": 506,
+      "seed": 26001,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 912760,
+      "aulc_ppm": 809754,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 984375,
+      "mistakes": 134,
+      "seed": 26001,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 519531,
+      "aulc_ppm": 521770,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 535156,
+      "mistakes": 738,
+      "seed": 26001,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 672526,
+      "aulc_ppm": 675738,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 656250,
+      "gru_last_loss": 0.6401357054710388,
+      "gru_parameter_count": 3393,
+      "mistakes": 503,
+      "seed": 26001,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 766276,
+      "aulc_ppm": 699305,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 847656,
+      "mistakes": 359,
+      "prime_active_constructions": 3,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 398,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 667968,
+      "aulc_ppm": 669986,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "mistakes": 510,
+      "seed": 26002,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 912109,
+      "aulc_ppm": 802685,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 992187,
+      "mistakes": 135,
+      "seed": 26002,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 501953,
+      "aulc_ppm": 516730,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 550781,
+      "mistakes": 765,
+      "seed": 26002,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 668619,
+      "aulc_ppm": 674162,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 664062,
+      "gru_last_loss": 0.587089478969574,
+      "gru_parameter_count": 3393,
+      "mistakes": 509,
+      "seed": 26002,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 771484,
+      "aulc_ppm": 705204,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 894531,
+      "mistakes": 351,
+      "prime_active_constructions": 3,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 336,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 662760,
+      "aulc_ppm": 664402,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 660156,
+      "mistakes": 518,
+      "seed": 26003,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 913411,
+      "aulc_ppm": 807520,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 988281,
+      "mistakes": 133,
+      "seed": 26003,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 499348,
+      "aulc_ppm": 505495,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 484375,
+      "mistakes": 769,
+      "seed": 26003,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 658203,
+      "aulc_ppm": 641202,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 660156,
+      "gru_last_loss": 0.65671706199646,
+      "gru_parameter_count": 3393,
+      "mistakes": 525,
+      "seed": 26003,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 724609,
+      "aulc_ppm": 682103,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 796875,
+      "mistakes": 423,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 511,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 657552,
+      "aulc_ppm": 657023,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 640625,
+      "mistakes": 526,
+      "seed": 26004,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 913411,
+      "aulc_ppm": 791745,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 1000000,
+      "mistakes": 133,
+      "seed": 26004,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 498046,
+      "aulc_ppm": 485609,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 511718,
+      "mistakes": 771,
+      "seed": 26004,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 658854,
+      "aulc_ppm": 666352,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 640625,
+      "gru_last_loss": 0.6737069487571716,
+      "gru_parameter_count": 3393,
+      "mistakes": 524,
+      "seed": 26004,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 773437,
+      "aulc_ppm": 719666,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 800781,
+      "mistakes": 348,
+      "prime_active_constructions": 1,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 301,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 662109,
+      "aulc_ppm": 677081,
+      "condition": "REACTIVE",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 648437,
+      "mistakes": 519,
+      "seed": 26005,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 918619,
+      "aulc_ppm": 804593,
+      "condition": "H8",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 996093,
+      "mistakes": 125,
+      "seed": 26005,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 501953,
+      "aulc_ppm": 517644,
+      "condition": "H16",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 765,
+      "seed": 26005,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 662109,
+      "aulc_ppm": 677081,
+      "condition": "GRU32",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 648437,
+      "gru_last_loss": 0.6057974696159363,
+      "gru_parameter_count": 3393,
+      "mistakes": 519,
+      "seed": 26005,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 740885,
+      "aulc_ppm": 700540,
+      "condition": "PRIME",
+      "family": "recurrent-state",
+      "final_accuracy_ppm": 835937,
+      "mistakes": 398,
+      "prime_active_constructions": 3,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 517,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "accuracy_ppm": 622395,
+      "aulc_ppm": 541461,
+      "condition": "REACTIVE",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 804687,
+      "mistakes": 580,
+      "seed": 26000,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 630859,
+      "aulc_ppm": 683884,
+      "condition": "H8",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 546875,
+      "mistakes": 567,
+      "seed": 26000,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 487630,
+      "aulc_ppm": 491171,
+      "condition": "H16",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 488281,
+      "mistakes": 787,
+      "seed": 26000,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 611979,
+      "aulc_ppm": 493891,
+      "condition": "GRU32",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 804687,
+      "gru_last_loss": 0.7556309103965759,
+      "gru_parameter_count": 3393,
+      "mistakes": 596,
+      "seed": 26000,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 632812,
+      "aulc_ppm": 793219,
+      "condition": "PRIME",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 445312,
+      "mistakes": 564,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 55,
+      "prime_receipts_valid": true,
+      "seed": 26000,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 629557,
+      "aulc_ppm": 554656,
+      "condition": "REACTIVE",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 746093,
+      "mistakes": 569,
+      "seed": 26001,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 636718,
+      "aulc_ppm": 718662,
+      "condition": "H8",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 558,
+      "seed": 26001,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 509765,
+      "aulc_ppm": 511250,
+      "condition": "H16",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 496093,
+      "mistakes": 753,
+      "seed": 26001,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 632812,
+      "aulc_ppm": 552174,
+      "condition": "GRU32",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 746093,
+      "gru_last_loss": 0.5871903300285339,
+      "gru_parameter_count": 3393,
+      "mistakes": 564,
+      "seed": 26001,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 632161,
+      "aulc_ppm": 801399,
+      "condition": "PRIME",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 414062,
+      "mistakes": 565,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 54,
+      "prime_receipts_valid": true,
+      "seed": 26001,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 589843,
+      "aulc_ppm": 522164,
+      "condition": "REACTIVE",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 656250,
+      "mistakes": 630,
+      "seed": 26002,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 629557,
+      "aulc_ppm": 682012,
+      "condition": "H8",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 582031,
+      "mistakes": 569,
+      "seed": 26002,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 496093,
+      "aulc_ppm": 480678,
+      "condition": "H16",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 468750,
+      "mistakes": 774,
+      "seed": 26002,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 572916,
+      "aulc_ppm": 500310,
+      "condition": "GRU32",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 656250,
+      "gru_last_loss": 0.6695605516433716,
+      "gru_parameter_count": 3393,
+      "mistakes": 656,
+      "seed": 26002,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 616536,
+      "aulc_ppm": 782729,
+      "condition": "PRIME",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 375000,
+      "mistakes": 589,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 57,
+      "prime_receipts_valid": true,
+      "seed": 26002,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 591796,
+      "aulc_ppm": 514671,
+      "condition": "REACTIVE",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 757812,
+      "mistakes": 627,
+      "seed": 26003,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 642578,
+      "aulc_ppm": 721893,
+      "condition": "H8",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 492187,
+      "mistakes": 549,
+      "seed": 26003,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 491536,
+      "aulc_ppm": 502042,
+      "condition": "H16",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 527343,
+      "mistakes": 781,
+      "seed": 26003,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 572265,
+      "aulc_ppm": 497425,
+      "condition": "GRU32",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 757812,
+      "gru_last_loss": 0.3451504409313202,
+      "gru_parameter_count": 3393,
+      "mistakes": 657,
+      "seed": 26003,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 649088,
+      "aulc_ppm": 798531,
+      "condition": "PRIME",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 531250,
+      "mistakes": 539,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 72,
+      "prime_receipts_valid": true,
+      "seed": 26003,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 615885,
+      "aulc_ppm": 558082,
+      "condition": "REACTIVE",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 710937,
+      "mistakes": 590,
+      "seed": 26004,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 615234,
+      "aulc_ppm": 687140,
+      "condition": "H8",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 539062,
+      "mistakes": 591,
+      "seed": 26004,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 490885,
+      "aulc_ppm": 483133,
+      "condition": "H16",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 503906,
+      "mistakes": 782,
+      "seed": 26004,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 568359,
+      "aulc_ppm": 494201,
+      "condition": "GRU32",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 710937,
+      "gru_last_loss": 0.5065986514091492,
+      "gru_parameter_count": 3393,
+      "mistakes": 663,
+      "seed": 26004,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 636067,
+      "aulc_ppm": 798337,
+      "condition": "PRIME",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 476562,
+      "mistakes": 559,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 65,
+      "prime_receipts_valid": true,
+      "seed": 26004,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 622395,
+      "aulc_ppm": 531126,
+      "condition": "REACTIVE",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 792968,
+      "mistakes": 580,
+      "seed": 26005,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 635416,
+      "aulc_ppm": 719670,
+      "condition": "H8",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 585937,
+      "mistakes": 560,
+      "seed": 26005,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 505208,
+      "aulc_ppm": 508733,
+      "condition": "H16",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 507812,
+      "mistakes": 760,
+      "seed": 26005,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 598958,
+      "aulc_ppm": 503605,
+      "condition": "GRU32",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 792968,
+      "gru_last_loss": 0.51994788646698,
+      "gru_parameter_count": 3393,
+      "mistakes": 616,
+      "seed": 26005,
+      "task": "XOR-TO-AND"
+    },
+    {
+      "accuracy_ppm": 637369,
+      "aulc_ppm": 794766,
+      "condition": "PRIME",
+      "family": "nonstationary",
+      "final_accuracy_ppm": 453125,
+      "mistakes": 557,
+      "prime_active_constructions": 2,
+      "prime_explicit_recovery": null,
+      "prime_first_authorization": 57,
+      "prime_receipts_valid": true,
+      "seed": 26005,
+      "task": "XOR-TO-AND"
+    }
+  ],
+  "status": "DEVELOPMENT_ONLY",
+  "task_count": 18,
+  "task_summaries": [
+    {
+      "GRU32": {
+        "aulc_ppm": 791248,
+        "final_accuracy_ppm": 1000000
+      },
+      "H16": {
+        "aulc_ppm": 497694,
+        "final_accuracy_ppm": 507812
+      },
+      "H8": {
+        "aulc_ppm": 800654,
+        "final_accuracy_ppm": 999348
+      },
+      "PRIME": {
+        "aulc_ppm": 993571,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 993571,
+        "final_accuracy_ppm": 1000000
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": null,
+      "task": "CURRENT"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 673494,
+        "final_accuracy_ppm": 1000000
+      },
+      "H16": {
+        "aulc_ppm": 506183,
+        "final_accuracy_ppm": 514322
+      },
+      "H8": {
+        "aulc_ppm": 799218,
+        "final_accuracy_ppm": 1000000
+      },
+      "PRIME": {
+        "aulc_ppm": 911347,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 497294,
+        "final_accuracy_ppm": 503254
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 64,
+      "task": "LAG-1"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 551462,
+        "final_accuracy_ppm": 690755
+      },
+      "H16": {
+        "aulc_ppm": 504567,
+        "final_accuracy_ppm": 542968
+      },
+      "H8": {
+        "aulc_ppm": 804390,
+        "final_accuracy_ppm": 997395
+      },
+      "PRIME": {
+        "aulc_ppm": 909010,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 514381,
+        "final_accuracy_ppm": 514973
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 66,
+      "task": "LAG-4"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 504919,
+        "final_accuracy_ppm": 508463
+      },
+      "H16": {
+        "aulc_ppm": 501110,
+        "final_accuracy_ppm": 550780
+      },
+      "H8": {
+        "aulc_ppm": 797780,
+        "final_accuracy_ppm": 999348
+      },
+      "PRIME": {
+        "aulc_ppm": 905037,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 501664,
+        "final_accuracy_ppm": 492187
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 64,
+      "task": "XOR-1-4"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 499959,
+        "final_accuracy_ppm": 521484
+      },
+      "H16": {
+        "aulc_ppm": 497081,
+        "final_accuracy_ppm": 513020
+      },
+      "H8": {
+        "aulc_ppm": 790302,
+        "final_accuracy_ppm": 999348
+      },
+      "PRIME": {
+        "aulc_ppm": 907449,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 504987,
+        "final_accuracy_ppm": 476562
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 62,
+      "task": "EQ-1-4"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 720912,
+        "final_accuracy_ppm": 758463
+      },
+      "H16": {
+        "aulc_ppm": 503651,
+        "final_accuracy_ppm": 511067
+      },
+      "H8": {
+        "aulc_ppm": 795675,
+        "final_accuracy_ppm": 998046
+      },
+      "PRIME": {
+        "aulc_ppm": 926295,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 750520,
+        "final_accuracy_ppm": 738932
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 131,
+      "task": "AND-1-4"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 703018,
+        "final_accuracy_ppm": 726562
+      },
+      "H16": {
+        "aulc_ppm": 509051,
+        "final_accuracy_ppm": 528645
+      },
+      "H8": {
+        "aulc_ppm": 799767,
+        "final_accuracy_ppm": 996744
+      },
+      "PRIME": {
+        "aulc_ppm": 914557,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 734072,
+        "final_accuracy_ppm": 726562
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 98,
+      "task": "OR-2-7"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 511239,
+        "final_accuracy_ppm": 484374
+      },
+      "H16": {
+        "aulc_ppm": 499675,
+        "final_accuracy_ppm": 517577
+      },
+      "H8": {
+        "aulc_ppm": 791602,
+        "final_accuracy_ppm": 998697
+      },
+      "PRIME": {
+        "aulc_ppm": 907093,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 507768,
+        "final_accuracy_ppm": 494791
+      },
+      "family": "explicit-relational",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 63,
+      "task": "XOR-1-2-3"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 496117,
+        "final_accuracy_ppm": 520181
+      },
+      "H16": {
+        "aulc_ppm": 511197,
+        "final_accuracy_ppm": 507161
+      },
+      "H8": {
+        "aulc_ppm": 505729,
+        "final_accuracy_ppm": 486978
+      },
+      "PRIME": {
+        "aulc_ppm": 906706,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 511398,
+        "final_accuracy_ppm": 520181
+      },
+      "family": "scaling",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 65,
+      "task": "LAG-8"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 510032,
+        "final_accuracy_ppm": 483072
+      },
+      "H16": {
+        "aulc_ppm": 492647,
+        "final_accuracy_ppm": 520182
+      },
+      "H8": {
+        "aulc_ppm": 496762,
+        "final_accuracy_ppm": 526692
+      },
+      "PRIME": {
+        "aulc_ppm": 512301,
+        "final_accuracy_ppm": 504557
+      },
+      "REACTIVE": {
+        "aulc_ppm": 522410,
+        "final_accuracy_ppm": 494791
+      },
+      "family": "scaling",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 71,
+      "task": "LAG-16"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 507923,
+        "final_accuracy_ppm": 491536
+      },
+      "H16": {
+        "aulc_ppm": 507521,
+        "final_accuracy_ppm": 513020
+      },
+      "H8": {
+        "aulc_ppm": 504562,
+        "final_accuracy_ppm": 494140
+      },
+      "PRIME": {
+        "aulc_ppm": 900338,
+        "final_accuracy_ppm": 1000000
+      },
+      "REACTIVE": {
+        "aulc_ppm": 497194,
+        "final_accuracy_ppm": 496093
+      },
+      "family": "scaling",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 55,
+      "task": "XOR-1-8"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 501094,
+        "final_accuracy_ppm": 520181
+      },
+      "H16": {
+        "aulc_ppm": 500929,
+        "final_accuracy_ppm": 501301
+      },
+      "H8": {
+        "aulc_ppm": 504603,
+        "final_accuracy_ppm": 511718
+      },
+      "PRIME": {
+        "aulc_ppm": 507239,
+        "final_accuracy_ppm": 518228
+      },
+      "REACTIVE": {
+        "aulc_ppm": 501768,
+        "final_accuracy_ppm": 493489
+      },
+      "family": "scaling",
+      "prime_explicit_recovery": "6/6",
+      "prime_mean_first_authorization": 58,
+      "task": "XOR-1-16"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 596508,
+        "final_accuracy_ppm": 563801
+      },
+      "H16": {
+        "aulc_ppm": 522754,
+        "final_accuracy_ppm": 485676
+      },
+      "H8": {
+        "aulc_ppm": 626753,
+        "final_accuracy_ppm": 709635
+      },
+      "PRIME": {
+        "aulc_ppm": 631846,
+        "final_accuracy_ppm": 592447
+      },
+      "REACTIVE": {
+        "aulc_ppm": 627898,
+        "final_accuracy_ppm": 578775
+      },
+      "family": "scaling",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": 554,
+      "task": "MAJORITY-16"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 501685,
+        "final_accuracy_ppm": 467447
+      },
+      "H16": {
+        "aulc_ppm": 495647,
+        "final_accuracy_ppm": 492838
+      },
+      "H8": {
+        "aulc_ppm": 501352,
+        "final_accuracy_ppm": 505208
+      },
+      "PRIME": {
+        "aulc_ppm": 465426,
+        "final_accuracy_ppm": 464192
+      },
+      "REACTIVE": {
+        "aulc_ppm": 387300,
+        "final_accuracy_ppm": 385416
+      },
+      "family": "recurrent-state",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": 84,
+      "task": "RUNNING-PARITY"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 630947,
+        "final_accuracy_ppm": 673827
+      },
+      "H16": {
+        "aulc_ppm": 501247,
+        "final_accuracy_ppm": 499348
+      },
+      "H8": {
+        "aulc_ppm": 542897,
+        "final_accuracy_ppm": 589192
+      },
+      "PRIME": {
+        "aulc_ppm": 658638,
+        "final_accuracy_ppm": 673827
+      },
+      "REACTIVE": {
+        "aulc_ppm": 658638,
+        "final_accuracy_ppm": 673827
+      },
+      "family": "recurrent-state",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": null,
+      "task": "MOD3-ONES"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 492092,
+        "final_accuracy_ppm": 505858
+      },
+      "H16": {
+        "aulc_ppm": 498944,
+        "final_accuracy_ppm": 486327
+      },
+      "H8": {
+        "aulc_ppm": 512402,
+        "final_accuracy_ppm": 507812
+      },
+      "PRIME": {
+        "aulc_ppm": 524651,
+        "final_accuracy_ppm": 505207
+      },
+      "REACTIVE": {
+        "aulc_ppm": 524651,
+        "final_accuracy_ppm": 505207
+      },
+      "family": "recurrent-state",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": null,
+      "task": "TOGGLE-ON-11"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 663399,
+        "final_accuracy_ppm": 655598
+      },
+      "H16": {
+        "aulc_ppm": 504530,
+        "final_accuracy_ppm": 511718
+      },
+      "H8": {
+        "aulc_ppm": 796096,
+        "final_accuracy_ppm": 992187
+      },
+      "PRIME": {
+        "aulc_ppm": 698328,
+        "final_accuracy_ppm": 853515
+      },
+      "REACTIVE": {
+        "aulc_ppm": 664803,
+        "final_accuracy_ppm": 655598
+      },
+      "family": "recurrent-state",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": 426,
+      "task": "RUN-LENGTH-PARITY"
+    },
+    {
+      "GRU32": {
+        "aulc_ppm": 506934,
+        "final_accuracy_ppm": 744791
+      },
+      "H16": {
+        "aulc_ppm": 496167,
+        "final_accuracy_ppm": 498697
+      },
+      "H8": {
+        "aulc_ppm": 702210,
+        "final_accuracy_ppm": 541666
+      },
+      "PRIME": {
+        "aulc_ppm": 794830,
+        "final_accuracy_ppm": 449218
+      },
+      "REACTIVE": {
+        "aulc_ppm": 537026,
+        "final_accuracy_ppm": 744791
+      },
+      "family": "nonstationary",
+      "prime_explicit_recovery": null,
+      "prime_mean_first_authorization": 60,
+      "task": "XOR-TO-AND"
+    }
+  ],
+  "worlds_per_condition": 108
+}
