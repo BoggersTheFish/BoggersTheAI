@@ -8,6 +8,9 @@ from core.construction.registry import (
     ConstructionRegistry,
 )
 
+from .causal_memory import (
+    CausalProgramMemory,
+)
 from .episodic import (
     EpisodicMemory,
 )
@@ -54,6 +57,10 @@ class MegaPrimeCognition:
     def __init__(self) -> None:
         self.semantic_memory = (
             VerifiedConstructionMemory()
+        )
+
+        self.causal_program_memory = (
+            CausalProgramMemory()
         )
 
         self.episodic_memory = (

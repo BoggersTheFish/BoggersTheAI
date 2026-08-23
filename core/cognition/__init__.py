@@ -77,3 +77,23 @@ from .hypothesis_ecology import (
     WeightedEvidenceEpoch,
     allocate_hypothesis_mass,
 )
+
+from .causal_program import (
+    CONFIGURATIONS,
+    CausalProgram,
+    ProgramOp,
+    program_lookup,
+    program_universe,
+)
+from .causal_certificate import (
+    CausalAuthorization,
+    CausalAuthorityLedger,
+    compatible_program_ids,
+    minimal_certificate,
+    universe_hash,
+)
+from .causal_memory import (
+    CausalMemoryEntry,
+    CausalProgramMemory,
+    CausalSchema,
+)
