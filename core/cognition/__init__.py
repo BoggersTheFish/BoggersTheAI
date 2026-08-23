@@ -71,3 +71,9 @@ __all__ = [
     "VerifiedWorldModel",
     "expand_references",
 ]
+
+from .hypothesis_ecology import (
+    HypothesisAllocation,
+    WeightedEvidenceEpoch,
+    allocate_hypothesis_mass,
+)
