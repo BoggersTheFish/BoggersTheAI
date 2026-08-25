@@ -1,0 +1,97 @@
+{
+  "accuracy": 0.796,
+  "authority": "NONE",
+  "channel_accept_reject_accuracy": {
+    "arithmetic": 0.5,
+    "code_property": 0.5,
+    "structural": 0.5
+  },
+  "checkpoint": "artifacts/native_cortex/prime-bridge-v1/cortex-prime-final.pt",
+  "checkpoint_format": "mega-prime-cortex-bridge-v1",
+  "checkpoint_sha256": "aa1119618e4668de79dce8d783a016d5699bd53df3232b0cffbada6938a59ca1",
+  "confusion": [
+    [
+      100,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      100,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      100,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      98,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      100
+    ]
+  ],
+  "development": "data/native_cortex/verifier_semantics/counterfactual_v1/development.jsonl",
+  "development_sha256": "39e869122c1086ffcdc72d06e3dba74f4f0e228cef143c9d9bd8cb0c3cd91587",
+  "format": "mega-prime-counterfactual-verifier-development-v1",
+  "full_prompt_collisions": 0,
+  "full_verifier_semantics_gate": false,
+  "gates": {
+    "accept_gt_0_60": false,
+    "all_channel_ar_gt_0_60": false,
+    "macro_gt_0_60": true,
+    "margin_reversal_gt_0_50": false,
+    "minimum_class_gt_0_35": false,
+    "no_full_prompt_collisions": true,
+    "no_malformed_pairs": true,
+    "no_truncated_token_collisions": true,
+    "overall_gt_0_60": true,
+    "pair_accuracy_gt_0_50": false,
+    "reject_gt_0_60": true
+  },
+  "macro_accuracy": 0.796,
+  "malformed_pairs": 0,
+  "margin_reversal_rate": 0.0,
+  "mean_accept_margin": -0.773903574347496,
+  "mean_margin_flip": -0.0077698913775384425,
+  "mean_reject_margin": -0.7661336829699575,
+  "minimum_class_accuracy": 0.0,
+  "pair_accuracy": 0.0,
+  "pair_channel_accuracy": {
+    "arithmetic": 0.0,
+    "code_property": 0.0,
+    "structural": 0.0
+  },
+  "pairs": 100,
+  "per_class": {
+    "ABSTAIN": 1.0,
+    "ACCEPT": 0.0,
+    "REJECT": 1.0,
+    "REPAIR": 0.98,
+    "UNKNOWN": 1.0
+  },
+  "prediction_counts": {
+    "ABSTAIN": 100,
+    "ACCEPT": 0,
+    "REJECT": 202,
+    "REPAIR": 98,
+    "UNKNOWN": 100
+  },
+  "records": 500,
+  "truncated_token_collisions": 0
+}
