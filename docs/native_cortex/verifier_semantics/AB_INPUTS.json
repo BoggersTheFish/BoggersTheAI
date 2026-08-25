@@ -1,0 +1,18 @@
+{
+  "authority": "NONE",
+  "base_checkpoint_sha256": "aa1119618e4668de79dce8d783a016d5699bd53df3232b0cffbada6938a59ca1",
+  "counterfactual_development_sha256": "39e869122c1086ffcdc72d06e3dba74f4f0e228cef143c9d9bd8cb0c3cd91587",
+  "counterfactual_train_sha256": "b7ebab7b3b8bcee3a476a7a13cc41e356b2e25ba8c6f2c15b2c83e7994252025",
+  "exposure_control_train_sha256": "09a08d5924c7f0616d16beecce6c75f03e52ce6cfe100afa3f00c2d9cf4c6516",
+  "format": "mega-prime-verifier-semantics-ab-input-lock-v1",
+  "lm_stream_sha256": "92e4b2f50aed7dd95a94fc964affcda019253c8edd86580e2e3d0033c4a04963",
+  "paths": {
+    "base_checkpoint": "artifacts/native_cortex/prime-bridge-v1/cortex-prime-final.pt",
+    "counterfactual_development": "data/native_cortex/verifier_semantics/counterfactual_v1/development.jsonl",
+    "counterfactual_train": "data/native_cortex/verifier_semantics/counterfactual_v1/train.jsonl",
+    "exposure_control_train": "data/native_cortex/prime_bridge/curriculum/train.jsonl",
+    "lm_stream": "data/native_cortex/tokens/train.bin",
+    "semantic_train": "data/native_cortex/prime_bridge/train/semantic.jsonl"
+  },
+  "semantic_train_sha256": "4f0bd8a514a6160a466c52ab719f9035d29777558faecbcc7feb161c36336d4b"
+}
