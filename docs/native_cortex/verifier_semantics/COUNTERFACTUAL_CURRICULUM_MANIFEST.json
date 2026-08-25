@@ -1,0 +1,49 @@
+{
+  "authority": "NONE",
+  "builder_sha256": "67375d2cf227de6019642d5464d20855ca00e73d9e6292aef42e62c7f7a97590",
+  "construction": "matched ACCEPT/REJECT canonical typed verifier pairs plus frozen v1 UNKNOWN/REPAIR/ABSTAIN controls",
+  "format": "mega-prime-counterfactual-verifier-curriculum-v1",
+  "seed": 26082501,
+  "source_development_sha256": "071305f8af9974b9014a297dbcf2058aa768ccb80224ef962b184447c61c2f57",
+  "source_train_sha256": "09a08d5924c7f0616d16beecce6c75f03e52ce6cfe100afa3f00c2d9cf4c6516",
+  "splits": {
+    "development": {
+      "labels": {
+        "ABSTAIN": 100,
+        "ACCEPT": 100,
+        "REJECT": 100,
+        "REPAIR": 100,
+        "UNKNOWN": 100
+      },
+      "pair_set_sha256": "ec63b62a53424b6c806ffda8de04d29606e0da6f450e7b10bb518bf7e60cf2c2",
+      "paired_channels": {
+        "arithmetic": 68,
+        "code_property": 66,
+        "structural": 66
+      },
+      "pairs": 100,
+      "records": 500,
+      "sha256": "39e869122c1086ffcdc72d06e3dba74f4f0e228cef143c9d9bd8cb0c3cd91587",
+      "split": "development"
+    },
+    "train": {
+      "labels": {
+        "ABSTAIN": 500,
+        "ACCEPT": 500,
+        "REJECT": 500,
+        "REPAIR": 500,
+        "UNKNOWN": 500
+      },
+      "pair_set_sha256": "676b5a5bb23a6c83f3431b8e833383bf251173d450d47e0a52f3ebff1af567b6",
+      "paired_channels": {
+        "arithmetic": 334,
+        "code_property": 332,
+        "structural": 334
+      },
+      "pairs": 500,
+      "records": 2500,
+      "sha256": "b7ebab7b3b8bcee3a476a7a13cc41e356b2e25ba8c6f2c15b2c83e7994252025",
+      "split": "train"
+    }
+  }
+}
