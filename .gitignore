@@ -59,3 +59,5 @@ data/native_cortex/prime_bridge/
 data/native_cortex/splits/
 
 data/native_cortex/tokens/
+
+data/native_cortex/verifier_semantics/
