@@ -1,0 +1,38 @@
+{
+  "authority": "NONE",
+  "base_checkpoint": "artifacts/native_cortex/prime-bridge-v1/cortex-prime-final.pt",
+  "base_checkpoint_sha256": "aa1119618e4668de79dce8d783a016d5699bd53df3232b0cffbada6938a59ca1",
+  "condition": "exposure_control",
+  "elapsed_seconds": 8927.053175387,
+  "final_checkpoint": "artifacts/native_cortex/verifier-semantics-ab-v1/exposure_control/cortex-final.pt",
+  "final_checkpoint_sha256": "73d40bb229a1ac738e5148e67b171f7f8f8f4c6338b2454bcc0186e2a41c4df0",
+  "format": "mega-prime-verifier-semantics-ab-training-v1",
+  "learning_rate": 8e-05,
+  "lm_stream": "data/native_cortex/tokens/train.bin",
+  "lm_stream_sha256": "92e4b2f50aed7dd95a94fc964affcda019253c8edd86580e2e3d0033c4a04963",
+  "max_length": 192,
+  "optimizer_state_continued": true,
+  "optimizer_task_counts": {
+    "lm": 300,
+    "semantic": 200,
+    "verifier": 500
+  },
+  "schedule": "30% LM / 20% semantic / 50% verifier optimizer steps",
+  "seed": 26082511,
+  "semantic_path": "data/native_cortex/prime_bridge/train/semantic.jsonl",
+  "semantic_sha256": "4f0bd8a514a6160a466c52ab719f9035d29777558faecbcc7feb161c36336d4b",
+  "steps": 1000,
+  "unique_verifier_records_seen": 2500,
+  "verifier_batch_size": 5,
+  "verifier_curriculum": "data/native_cortex/prime_bridge/curriculum/train.jsonl",
+  "verifier_curriculum_sha256": "09a08d5924c7f0616d16beecce6c75f03e52ce6cfe100afa3f00c2d9cf4c6516",
+  "verifier_label_presentations": {
+    "ABSTAIN": 500,
+    "ACCEPT": 500,
+    "REJECT": 500,
+    "REPAIR": 500,
+    "UNKNOWN": 500
+  },
+  "verifier_presentations": 2500,
+  "verifier_records": 2500
+}
