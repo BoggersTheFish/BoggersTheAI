@@ -1,0 +1,429 @@
+nodes:
+  - id: meaning
+    label: Meaning
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: life
+    label: Life
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: number_47
+    label: Number 47
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: symbol
+  - id: arbitrary_symbol
+    label: Arbitrary Symbol
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: symbol
+  - id: stable_attractor
+    label: Stable Attractor
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: state
+  - id: coherence
+    label: Coherence
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: state
+  - id: humour
+    label: Humour
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: absurdity
+    label: Absurdity
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: religion
+    label: Religion
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: ritual
+    label: Ritual
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: memory
+  - id: comfort
+    label: Comfort
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: state
+  - id: trauma
+    label: Trauma
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: memory
+  - id: control
+    label: Control
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: community
+    label: Community
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: language
+    label: Language
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: symbol
+    label: Symbol
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: symbol
+  - id: signal
+    label: Signal
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: state
+  - id: wave
+    label: Wave
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: propagation
+    label: Propagation
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: transformation
+  - id: graph
+    label: Graph
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: structure
+  - id: edge_strength
+    label: Edge Strength
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: constraint
+  - id: derivative_response
+    label: Derivative Response
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: state
+  - id: tension
+    label: Tension
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: state
+  - id: relaxation
+    label: Relaxation
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: transformation
+  - id: compression
+    label: Compression
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: concept
+  - id: R_radius
+    label: R Radius
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: metric
+  - id: minimum_R_compressor
+    label: Minimum-R Compressor
+    activation: 0.0
+    stability: 1.0
+    metadata:
+      type: objective
+
+edges:
+  - source: number_47
+    target: arbitrary_symbol
+    relation: exemplifies
+    weight: 0.95
+    polarity: 1.0
+    expected_ratio: 0.9
+    metadata:
+      note: "47 can act as a deliberately arbitrary symbol."
+  - source: arbitrary_symbol
+    target: stable_attractor
+    relation: can_settle_into
+    weight: 0.45
+    polarity: 1.0
+    expected_ratio: 0.5
+    metadata:
+      note: "Repeated arbitrary symbols can become stabilizing attractors."
+  - source: arbitrary_symbol
+    target: absurdity
+    relation: evokes
+    weight: 0.8
+    polarity: 1.0
+    expected_ratio: 0.7
+    metadata:
+      note: "Arbitrary symbols often activate absurdity."
+  - source: absurdity
+    target: humour
+    relation: evokes
+    weight: 0.75
+    polarity: 1.0
+    expected_ratio: 0.8
+    metadata:
+      note: "Absurdity can become humorous when tension remains low."
+  - source: stable_attractor
+    target: coherence
+    relation: stabilizes
+    weight: 0.9
+    polarity: 1.0
+    expected_ratio: 0.85
+    metadata:
+      note: "Stable attractors reduce drift and support coherence."
+  - source: meaning
+    target: stable_attractor
+    relation: seeks
+    weight: 0.9
+    polarity: 1.0
+    expected_ratio: 0.8
+    metadata:
+      note: "Meaning often seeks stabilizing attractors."
+  - source: life
+    target: meaning
+    relation: raises_question_of
+    weight: 0.85
+    polarity: 1.0
+    expected_ratio: 0.75
+    metadata:
+      note: "Life commonly activates meaning-seeking."
+  - source: religion
+    target: ritual
+    relation: organizes
+    weight: 0.85
+    polarity: 1.0
+    expected_ratio: 0.8
+    metadata:
+      note: "Religion can organize repeated ritual forms."
+  - source: ritual
+    target: comfort
+    relation: supports
+    weight: 0.7
+    polarity: 1.0
+    expected_ratio: 0.65
+    metadata:
+      note: "Ritual repetition may support comfort."
+  - source: religion
+    target: comfort
+    relation: can_support
+    weight: 0.6
+    polarity: 1.0
+    expected_ratio: 0.55
+    metadata:
+      note: "Religion can directly support comfort for some contexts."
+  - source: religion
+    target: control
+    relation: can_enable
+    weight: 0.85
+    polarity: 1.0
+    expected_ratio: 0.4
+    metadata:
+      note: "Religion can also enable social control."
+  - source: religion
+    target: trauma
+    relation: can_trigger
+    weight: 0.05
+    polarity: 1.0
+    expected_ratio: 0.35
+    metadata:
+      note: "Religion can activate trauma associations in harm contexts."
+  - source: religion
+    target: tension
+    relation: can_raise
+    weight: 0.05
+    polarity: 1.0
+    expected_ratio: 0.45
+    metadata:
+      note: "Religion can raise tension in harm contexts."
+  - source: trauma
+    target: tension
+    relation: increases
+    weight: 0.1
+    polarity: 1.0
+    expected_ratio: 0.9
+    metadata:
+      note: "Trauma tends to increase unresolved tension."
+  - source: control
+    target: tension
+    relation: increases
+    weight: 0.85
+    polarity: 1.0
+    expected_ratio: 0.6
+    metadata:
+      note: "Control can increase tension when constraints conflict."
+  - source: language
+    target: symbol
+    relation: uses
+    weight: 0.9
+    polarity: 1.0
+    expected_ratio: 0.85
+    metadata:
+      note: "Language uses symbols as signal carriers."
+  - source: symbol
+    target: signal
+    relation: carries
+    weight: 0.85
+    polarity: 1.0
+    expected_ratio: 0.8
+    metadata:
+      note: "Symbols carry signals through interpretation."
+  - source: signal
+    target: wave
+    relation: can_be
+    weight: 0.65
+    polarity: 1.0
+    expected_ratio: 0.6
+    metadata:
+      note: "Signals may be represented as waves."
+  - source: wave
+    target: propagation
+    relation: enables
+    weight: 0.7
+    polarity: 1.0
+    expected_ratio: 0.65
+    metadata:
+      note: "Waves provide a concrete propagation metaphor."
+  - source: graph
+    target: edge_strength
+    relation: parameterizes
+    weight: 0.8
+    polarity: 1.0
+    expected_ratio: 0.75
+    metadata:
+      note: "Graphs expose edge strength as a reasoning parameter."
+  - source: edge_strength
+    target: derivative_response
+    relation: shapes
+    weight: 0.75
+    polarity: 1.0
+    expected_ratio: 0.7
+    metadata:
+      note: "Edge strength shapes derivative response."
+  - source: compression
+    target: R_radius
+    relation: minimizes
+    weight: 0.8
+    polarity: -1.0
+    expected_ratio: 0.65
+    metadata:
+      note: "Better compression should reduce representational radius."
+  - source: R_radius
+    target: minimum_R_compressor
+    relation: defines_objective_for
+    weight: 0.9
+    polarity: -1.0
+    expected_ratio: 0.8
+    metadata:
+      note: "Lower R supports the minimum-R compressor objective."
+  - source: religion
+    target: community
+    relation: can_build
+    weight: 0.75
+    polarity: 1.0
+    expected_ratio: 0.65
+    metadata:
+      note: "Religion can build community in comfort-oriented contexts."
+  - source: comfort
+    target: stable_attractor
+    relation: stabilizes
+    weight: 0.55
+    polarity: 1.0
+    expected_ratio: 0.6
+    metadata:
+      note: "Comfort can help stabilize attractor states."
+  - source: comfort
+    target: relaxation
+    relation: supports
+    weight: 0.55
+    polarity: 1.0
+    expected_ratio: 0.55
+    metadata:
+      note: "Comfort supports relaxation."
+  - source: relaxation
+    target: coherence
+    relation: supports
+    weight: 0.5
+    polarity: 1.0
+    expected_ratio: 0.55
+    metadata:
+      note: "Relaxation can support low-tension coherence."
+  - source: community
+    target: comfort
+    relation: supports
+    weight: 0.35
+    polarity: 1.0
+    expected_ratio: 0.45
+    metadata:
+      note: "Community can reinforce comfort."
+  - source: comfort
+    target: control
+    relation: softens
+    weight: 1.0
+    polarity: -1.0
+    expected_ratio: 0.3
+    metadata:
+      note: "Comfort context softens the control path."
+  - source: comfort
+    target: tension
+    relation: relaxes
+    weight: 0.8
+    polarity: -1.0
+    expected_ratio: 0.3
+    metadata:
+      note: "Comfort context relaxes tension."
+  - source: trauma
+    target: comfort
+    relation: disrupts
+    weight: 1.3
+    polarity: -1.0
+    expected_ratio: 0.3
+    metadata:
+      note: "Trauma context disrupts comfort response."
+  - source: trauma
+    target: ritual
+    relation: disrupts
+    weight: 1.0
+    polarity: -1.0
+    expected_ratio: 0.3
+    metadata:
+      note: "Trauma context disrupts ritual response."
+  - source: trauma
+    target: community
+    relation: isolates
+    weight: 1.0
+    polarity: -1.0
+    expected_ratio: 0.3
+    metadata:
+      note: "Trauma context can isolate community response."

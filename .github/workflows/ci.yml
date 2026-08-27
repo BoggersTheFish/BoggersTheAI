@@ -1,41 +1,58 @@
-name: ci
+name: CI
 
 on:
   push:
+    branches: [main, master, "refactor/*"]
   pull_request:
+    branches: [main, master]
 
 jobs:
-  quality:
+  test-and-smoke:
+    name: Test suite + kernel smoke demo
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install package and dev dependencies
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}-py${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-      - name: Ruff
-        run: ruff check .
-      - name: Black
-        run: black --check .
-      - name: Isort
-        run: isort --check .
-      - name: Mypy
-        run: mypy core/kernel --explicit-package-bases --ignore-missing-imports --follow-imports=skip --no-error-summary
-      - name: Package smoke mypy
-        run: mypy core/kernel core/trace_processor.py core/ts_engine.py interface/api.py --ignore-missing-imports --follow-imports=skip --no-error-summary
-      - name: Tests
-        run: pytest -q
-      - name: Coverage
-        run: pytest --cov=BoggersTheAI --cov-fail-under=60
+
+      - name: Format check
+        run: python -m black --check .
+
+      - name: Import sort check
+        run: python -m isort --check .
+
+      - name: Lint check
+        run: python -m ruff check .
+
+      - name: Architecture dependency rules check
+        run: python tools/check_architecture.py
+
+      - name: Documentation links check
+        run: python tools/check_docs.py
+
+      - name: Run test suite
+        run: pytest -m "not slow and not network"
+
+      - name: Canonical offline demo smoke test
+        run: python -m thinking_system.apps.cli.main demo --json

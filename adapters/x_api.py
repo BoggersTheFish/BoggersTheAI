@@ -7,7 +7,10 @@ import urllib.parse
 import urllib.request
 from typing import List
 
-from ..core.types import Node
+try:
+    from ..core.types import Node
+except ImportError:
+    from core.types import Node
 
 logger = logging.getLogger("boggers.adapters.x_api")
 

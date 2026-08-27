@@ -6,8 +6,12 @@ import xml.etree.ElementTree as ET
 from typing import List
 from urllib.parse import urlencode
 
-from ..core.types import Node
-from ..shared.http import fetch_url
+try:
+    from ..core.types import Node
+    from ..shared.http import fetch_url
+except ImportError:
+    from core.types import Node
+    from shared.http import fetch_url
 
 logger = logging.getLogger("boggers.adapters.arxiv")
 
@@ -57,11 +61,11 @@ class ArXivAdapter:
             )
             arxiv_id = (entry.findtext("atom:id", namespaces=ns) or "").strip()
 
-            authors = [
-                author.findtext("atom:name", namespaces=ns)
-                for author in entry.findall("atom:author", ns)
-                if author.findtext("atom:name", namespaces=ns)
-            ]
+            authors: list[str] = []
+            for author in entry.findall("atom:author", ns):
+                name = author.findtext("atom:name", namespaces=ns)
+                if name:
+                    authors.append(name.strip())
             authors_str = ", ".join(authors)
 
             content = f"{title}. Authors: {authors_str}. Abstract: {summary}"

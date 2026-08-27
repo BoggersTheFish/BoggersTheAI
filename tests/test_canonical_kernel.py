@@ -1216,6 +1216,7 @@ def test_runtime_and_api_route_formal_query_through_kernel(tmp_path):
     cfg.tui = {"enabled": False}
     cfg.graph_backend = "json"
     cfg.graph_path = str(tmp_path / "graph.json")
+    cfg.sqlite_path = str(tmp_path / "graph.db")
     cfg.inference = {
         "ollama": {"enabled": False},
         "synthesis": {"use_graph_subgraph": True, "top_k_nodes": 3},

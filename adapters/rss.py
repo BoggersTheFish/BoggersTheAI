@@ -5,8 +5,12 @@ import logging
 import xml.etree.ElementTree as ET
 from typing import List
 
-from ..core.types import Node
-from ..shared.http import fetch_url
+try:
+    from ..core.types import Node
+    from ..shared.http import fetch_url
+except ImportError:
+    from core.types import Node
+    from shared.http import fetch_url
 
 try:
     from defusedxml import ElementTree as SafeET

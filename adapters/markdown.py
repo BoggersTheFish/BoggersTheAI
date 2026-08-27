@@ -4,9 +4,14 @@ import hashlib
 from pathlib import Path
 from typing import List
 
-from ..core.logger import get_logger
-from ..core.path_sandbox import validate_path
-from ..core.types import Node
+try:
+    from ..core.logger import get_logger
+    from ..core.path_sandbox import validate_path
+    from ..core.types import Node
+except ImportError:
+    from core.logger import get_logger
+    from core.path_sandbox import validate_path
+    from core.types import Node
 
 logger = get_logger(__name__)
 

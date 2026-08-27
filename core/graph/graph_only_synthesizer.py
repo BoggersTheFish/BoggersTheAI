@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from ...entities.synthesis_engine import BoggersSynthesisConfig, BoggersSynthesisEngine
+from entities.synthesis_engine import BoggersSynthesisConfig, BoggersSynthesisEngine
 
 _HEADER_RE = re.compile(
     r"^\[node:([^\]]+)\]\s*topic=(.+?)\s+activation=([\d.]+)\s+stability=([\d.]+)\s*$"
