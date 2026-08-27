@@ -2,17 +2,15 @@
 
 State date: 2026-08-27
 
-## Frozen retention criterion
+## Retention criterion
 
-NORMAL development BPB must be less than or equal to:
+Frozen NORMAL development retention ceiling:
 
-2.1788
+2.1788 BPB
 
-The criterion applies to normal model operation.
+The RESET_RECURRENCE and NO_LOCAL_ATTENTION measurements are diagnostic ablations, not retention gates.
 
-RESET_RECURRENCE and NO_LOCAL_ATTENTION are diagnostic ablations and are not themselves retention gates.
-
-## References
+## Reference measurements
 
 Native Cortex V1 before bridge training:
 
@@ -22,7 +20,7 @@ First Cortex-PRIME bridge:
 
 NORMAL BPB = 2.0821
 
-## Condition A — exposure_control
+## Condition A: exposure control
 
 Final checkpoint SHA256:
 
@@ -50,11 +48,11 @@ Local-attention BPB contribution:
 
 +0.0899
 
-Language retention:
+Retention result:
 
 PASS
 
-## Condition B — counterfactual_paired
+## Condition B: counterfactual paired
 
 Final checkpoint SHA256:
 
@@ -82,7 +80,7 @@ Local-attention BPB contribution:
 
 +0.0926
 
-Language retention:
+Retention result:
 
 PASS
 
@@ -96,33 +94,33 @@ Condition B NORMAL BPB:
 
 2.0769
 
-Difference B minus A:
+B minus A:
 
 -0.0036 BPB
 
-This small difference is not interpreted as evidence of meaningful language improvement.
+The difference is too small to interpret as evidence of meaningful language improvement.
 
-The important result is that neither condition exhibits language degradation relative to the frozen retention ceiling.
+The important result is that both conditions remain below the frozen language-retention ceiling.
 
-Routing remains distributed across experts in both conditions.
+## Combined interpretation
 
-Recurrence and local attention remain measurably useful under both conditions.
+The counterfactual-paired condition changed verifier behaviour without catastrophic degradation of the Native Cortex language model.
 
-## Scientific interpretation
+Condition B nevertheless remains a partial verifier-semantics result.
 
-Condition B's improvement in counterfactual verifier behaviour was not purchased through catastrophic degradation of the Native Cortex language model.
+It achieved:
 
-The verifier-semantics A/B result can therefore be interpreted together with preserved language capability.
+35 percent matched-pair accuracy
 
-Condition B still fails the full frozen verifier-semantics gate.
+35 percent margin reversal
 
-The supported result is partial and channel-specific:
+100 percent structural matched-pair accuracy
 
-structural counterfactual semantics were learned strongly;
+while arithmetic remained near chance and code-property matched-pair accuracy remained zero.
 
-arithmetic counterfactual semantics remained near chance;
+Therefore the supported development result is that matched counterfactual supervision can teach an explicit relational verifier distinction while preserving language capability, but general computational verifier semantics have not yet been demonstrated.
 
-code-property counterfactual semantics remained unresolved.
+The full frozen verifier-semantics gate remains failed.
 
 Authority remains NONE.
 
