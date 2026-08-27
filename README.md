@@ -22,7 +22,6 @@
 
 ---
 
-## 2. What Thinking System Is
 
 Governing pattern:
 

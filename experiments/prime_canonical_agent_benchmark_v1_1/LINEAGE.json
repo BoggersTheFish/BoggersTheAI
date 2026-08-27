@@ -1,0 +1,10 @@
+{
+  "benchmark": "prime-canonical-agent-benchmark-v1.1",
+  "parent_benchmark": "prime-canonical-agent-benchmark-v1",
+  "parent_apparatus_commit": "23c326f",
+  "parent_contract_sha256": "91681a38971cf85eb3315a5b56ab9fd7064c65f1a4c2575ab390eba8be372a48",
+  "parent_apparatus_implementation_sha256": "4c93d3cda0a9d3dcab8e47ad890b93a3abfafcd480285da37913cb582b3232df",
+  "development_selected_fixed_baseline": "FIXED-H4",
+  "evaluation_seeds_inspected_before_successor_freeze": false,
+  "reason": "next-depth-only repair cannot honestly traverse information-neutral intermediate representations"
+}

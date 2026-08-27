@@ -1,0 +1,14 @@
+{
+  "format": "mega-prime-bpe-v1",
+  "requested_vocab_size": 4096,
+  "special_tokens": [
+    "<PAD>",
+    "<BOS>",
+    "<EOS>",
+    "<UNK>"
+  ],
+  "tokenizer_sha256": "a9d5e03bc9fded944c506f325beecc38ef11995ac0de0cf5745a3cd36fba91f4",
+  "train_corpus": "/home/boggersthefish/BoggersSpace/BoggersTheAI/data/native_cortex/splits/train.jsonl",
+  "train_corpus_sha256": "f69c1b1849b06324e6983d121a8dc7f007fb449adfcba432952f0a9acc3e795c",
+  "vocab_size": 4096
+}

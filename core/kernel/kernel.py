@@ -6,7 +6,12 @@ from dataclasses import asdict
 from typing import Any
 
 from ..graph.universal_living_graph import UniversalLivingGraph
-from .commit import commit_document, render_claim
+from .commit import (
+    commit_document,
+    preview_document_commit,
+    render_claim,
+    restore_graph_snapshot,
+)
 from .ir import ClaimNode, Provenance, TSOperation, VerifierObligation, stable_hash
 from .obligations import (
     ArithmeticVerifier,
@@ -20,6 +25,14 @@ from .obligations import (
     VerificationResult,
     compile_proof_to_bogvm_artifact,
 )
+from .prime_authority import (
+    AUTHORITY_MODE_LEGACY_LOCAL,
+    AUTHORITY_MODE_PRIME_REQUIRED,
+    AUTHORITY_MODES,
+    PrimeAuthorityUnavailable,
+    PrimeV19AuthorityAdapter,
+    admission_binds_boggers_projection,
+)
 from .receipts import TSReceipt, build_receipt
 from .replay import replay_receipt
 from .representation import PARSER_VERSION, DeterministicTSParser
@@ -31,6 +44,7 @@ from .transaction import (
     TransactionWorkspace,
     graph_snapshot,
     graph_state_hash,
+    serialized_graph_transaction,
 )
 
 
@@ -42,7 +56,18 @@ class TSKernel:
         graph: Any | None = None,
         *,
         parent_receipt_hash: str | None = None,
+        authority_mode: str = AUTHORITY_MODE_LEGACY_LOCAL,
+        prime_authority: PrimeV19AuthorityAdapter | None = None,
     ) -> None:
+        if authority_mode not in AUTHORITY_MODES:
+            raise ValueError(f"unknown authority mode: {authority_mode}")
+        if (
+            prime_authority is not None
+            and authority_mode != AUTHORITY_MODE_PRIME_REQUIRED
+        ):
+            raise ValueError(
+                "a configured PRIME adapter requires authority_mode='prime_required'"
+            )
         self.graph = (
             graph if graph is not None else UniversalLivingGraph(auto_load=False)
         )
@@ -57,6 +82,8 @@ class TSKernel:
         self.commit_policy = CommitPolicyVerifier()
         self.parent_receipt_hash = parent_receipt_hash
         self.receipts: list[TSReceipt] = []
+        self.authority_mode = authority_mode
+        self.prime_authority = prime_authority
 
     def can_handle(self, text: str) -> bool:
         parsed = self.parser.parse(text).document
@@ -69,6 +96,13 @@ class TSKernel:
         )
 
     def transact(self, request: TransactionRequest | str) -> TransactionResult:
+        with serialized_graph_transaction(self.graph):
+            return self._transact_serialized(request)
+
+    def _transact_serialized(
+        self,
+        request: TransactionRequest | str,
+    ) -> TransactionResult:
         if isinstance(request, str):
             request = TransactionRequest(raw_input=request)
 
@@ -204,20 +238,185 @@ class TSKernel:
             for claim_id, status in claim_status_by_id.items()
             if status == "accepted"
         }
-        if decision == CommitDecision.COMMIT:
-            workspace.committed_graph_delta = commit_document(
-                self.graph,
-                document,
-                accepted_claim_ids=accepted_claim_ids,
-                claim_status_by_id=claim_status_by_id,
-            )
-        elif decision == CommitDecision.BRANCH:
-            workspace.committed_graph_delta = commit_document(
-                self.graph,
-                document,
-                accepted_claim_ids=set(),
-                commit_branch_only=True,
-            )
+        prime_authority_receipt: dict[str, Any] = {}
+        prospective_graph_delta: dict[str, Any] | None = None
+        prospective_graph_delta_hash: str | None = None
+        expected_post_state_hash: str | None = None
+        if (
+            decision in {CommitDecision.COMMIT, CommitDecision.BRANCH}
+            and self.authority_mode == AUTHORITY_MODE_PRIME_REQUIRED
+        ):
+            if self.prime_authority is None:
+                decision = CommitDecision.ABSTAIN
+                reason = "PRIME v19 authority is required but unavailable"
+                prime_authority_receipt = {
+                    "schema": "boggers-prime-v19-admission-v1",
+                    "authorized": False,
+                    "decision": "ABSTAIN",
+                    "reason_codes": ["prime_authority_unavailable"],
+                }
+            else:
+                try:
+                    (
+                        prospective_graph_delta,
+                        prospective_graph_delta_hash,
+                        expected_post_state_hash,
+                    ) = preview_document_commit(
+                        base_nodes=workspace.base_nodes,
+                        base_edges=workspace.base_edges,
+                        document=document,
+                        accepted_claim_ids=(
+                            set()
+                            if decision == CommitDecision.BRANCH
+                            else accepted_claim_ids
+                        ),
+                        claim_status_by_id=(
+                            None
+                            if decision == CommitDecision.BRANCH
+                            else claim_status_by_id
+                        ),
+                        commit_branch_only=decision == CommitDecision.BRANCH,
+                    )
+                    admission = self.prime_authority.authorize_document_commit(
+                        request=request,
+                        workspace=workspace,
+                        document=document,
+                        base_graph_hash=base_hash,
+                        local_decision=decision.value,
+                        local_reason=reason,
+                        accepted_claim_ids=accepted_claim_ids,
+                        claim_status_by_id=claim_status_by_id,
+                        commit_branch_only=decision == CommitDecision.BRANCH,
+                        boggers_parent_receipt_hash=self.parent_receipt_hash,
+                        prospective_graph_delta=prospective_graph_delta,
+                        prospective_graph_delta_hash=prospective_graph_delta_hash,
+                        expected_post_state_hash=expected_post_state_hash,
+                    )
+                    prime_authority_receipt = admission.to_dict()
+                    if not admission.authorized:
+                        decision = (
+                            CommitDecision.REJECT
+                            if admission.decision == "REJECT"
+                            else CommitDecision.ABSTAIN
+                        )
+                        reasons = ",".join(admission.reason_codes) or "no_reason"
+                        reason = f"PRIME v19 authority denied commit: {reasons}"
+                    elif not admission_binds_boggers_projection(
+                        admission,
+                        prospective_graph_delta=prospective_graph_delta,
+                        prospective_graph_delta_hash=prospective_graph_delta_hash,
+                        expected_post_state_hash=expected_post_state_hash,
+                    ):
+                        decision = CommitDecision.ABSTAIN
+                        reason = (
+                            "PRIME v19 admission did not bind the exact pending "
+                            "Boggers graph projection"
+                        )
+                        self._invalidate_prime_admission(
+                            prime_authority_receipt,
+                            "boggers_projection_binding_failed",
+                        )
+                    elif graph_state_hash(self.graph) != base_hash:
+                        decision = CommitDecision.ABSTAIN
+                        reason = (
+                            "Boggers graph changed while PRIME authority was pending"
+                        )
+                        self._invalidate_prime_admission(
+                            prime_authority_receipt,
+                            "boggers_base_graph_changed_before_commit",
+                        )
+                except PrimeAuthorityUnavailable as exc:
+                    decision = CommitDecision.ABSTAIN
+                    reason = "PRIME v19 authority failed closed"
+                    prime_authority_receipt = {
+                        "schema": "boggers-prime-v19-admission-v1",
+                        "authorized": False,
+                        "decision": "ABSTAIN",
+                        "reason_codes": ["prime_authority_unavailable"],
+                        "error_type": type(exc).__name__,
+                    }
+                except Exception as exc:
+                    decision = CommitDecision.ABSTAIN
+                    reason = "Boggers could not project the pending PRIME commit"
+                    prime_authority_receipt = {
+                        "schema": "boggers-prime-v19-admission-v1",
+                        "authorized": False,
+                        "decision": "ABSTAIN",
+                        "reason_codes": ["boggers_prospective_commit_failed"],
+                        "error_type": type(exc).__name__,
+                    }
+        if decision in {CommitDecision.COMMIT, CommitDecision.BRANCH}:
+            if self.authority_mode == AUTHORITY_MODE_PRIME_REQUIRED:
+                try:
+                    committed_graph_delta = commit_document(
+                        self.graph,
+                        document,
+                        accepted_claim_ids=(
+                            set()
+                            if decision == CommitDecision.BRANCH
+                            else accepted_claim_ids
+                        ),
+                        claim_status_by_id=(
+                            None
+                            if decision == CommitDecision.BRANCH
+                            else claim_status_by_id
+                        ),
+                        commit_branch_only=decision == CommitDecision.BRANCH,
+                    )
+                    actual_post_state_hash = graph_state_hash(self.graph)
+                    projection_matches = (
+                        prospective_graph_delta is not None
+                        and prospective_graph_delta_hash is not None
+                        and expected_post_state_hash is not None
+                        and committed_graph_delta == prospective_graph_delta
+                        and stable_hash(committed_graph_delta)
+                        == prospective_graph_delta_hash
+                        and actual_post_state_hash == expected_post_state_hash
+                    )
+                    if not projection_matches:
+                        restore_graph_snapshot(
+                            self.graph,
+                            workspace.base_nodes,
+                            workspace.base_edges,
+                        )
+                        decision = CommitDecision.ABSTAIN
+                        reason = (
+                            "Boggers commit did not match the PRIME-authorized "
+                            "graph projection"
+                        )
+                        self._invalidate_prime_admission(
+                            prime_authority_receipt,
+                            "boggers_post_commit_verification_failed",
+                        )
+                    else:
+                        workspace.committed_graph_delta = committed_graph_delta
+                except Exception as exc:
+                    restore_graph_snapshot(
+                        self.graph,
+                        workspace.base_nodes,
+                        workspace.base_edges,
+                    )
+                    decision = CommitDecision.ABSTAIN
+                    reason = "Boggers failed to apply the PRIME-authorized commit"
+                    self._invalidate_prime_admission(
+                        prime_authority_receipt,
+                        "boggers_commit_application_failed",
+                    )
+                    prime_authority_receipt["error_type"] = type(exc).__name__
+            elif decision == CommitDecision.COMMIT:
+                workspace.committed_graph_delta = commit_document(
+                    self.graph,
+                    document,
+                    accepted_claim_ids=accepted_claim_ids,
+                    claim_status_by_id=claim_status_by_id,
+                )
+            else:
+                workspace.committed_graph_delta = commit_document(
+                    self.graph,
+                    document,
+                    accepted_claim_ids=set(),
+                    commit_branch_only=True,
+                )
 
         self._mark_bogvm_commit_authorization(workspace, decision)
         post_hash = graph_state_hash(self.graph)
@@ -267,6 +466,8 @@ class TSKernel:
             ],
             rendered_explanation=rendered,
             committed_graph_delta=workspace.committed_graph_delta,
+            authority_mode=self.authority_mode,
+            prime_authority_receipt=prime_authority_receipt,
         )
         receipt.renderer_metadata["replay_verified"] = (
             self._verify_replay_from_workspace(workspace, receipt)
@@ -275,6 +476,17 @@ class TSKernel:
         self.receipts.append(receipt)
         self.parent_receipt_hash = receipt.receipt_hash
         return TransactionResult(decision=decision, receipt=receipt, rendered=rendered)
+
+    @staticmethod
+    def _invalidate_prime_admission(
+        prime_authority_receipt: dict[str, Any],
+        reason_code: str,
+    ) -> None:
+        prime_authority_receipt["authorized"] = False
+        prime_authority_receipt["reason_codes"] = [
+            *prime_authority_receipt.get("reason_codes", []),
+            reason_code,
+        ]
 
     def replay(
         self, receipt: TSReceipt | dict[str, Any], graph: Any | None = None

@@ -43,3 +43,21 @@ snapshots/
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+.venv-m26/
+artifacts/
+
+data/native_cortex/tokens/*.bin
+
+.venv-m26/
+artifacts/
+data/native_cortex/splits/*.jsonl
+data/native_cortex/tokens/*.bin
+
+data/native_cortex/prime_bridge/
+
+data/native_cortex/splits/
+
+data/native_cortex/tokens/
+
+data/native_cortex/verifier_semantics/

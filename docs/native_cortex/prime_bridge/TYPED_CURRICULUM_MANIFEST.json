@@ -1,0 +1,37 @@
+{
+  "authority": "NONE",
+  "format": "mega-prime-typed-verifier-curriculum-v1",
+  "mapping": {
+    "error": "UNKNOWN",
+    "fail": "REJECT",
+    "open_repair": "REPAIR",
+    "pass": "ACCEPT",
+    "unsupported": "ABSTAIN"
+  },
+  "splits": {
+    "development": {
+      "final_experience_hash": "67badef46960dfc7d9577db235703dceeff3705151fdf4f2b715893dca3a0b66",
+      "labels": {
+        "ABSTAIN": 100,
+        "ACCEPT": 100,
+        "REJECT": 100,
+        "REPAIR": 100,
+        "UNKNOWN": 100
+      },
+      "records": 500,
+      "sha256": "071305f8af9974b9014a297dbcf2058aa768ccb80224ef962b184447c61c2f57"
+    },
+    "train": {
+      "final_experience_hash": "df94328268e5026a6a2568e96754f78816736e315d4e2cf3e08216d6db1d2f7d",
+      "labels": {
+        "ABSTAIN": 500,
+        "ACCEPT": 500,
+        "REJECT": 500,
+        "REPAIR": 500,
+        "UNKNOWN": 500
+      },
+      "records": 2500,
+      "sha256": "09a08d5924c7f0616d16beecce6c75f03e52ce6cfe100afa3f00c2d9cf4c6516"
+    }
+  }
+}

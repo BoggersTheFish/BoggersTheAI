@@ -1,0 +1,44 @@
+{
+  "characters": {
+    "development": 363245,
+    "heldout": 374209,
+    "train": 35167718
+  },
+  "counts": {
+    "development": 465,
+    "heldout": 462,
+    "train": 44073
+  },
+  "files": {
+    "development": {
+      "bytes": 456976,
+      "path": "data/native_cortex/splits/development.jsonl",
+      "sha256": "77f403f210f97c0e754ec7fecbde36738e5e0729e30f4725f8882acc1f79e41f"
+    },
+    "heldout": {
+      "bytes": 467121,
+      "path": "data/native_cortex/splits/heldout.jsonl",
+      "sha256": "509907b29546ecee73f464f44dd53a6a809b3b80a5e1d3f27c25846ac083ae8c"
+    },
+    "train": {
+      "bytes": 44061361,
+      "path": "data/native_cortex/splits/train.jsonl",
+      "sha256": "f69c1b1849b06324e6983d121a8dc7f007fb449adfcba432952f0a9acc3e795c"
+    }
+  },
+  "format": "mega-prime-native-cortex-corpus-v1",
+  "sources": [
+    {
+      "maximum_records_examined": 25000,
+      "source": "roneneldan/TinyStories",
+      "source_split": "train"
+    },
+    {
+      "configuration": "wikitext-103-v1",
+      "maximum_accepted_records": 20000,
+      "source": "Salesforce/wikitext",
+      "source_split": "train"
+    }
+  ],
+  "split_policy": "sha256(document) mod 10000: 0..99 heldout, 100..199 development, 200..9999 train"
+}

@@ -6,8 +6,9 @@ import copy
 from dataclasses import asdict
 from typing import Any
 
+from ..graph.universal_living_graph import UniversalLivingGraph
 from ..types import Edge, Node
-from .ir import ClaimNode, TSIRDocument
+from .ir import ClaimNode, TSIRDocument, stable_hash
 from .transaction import graph_state_hash
 
 
@@ -123,6 +124,70 @@ def commit_document(
         _restore_mutable_snapshot(graph, snapshot)
         raise
     return delta
+
+
+def preview_document_commit(
+    *,
+    base_nodes: dict[str, Node],
+    base_edges: list[Edge],
+    document: TSIRDocument,
+    accepted_claim_ids: set[str],
+    claim_status_by_id: dict[str, str] | None = None,
+    commit_branch_only: bool = False,
+) -> tuple[dict[str, Any], str, str]:
+    """Apply a pending commit to a detached graph and return exact projections.
+
+    The result is ``(graph_delta, graph_delta_hash, expected_post_state_hash)``.
+    No live graph object or persistence backend is touched.
+    """
+
+    detached = UniversalLivingGraph(
+        config={"runtime": {"graph_backend": "memory"}},
+        auto_load=False,
+    )
+    for node in sorted(base_nodes.values(), key=lambda item: item.id):
+        cloned = detached.add_node(
+            node_id=node.id,
+            content=node.content,
+            topics=node.topics,
+            activation=node.activation,
+            stability=node.stability,
+            base_strength=node.base_strength,
+            last_wave=node.last_wave,
+            attributes=node.attributes,
+            embedding=node.embedding,
+        )
+        cloned.collapsed = node.collapsed
+    for edge in base_edges:
+        detached.add_edge(
+            edge.src,
+            edge.dst,
+            weight=edge.weight,
+            relation=edge.relation,
+        )
+
+    delta = commit_document(
+        detached,
+        document,
+        accepted_claim_ids=accepted_claim_ids,
+        claim_status_by_id=claim_status_by_id,
+        commit_branch_only=commit_branch_only,
+    )
+    return delta, stable_hash(delta), graph_state_hash(detached)
+
+
+def restore_graph_snapshot(
+    graph: Any,
+    nodes: dict[str, Node],
+    edges: list[Edge],
+) -> None:
+    """Restore a detached snapshot after a failed post-commit condition."""
+
+    snapshot = (
+        {node_id: copy.deepcopy(node) for node_id, node in nodes.items()},
+        [copy.deepcopy(edge) for edge in edges],
+    )
+    _restore_mutable_snapshot(graph, snapshot)
 
 
 def _label(document: TSIRDocument, entity_id: str) -> str:

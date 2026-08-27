@@ -3,12 +3,130 @@
 from __future__ import annotations
 
 import copy
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+import threading
 from typing import Any
+import weakref
 
 from ..types import Edge, Node
 from .ir import TSIRDocument, VerifierObligation, stable_hash
+
+
+class ReentrantGraphTransactionError(RuntimeError):
+    """Raised instead of deadlocking on a nested transaction for one graph."""
+
+
+@dataclass(slots=True)
+class _GraphTransactionGuard:
+    transaction_lock: threading.Lock = field(default_factory=threading.Lock)
+    owner_lock: threading.Lock = field(default_factory=threading.Lock)
+    owner_thread_id: int | None = None
+
+
+_GRAPH_GUARDS_LOCK = threading.Lock()
+_GRAPH_GUARDS: dict[
+    int,
+    tuple[weakref.ReferenceType[Any] | Any, _GraphTransactionGuard],
+] = {}
+
+
+def _drop_graph_guard(
+    graph_id: int,
+    graph_reference: weakref.ReferenceType[Any],
+) -> None:
+    with _GRAPH_GUARDS_LOCK:
+        entry = _GRAPH_GUARDS.get(graph_id)
+        if entry is not None and entry[0] is graph_reference:
+            _GRAPH_GUARDS.pop(graph_id, None)
+
+
+def _graph_transaction_guard(graph: Any) -> _GraphTransactionGuard:
+    graph_id = id(graph)
+    with _GRAPH_GUARDS_LOCK:
+        existing = _GRAPH_GUARDS.get(graph_id)
+        if existing is not None:
+            reference, guard = existing
+            referenced_graph = (
+                reference()
+                if isinstance(reference, weakref.ReferenceType)
+                else reference
+            )
+            if referenced_graph is graph:
+                return guard
+            _GRAPH_GUARDS.pop(graph_id, None)
+
+        guard = _GraphTransactionGuard()
+        try:
+            reference = weakref.ref(
+                graph,
+                lambda item, key=graph_id: _drop_graph_guard(key, item),
+            )
+        except TypeError:
+            # A non-weak-referenceable graph is retained so object-id reuse can
+            # never alias two guards. Such custom graph objects are uncommon.
+            reference = graph
+        _GRAPH_GUARDS[graph_id] = (reference, guard)
+        return guard
+
+
+@contextmanager
+def _held_graph_lock(graph: Any):
+    """Hold a graph-native lock for callers which mutate through graph methods.
+
+    ``UniversalLivingGraph`` exposes a re-entrant context-manager lock. The
+    acquire/release fallback supports equivalent graph implementations without
+    requiring them to implement the context-manager protocol.
+    """
+
+    graph_lock = getattr(graph, "_lock", None)
+    if graph_lock is None:
+        yield
+        return
+    if hasattr(graph_lock, "__enter__") and hasattr(graph_lock, "__exit__"):
+        with graph_lock:
+            yield
+        return
+    acquire = getattr(graph_lock, "acquire", None)
+    release = getattr(graph_lock, "release", None)
+    if not callable(acquire) or not callable(release):
+        yield
+        return
+    acquire()
+    try:
+        yield
+    finally:
+        release()
+
+
+@contextmanager
+def serialized_graph_transaction(graph: Any):
+    """Serialize the complete TSKernel transaction for one graph object.
+
+    The guard is shared by every TSKernel instance using the same in-process
+    graph. A nested call from the owning thread fails immediately instead of
+    blocking forever on the non-reentrant transaction lock.
+    """
+
+    guard = _graph_transaction_guard(graph)
+    thread_id = threading.get_ident()
+    with guard.owner_lock:
+        if guard.owner_thread_id == thread_id:
+            raise ReentrantGraphTransactionError(
+                "a graph transaction cannot re-enter itself"
+            )
+
+    with _held_graph_lock(graph):
+        guard.transaction_lock.acquire()
+        try:
+            with guard.owner_lock:
+                guard.owner_thread_id = thread_id
+            yield
+        finally:
+            with guard.owner_lock:
+                guard.owner_thread_id = None
+            guard.transaction_lock.release()
 
 
 class CommitDecision(str, Enum):
