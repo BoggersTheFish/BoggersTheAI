@@ -1,0 +1,27 @@
+================================================================================================
+MEGA PRIME — NATIVE CORTEX V1 DEVELOPMENT
+================================================================================================
+parameters: 5,552,205
+authority: NONE
+
+running: NORMAL
+
+running: RESET_RECURRENCE
+
+running: NO_LOCAL_ATTENTION
+
+=== LANGUAGE ===
+NORMAL               CE=5.2068 PPL=182.52 BPB=2.0769
+RESET_RECURRENCE     CE=5.4544 PPL=233.79 BPB=2.1757
+NO_LOCAL_ATTENTION   CE=5.4389 PPL=230.19 BPB=2.1695
+
+RECURRENT BPB CONTRIBUTION: +0.0988
+LOCAL ATTENTION BPB CONTRIBUTION: +0.0926
+
+=== NORMAL ROUTING / MEMORY ===
+L0 experts=0.177,0.177,0.114,0.178,0.207,0.147 max=0.207 H=0.991 conf=0.335 state=2.255 read=0.465 erase=0.1985 write=0.1118 retain=0.9104 attnH=0.000
+L1 experts=0.205,0.139,0.162,0.181,0.161,0.151 max=0.205 H=0.996 conf=0.362 state=2.737 read=0.553 erase=0.2338 write=0.1718 retain=0.9028 attnH=0.950
+L2 experts=0.197,0.155,0.210,0.115,0.185,0.138 max=0.210 H=0.988 conf=0.355 state=3.496 read=0.855 erase=0.2124 write=0.2160 retain=0.9084 attnH=0.000
+L3 experts=0.176,0.122,0.136,0.205,0.179,0.182 max=0.205 H=0.992 conf=0.362 state=4.728 read=1.234 erase=0.1455 write=0.2336 retain=0.9242 attnH=0.783
+
+================================================================================================
